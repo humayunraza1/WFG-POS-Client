@@ -34,7 +34,7 @@ const useExpenses = (sessionId, isRegisterOpen, onExpenseChange) => {
 
     try {
       setIsLoading(true);
-      const { data } = await axios.get(`/expenses/session/${sessionId}`);
+      const { data } = await axios.get(`/expenses/session/${sessionId}`,{withCredentials:true});
       setExpenses(data);
     } catch (err) {
       // If it's a 404, just set empty array (new session)
@@ -53,7 +53,7 @@ const useExpenses = (sessionId, isRegisterOpen, onExpenseChange) => {
       const { data } = await axios.post(`/expenses`, {
         ...expenseData,
         registerSession: sessionId
-      });
+      },{withCredentials:true});
       setExpenses(prev => [...prev, data]);
       
       // Call the callback to update dashboard stats
@@ -71,7 +71,7 @@ const useExpenses = (sessionId, isRegisterOpen, onExpenseChange) => {
 
   const updateExpense = async (id, expenseData) => {
     try {
-      const { data } = await axios.put(`/expenses/${id}`, expenseData);
+      const { data } = await axios.put(`/expenses/${id}`, expenseData,{withCredentials:true});
       setExpenses(prev => prev.map(e => e._id === id ? data : e));
       
       // Call the callback to update dashboard stats
@@ -88,7 +88,7 @@ const useExpenses = (sessionId, isRegisterOpen, onExpenseChange) => {
 
   const deleteExpense = async (id) => {
     try {
-      await axios.delete(`/expenses/${id}`);
+      await axios.delete(`/expenses/${id}`,{withCredentials:true});
       setExpenses(prev => prev.filter(e => e._id !== id));
       
       // Call the callback to update dashboard stats

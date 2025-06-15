@@ -13,7 +13,7 @@ const useProducts = () => {
   const fetchProducts = async () => {
     try {
       setIsLoading(true);
-      const { data } = await axios.get(`/products`);
+      const { data } = await axios.get(`/products`, { withCredentials: true });
       setProducts(data);
       console.log(data)
     } catch (err) {
@@ -25,7 +25,7 @@ const useProducts = () => {
 
   const addProduct = async (productData) => {
     try {
-      const { data } = await axios.post(`/products`, productData);
+      const { data } = await axios.post(`/products`, productData, { withCredentials: true });
       setProducts(prev => [...prev, data]);
       return data;
     } catch (err) {
@@ -36,7 +36,7 @@ const useProducts = () => {
 
   const updateProduct = async (id, productData) => {
     try {
-      const { data } = await axios.patch(`/products/${id}`, productData);
+      const { data } = await axios.patch(`/products/${id}`, productData, { withCredentials: true });
       setProducts(prev => prev.map(p => p._id === id ? data : p));
       return data;
     } catch (err) {
@@ -47,7 +47,7 @@ const useProducts = () => {
 
   const deleteProduct = async (id) => {
     try {
-      await axios.delete(`/products/${id}`);
+      await axios.delete(`/products/${id}`, { withCredentials: true });
       setProducts(prev => prev.filter(p => p._id !== id));
     } catch (err) {
       setError(err.response?.data?.message || err.message);

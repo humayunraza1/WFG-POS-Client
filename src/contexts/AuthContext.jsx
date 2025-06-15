@@ -15,7 +15,7 @@ const AuthProvider = ({ children }) => {
     const checkAuthStatus = async () => {
       setIsLoading(true);
       try {
-        const res = await axios.get('/auth/me');
+        const res = await axios.get('/auth/me', { withCredentials: true });
         setUser(res.data.user);
         setIsAuthenticated(true);
       } catch (err) {
@@ -55,7 +55,7 @@ const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.post('/auth/logout');
+      await axios.post('/auth/logout', {}, { withCredentials: true });
     } catch (err) {
       console.warn('Server logout failed, logging out locally.');
     } finally {

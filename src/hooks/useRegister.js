@@ -50,7 +50,7 @@ const useRegister = () => {
   const checkRegisterStatus = async () => {
     try {
       setIsLoading(true);
-      const { data } = await axios.get(`/register/status`);
+      const { data } = await axios.get(`/register/status`, { withCredentials: true });
 
       if (data.isOpen) {
         setIsOpen(true);
@@ -80,7 +80,7 @@ const useRegister = () => {
         ? { startCash: registerData } 
         : registerData;
 
-      const { data } = await axios.post(`/register/open`, requestData);
+      const { data } = await axios.post(`/register/open`, requestData, { withCredentials: true } );
       
       setIsOpen(true);
       setSessionId(data.sessionId);
@@ -98,7 +98,7 @@ const useRegister = () => {
     try {
       const { data } = await axios.post(`/register/close`, {
         finalCash
-      });
+      }, { withCredentials: true });
       
       setIsOpen(false);
       setSessionId(null);
@@ -116,7 +116,7 @@ const useRegister = () => {
     if (!isOpen) return;
     
     try {
-      await axios.post(`/register/activity`);
+      await axios.post(`/register/activity`, {}, { withCredentials: true });
     } catch (err) {
       console.error('Failed to update activity:', err);
     }
@@ -140,7 +140,7 @@ const useRegister = () => {
         params.manager = filters.manager;
       }
 
-      const { data } = await axios.get('/register/sessions', { params });
+      const { data } = await axios.get('/register/sessions', { params }, { withCredentials: true });
       
       // Sort sessions by openedAt date, most recent first
       const sortedSessions = data.sort((a, b) => 
@@ -162,7 +162,7 @@ const useRegister = () => {
   // Function to get a specific session by ID
   const getSessionById = useCallback(async (sessionId) => {
     try {
-      const { data } = await axios.get(`/register/sessions/${sessionId}`);
+      const { data } = await axios.get(`/register/sessions/${sessionId}`, { withCredentials: true });
       return data;
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message;

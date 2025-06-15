@@ -64,7 +64,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
 
     try {
       setIsLoading(true);
-      const { data } = await axios.get(`/orders/session/${sessionId}`);
+      const { data } = await axios.get(`/orders/session/${sessionId}`,{ withCredentials: true });
       console.log(data);
       setOrders(data);
     } catch (err) {
@@ -82,7 +82,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
   const fetchAllOrders = useCallback(async () => {
     try {
       setIsLoadingAllOrders(true);
-      const { data } = await axios.get('/orders');
+      const { data } = await axios.get('/orders', { withCredentials: true });
       // Sort orders by date (newest first)
       const sortedOrders = data.sort((a, b) => {
         const dateA = new Date(a.createdAt || a.dateOrdered);
@@ -107,7 +107,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
 
     setStatsLoading(true);
     try {
-      const { data } = await axios.get(`/orders/daily-sales/${sessionId}`);
+      const { data } = await axios.get(`/orders/daily-sales/${sessionId}`,{ withCredentials: true });
       setDailyStats(data);
     } catch (error) {
       console.error('Error fetching daily stats:', error);
@@ -146,7 +146,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
       };
 
       console.log('Adding order:', formattedOrderData);
-      const { data } = await axios.post(`/orders`, formattedOrderData);
+      const { data } = await axios.post(`/orders`, formattedOrderData,{ withCredentials: true });
       setOrders(prev => [...prev, data]);
       fetchDailyStats();
 
@@ -172,7 +172,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
     try {
       const { data } = await axios.patch(`/orders/${orderId}/payment`, {
         amountReceived
-      });
+      }, { withCredentials: true });
 
       // Update the order in local state (session orders)
       setOrders(prev => 
@@ -208,7 +208,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
 
   const updateOrder = async (id, orderData) => {
     try {
-      const { data } = await axios.put(`/orders/${id}`, orderData);
+      const { data } = await axios.put(`/orders/${id}`, orderData,{ withCredentials: true });
       setOrders(prev => prev.map(o => o._id === id ? data : o));
       fetchDailyStats();
       return data;
@@ -220,7 +220,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
 
   const deleteOrder = async (id) => {
     try {
-      await axios.delete(`/orders/${id}`);
+      await axios.delete(`/orders/${id}`,{ withCredentials: true });
       setOrders(prev => prev.filter(o => o._id !== id));
       fetchDailyStats();
     } catch (err) {
@@ -231,7 +231,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
 
   const getDailyOrderCount = async () => {
     try {
-      const response = await axios.get(`/orders/daily-count`);
+      const response = await axios.get(`/orders/daily-count`,{ withCredentials: true });
       const data = response.data;
       return data.count;
     } catch (err) {
