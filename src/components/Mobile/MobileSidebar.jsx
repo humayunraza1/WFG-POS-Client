@@ -92,7 +92,7 @@ const MobileSidebar = ({
       label: 'Products',
       children: products.map(product => ({
         id: product._id,
-        label: product.name,
+        name: product.name,
         variants: product.variants
       })),
       hasSubItems: true
