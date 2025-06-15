@@ -262,7 +262,7 @@ const POSDashboard = () => {
               varID: variantId,
               name: product.name,
               price: product.price,
-              category: category.label,
+              category: category.name,
               quantity: 1
             }
           ];
@@ -270,7 +270,7 @@ const POSDashboard = () => {
       });
 
       toast.success('Added to cart', {
-        description: `${category.label} - ${product.name} added to cart`
+        description: `${category.name} - ${product.name} added to cart`
       });
     };
     
@@ -546,7 +546,7 @@ const POSDashboard = () => {
               {user && (
                 <>
 <Card 
-              className="border-0 h-15  bg-muted/50"
+              className="border-0 h-15  bg-muted/50 hidden lg:block"
             >
               <CardContent className="p-2 h-full flex items-center">
                 <div className="flex items-center gap-2 w-full">

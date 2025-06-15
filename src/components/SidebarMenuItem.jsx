@@ -51,7 +51,7 @@ const SidebarMenuItem = ({ icon: Icon, label, children, isExpanded, onToggle, on
                 className="w-full justify-start text-sm"
                 onClick={() => onClick && onClick(child)}
               >
-                {child.label || child}
+                {child.name || child}
               </Button>
             ))}
           </div>

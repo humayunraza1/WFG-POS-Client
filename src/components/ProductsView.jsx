@@ -22,7 +22,7 @@ import {
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const ProductsView = ({ category, products,onViewChange}) => {
+const ProductsView = ({products,onViewChange}) => {
     
     return (
       <Card>
