@@ -18,10 +18,7 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
   if (!session) return null;
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'PKR'
-    }).format(amount || 0);
+    return `PKR ${(amount || 0).toLocaleString()}`;
   };
 
   const formatDateTime = (date) => {
@@ -41,54 +38,60 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-6">
+      <SheetContent className="w-full sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl overflow-y-auto p-4 sm:p-6">
         <SheetHeader className="pb-6">
-          <SheetTitle className="text-xl flex items-center gap-3">
-            Register Session Details
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <SheetTitle className="text-lg sm:text-xl">
+              Register Session Details
+            </SheetTitle>
             {session.manager && (
               <Badge 
                 style={getManagerBadgeStyle(session.manager)}
-                className="font-medium"
+                className="font-medium w-fit"
               >
                 <User className="h-3 w-3 mr-1" />
                 {session.manager}
               </Badge>
             )}
-          </SheetTitle>
-          <SheetDescription className="text-base">
-            Session from {formatDateTime(session.openedAt)}
-            {session.closedAt && ` to ${formatDateTime(session.closedAt)}`}
-            <br/> 
-            Status:                   <Badge variant={session.isOpen ? 'destructive' : 'default'} className="text-sm">
-                    {session.isOpen ? 'Open' : 'Closed'}
-                  </Badge>
+          </div>
+          <SheetDescription className="text-sm sm:text-base">
+            <div className="flex flex-col gap-1">
+              <span>Session from {formatDateTime(session.openedAt)}</span>
+              {session.closedAt && <span>to {formatDateTime(session.closedAt)}</span>}
+              <div className="flex items-center gap-2 mt-2">
+                <span>Status:</span>
+                <Badge variant={session.isOpen ? 'destructive' : 'default'} className="text-xs sm:text-sm">
+                  {session.isOpen ? 'Open' : 'Closed'}
+                </Badge>
+              </div>
+            </div>
           </SheetDescription>
         </SheetHeader>
 
-        <div className="space-y-8 max-w-2xl">
+        <div className="space-y-6 sm:space-y-8 w-full">
           {/* Session Metrics */}
           <div>
             <SessionMetrics session={session} />
           </div>
 
-          <Separator className="my-6" />
+          <Separator className="my-4 sm:my-6" />
       
-          {/* Cash Information - Compact Version */}
+          {/* Cash Information */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Wallet className="h-5 w-5" />
+            <h3 className="text-base sm:text-lg font-semibold mb-4 flex items-center gap-2">
+              <Wallet className="h-4 sm:h-5 w-4 sm:w-5" />
               Cash Information
             </h3>
-            <div className="grid grid-cols-2 gap-3 max-w-xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-xl">
               <Card className="text-center">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-xs font-medium flex items-center justify-center gap-1">
+                  <CardTitle className="text-xs sm:text-sm font-medium flex items-center justify-center gap-1">
                     <Wallet className="h-3 w-3" />
                     Starting Cash
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="text-lg font-bold">
+                  <div className="text-lg sm:text-xl font-bold">
                     {formatCurrency(session.startCash)}
                   </div>
                 </CardContent>
@@ -97,13 +100,13 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
               {session.finalCash !== undefined && (
                 <Card className="text-center">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-xs font-medium flex items-center justify-center gap-1">
+                    <CardTitle className="text-xs sm:text-sm font-medium flex items-center justify-center gap-1">
                       <Wallet className="h-3 w-3" />
                       Final Cash
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="text-lg font-bold">
+                    <div className="text-lg sm:text-xl font-bold">
                       {formatCurrency(session.finalCash)}
                     </div>
                   </CardContent>
@@ -112,26 +115,30 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
             </div>
           </div>
 
-          <Separator className="my-6" />
+          <Separator className="my-4 sm:my-6" />
 
           {/* Orders Section */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5" />
+            <h3 className="text-base sm:text-lg font-semibold mb-4 flex items-center gap-2">
+              <ShoppingCart className="h-4 sm:h-5 w-4 sm:w-5" />
               Orders ({session.orders?.length || 0})
             </h3>
-            <SessionOrdersTable orders={session.orders || []} />
+            <div className="w-full overflow-hidden">
+              <SessionOrdersTable orders={session.orders || []} />
+            </div>
           </div>
 
-          <Separator className="my-6" />
+          <Separator className="my-4 sm:my-6" />
 
           {/* Expenses Section */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Receipt className="h-5 w-5" />
+            <h3 className="text-base sm:text-lg font-semibold mb-4 flex items-center gap-2">
+              <Receipt className="h-4 sm:h-5 w-4 sm:w-5" />
               Expenses ({session.expenses?.length || 0})
             </h3>
-            <SessionExpensesTable expenses={session.expenses || []} />
+            <div className="w-full overflow-hidden">
+              <SessionExpensesTable expenses={session.expenses || []} />
+            </div>
           </div>
         </div>
       </SheetContent>

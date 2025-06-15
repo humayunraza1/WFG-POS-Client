@@ -3,10 +3,7 @@ import { DollarSign, ShoppingCart, Receipt } from 'lucide-react';
 
 const SessionMetrics = ({ session }) => {
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'PKR'
-    }).format(amount || 0);
+    return `PKR ${(amount || 0).toLocaleString()}`;
   };
 
   const metrics = [
@@ -31,19 +28,19 @@ const SessionMetrics = ({ session }) => {
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-3 max-w-2xl">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
       {metrics.map((metric, index) => {
         const Icon = metric.icon;
         return (
           <Card key={index} className="text-center">
-            <CardHeader className="flex flex-col items-center space-y-1 pb-2">
-              <Icon className="h-4 w-4 text-muted-foreground" />
-              <CardTitle className="text-xs font-medium">
+            <CardHeader className="flex flex-col items-center space-y-2 pb-3">
+              <Icon className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">
                 {metric.title}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="text-lg font-bold">{metric.value}</div>
+              <div className="text-xl font-bold mb-1">{metric.value}</div>
               <p className="text-xs text-muted-foreground">
                 {metric.description}
               </p>
