@@ -239,8 +239,10 @@ const POSDashboard = () => {
       if (!requiresActiveSession('add items to cart')) {
         return;
       }
+      console.log('product', product);
+      console.log('category', category);
 
-      const productId = category.id;
+      const productId = category._id;
       const variantId = product._id;
       console.log(category);
       console.log(`Adding to cart: ${product.name} (ID: ${variantId}) from category ${category.label} (ID: ${productId})`);

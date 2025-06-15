@@ -19,7 +19,7 @@ const VariantsView = ({ category, products, onAddToCart, onViewChange }) => {
           </Button>
           <div className="w-12" /> {/* Spacer for alignment */}
         </div>
-          <CardTitle className="text-lg">{category.name}</CardTitle>
+          <CardTitle className="text-lg">{products.name}</CardTitle>
       </CardHeader>
 
       <CardContent>

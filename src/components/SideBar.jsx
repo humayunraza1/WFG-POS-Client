@@ -72,11 +72,7 @@ const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, register
       key: 'variants',
       icon: Package2,
       label: 'Products',
-      children: products.map(product => ({
-        id: product._id,
-        name: product.name,
-        variants: product.variants
-      })),
+      children: products,
       hasSubItems: true
     },
     {
