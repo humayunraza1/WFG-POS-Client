@@ -14,9 +14,22 @@ const OrdersHistory = ({ onUpdatePayment, fetchAllOrders, allOrders, isLoadingAl
   const [searchId, setSearchId] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
   
-  // Pagination state
+  // Pagination state - responsive orders per page
   const [currentPage, setCurrentPage] = useState(1);
-  const [ordersPerPage] = useState(10);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if mobile screen
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 1024); // lg breakpoint
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  const ordersPerPage = isMobile ? 5 : 10;
 
   useEffect(() => {
     // Only fetch if allOrders is empty
@@ -143,7 +156,7 @@ const OrdersHistory = ({ onUpdatePayment, fetchAllOrders, allOrders, isLoadingAl
       </div>
 
       {/* Orders Table */}
-      <Card className="h-[calc(100vh-300px)] overflow-hidden">
+      <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <CardTitle>All Orders</CardTitle>
@@ -179,137 +192,134 @@ const OrdersHistory = ({ onUpdatePayment, fetchAllOrders, allOrders, isLoadingAl
             <>
               {/* Desktop Table */}
               <div className="hidden lg:block">
-                <ScrollArea className="h-[calc(100vh-500px)] w-full">
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead className="sticky top-0 bg-background border-b">
-                        <tr>
-                          <th className="text-left p-3 font-medium w-[100px]">Order ID</th>
-                          <th className="text-left p-3 font-medium w-[140px]">Date Placed</th>
-                          <th className="text-left p-3 font-medium w-[120px]">Payment Status</th>
-                          <th className="text-right p-3 font-medium w-[120px]">Total Amount</th>
-                          <th className="text-right p-3 font-medium w-[120px]">Amount Paid</th>
-                          <th className="text-right p-3 font-medium w-[120px]">Outstanding</th>
-                          <th className="text-center p-3 font-medium w-[100px]">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {currentOrders.map((order) => {
-                          const orderDate = order.createdAt || order.dateOrdered;
-                          return (
-                            <tr key={order._id} className="border-b hover:bg-muted/50">
-                              <td className="p-3">
-                                <div className="font-mono text-sm font-medium">
-                                  {order._id.slice(-6).toUpperCase()}
-                                </div>
-                              </td>
-                              <td className="p-3">
-                                <div className="flex flex-col">
-                                  <span className="text-sm font-medium">
-                                    {orderDate ? format(new Date(orderDate), 'MMM dd, yyyy') : 'N/A'}
-                                  </span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {orderDate ? format(new Date(orderDate), 'h:mm a') : ''}
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="p-3">
-                                {getPaymentStatusBadge(order)}
-                              </td>
-                              <td className="p-3 text-right font-medium">
-                                PKR {(order.finalPrice || 0).toLocaleString()}
-                              </td>
-                              <td className="p-3 text-right text-green-600 font-medium">
-                                PKR {(order.amountPaid || 0).toLocaleString()}
-                              </td>
-                              <td className="p-3 text-right">
-                                <span className={(order.outstandingPayment || 0) > 0 ? 'text-red-600 font-medium' : 'text-green-600'}>
-                                  PKR {(order.outstandingPayment || 0).toLocaleString()}
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead className="bg-background border-b">
+                      <tr>
+                        <th className="text-left p-3 font-medium w-[100px]">Order ID</th>
+                        <th className="text-left p-3 font-medium w-[140px]">Date Placed</th>
+                        <th className="text-left p-3 font-medium w-[120px]">Payment Status</th>
+                        <th className="text-right p-3 font-medium w-[120px]">Total Amount</th>
+                        <th className="text-right p-3 font-medium w-[120px]">Amount Paid</th>
+                        <th className="text-right p-3 font-medium w-[120px]">Outstanding</th>
+                        <th className="text-center p-3 font-medium w-[100px]">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentOrders.map((order) => {
+                        const orderDate = order.createdAt || order.dateOrdered;
+                        return (
+                          <tr key={order._id} className="border-b hover:bg-muted/50">
+                            <td className="p-3">
+                              <div className="font-mono text-sm font-medium">
+                                {order._id.slice(-6).toUpperCase()}
+                              </div>
+                            </td>
+                            <td className="p-3">
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium">
+                                  {orderDate ? format(new Date(orderDate), 'MMM dd, yyyy') : 'N/A'}
                                 </span>
-                              </td>
-                              <td className="p-3 text-center">
-                                <Button
-                                  onClick={() => handleViewOrder(order)}
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-8 px-3"
-                                >
-                                  <Eye className="h-3 w-3 mr-1" />
-                                  View
-                                </Button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </ScrollArea>
+                                <span className="text-xs text-muted-foreground">
+                                  {orderDate ? format(new Date(orderDate), 'h:mm a') : ''}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="p-3">
+                              {getPaymentStatusBadge(order)}
+                            </td>
+                            <td className="p-3 text-right font-medium">
+                              PKR {(order.finalPrice || 0).toLocaleString()}
+                            </td>
+                            <td className="p-3 text-right text-green-600 font-medium">
+                              PKR {(order.amountPaid || 0).toLocaleString()}
+                            </td>
+                            <td className="p-3 text-right">
+                              <span className={(order.outstandingPayment || 0) > 0 ? 'text-red-600 font-medium' : 'text-green-600'}>
+                                PKR {(order.outstandingPayment || 0).toLocaleString()}
+                              </span>
+                            </td>
+                            <td className="p-3 text-center">
+                              <Button
+                                onClick={() => handleViewOrder(order)}
+                                size="sm"
+                                variant="outline"
+                                className="h-8 px-3"
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                View
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
-              {/* Tablet/Mobile Cards */}
+              {/* Mobile Cards - No ScrollArea, just pagination */}
               <div className="lg:hidden">
-                <ScrollArea className="h-[calc(100vh-500px)] w-full">
-                  <div className="space-y-3 p-4">
-                    {currentOrders.map((order) => {
-                      const orderDate = order.createdAt || order.dateOrdered;
-                      return (
-                        <Card key={order._id} className="border">
-                          <CardContent className="p-4">
-                            <div className="flex justify-between items-start mb-3">
-                              <div>
-                                <div className="font-mono text-sm font-medium">
-                                  ID: {order._id.slice(-6).toUpperCase()}
-                                </div>
-                                <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                                  <Calendar className="h-3 w-3" />
-                                  {orderDate ? format(new Date(orderDate), 'MMM dd, yyyy h:mm a') : 'N/A'}
-                                </div>
+                <div className="space-y-3 p-4">
+                  {currentOrders.map((order) => {
+                    const orderDate = order.createdAt || order.dateOrdered;
+                    return (
+                      <Card key={order._id} className="border">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <div className="font-mono text-sm font-medium">
+                                ID: {order._id.slice(-6).toUpperCase()}
                               </div>
-                              {getPaymentStatusBadge(order)}
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                              <div className="space-y-1">
-                                <div className="text-muted-foreground">Total Amount</div>
-                                <div className="font-medium">PKR {(order.finalPrice || 0).toLocaleString()}</div>
-                              </div>
-                              <div className="space-y-1">
-                                <div className="text-muted-foreground">Amount Paid</div>
-                                <div className="text-green-600 font-medium">PKR {(order.amountPaid || 0).toLocaleString()}</div>
-                              </div>
-                              <div className="space-y-1 col-span-2">
-                                <div className="text-muted-foreground">Outstanding</div>
-                                <div className={(order.outstandingPayment || 0) > 0 ? 'text-red-600 font-medium' : 'text-green-600 font-medium'}>
-                                  PKR {(order.outstandingPayment || 0).toLocaleString()}
-                                </div>
+                              <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                                <Calendar className="h-3 w-3" />
+                                {orderDate ? format(new Date(orderDate), 'MMM dd, yyyy h:mm a') : 'N/A'}
                               </div>
                             </div>
-                            
-                            <Button
-                              onClick={() => handleViewOrder(order)}
-                              size="sm"
-                              variant="outline"
-                              className="w-full"
-                            >
-                              <Eye className="h-4 w-4 mr-2" />
-                              View Items & Details
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                </ScrollArea>
+                            {getPaymentStatusBadge(order)}
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                            <div className="space-y-1">
+                              <div className="text-muted-foreground">Total Amount</div>
+                              <div className="font-medium">PKR {(order.finalPrice || 0).toLocaleString()}</div>
+                            </div>
+                            <div className="space-y-1">
+                              <div className="text-muted-foreground">Amount Paid</div>
+                              <div className="text-green-600 font-medium">PKR {(order.amountPaid || 0).toLocaleString()}</div>
+                            </div>
+                            <div className="space-y-1 col-span-2">
+                              <div className="text-muted-foreground">Outstanding</div>
+                              <div className={(order.outstandingPayment || 0) > 0 ? 'text-red-600 font-medium' : 'text-green-600 font-medium'}>
+                                PKR {(order.outstandingPayment || 0).toLocaleString()}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <Button
+                            onClick={() => handleViewOrder(order)}
+                            size="sm"
+                            variant="outline"
+                            className="w-full"
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Items & Details
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
               </div>
             </>
           )}
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between p-4 border-t bg-background">
+            <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t bg-background gap-4">
               <div className="text-sm text-muted-foreground">
                 Showing {indexOfFirstOrder + 1} to {Math.min(indexOfLastOrder, filteredOrders.length)} of {filteredOrders.length} orders
+                {isMobile && <span className="block text-xs mt-1">({ordersPerPage} per page on mobile)</span>}
               </div>
               
               <div className="flex items-center gap-2">
