@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@theme {
+  /* Light mode colors */
+  --color-background: #ffffff;
+  --color-foreground: #0f172a;
+  --color-card: #ffffff;
+  --color-card-foreground: #0f172a;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0f172a;
+  
+  /* Primary colors */
+  --color-primary: #0f172a;
+  --color-primary-foreground: #f8fafc;
+  
+  /* Secondary colors */
+  --color-secondary: #f1f5f9;
+  --color-secondary-foreground: #0f172a;
+  
+  /* Destructive (red button) colors */
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+  
+  /* Muted colors */
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+  
+  /* Accent colors */
+  --color-accent: #f1f5f9;
+  --color-accent-foreground: #0f172a;
+  
+  /* Border and input colors */
+  --color-border: #e2e8f0;
+  --color-input: #e2e8f0;
+  --color-ring: #3b82f6;
+  
+  /* Border radius */
+  --radius: 0.5rem;
+}
+
+/* Base styles */
+* {
+  border-color: var(--color-border);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Remove any dark mode styles */
+html {
+  color-scheme: light;
+}
+
+/* Ensure buttons have proper hover effects */
+.hover\:shadow-md:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+/* Ensure proper button contrast */
+button[data-variant="destructive"] {
+  background-color: var(--color-destructive);
+  color: var(--color-destructive-foreground);
+}
+
+button[data-variant="destructive"]:hover {
+  background-color: #b91c1c;
+}
