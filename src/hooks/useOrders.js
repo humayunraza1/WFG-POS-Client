@@ -10,6 +10,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
   const [isLoadingAllOrders, setIsLoadingAllOrders] = useState(false); // Add loading state for all orders
   const [error, setError] = useState(null);
   const [dailyStats, setDailyStats] = useState({ 
+    cashRecvd: 0,
     totalSales: 0, 
     totalPendingPayment: 0, 
     orderCount: 0 
@@ -23,7 +24,8 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
   useEffect(() => {
     if (!isRegisterOpen) {
       setOrders([]);
-      setDailyStats({ 
+      setDailyStats({
+        cashRecvd:0, 
         totalSales: 0, 
         totalPendingPayment: 0, 
         orderCount: 0 
@@ -38,6 +40,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
       // Clear previous data first
       setOrders([]);
       setDailyStats({ 
+        cashRecvd:0,
         totalSales: 0, 
         totalPendingPayment: 0, 
         orderCount: 0 
@@ -49,6 +52,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
       setIsLoading(false);
       setOrders([]);
       setDailyStats({ 
+        cashRecvd:0,
         totalSales: 0, 
         totalPendingPayment: 0, 
         orderCount: 0 
@@ -108,6 +112,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
     setStatsLoading(true);
     try {
       const { data } = await axios.get(`/orders/daily-sales/${sessionId}`,{ withCredentials: true });
+      console.log('Daily stats:', data);
       setDailyStats(data);
     } catch (error) {
       console.error('Error fetching daily stats:', error);

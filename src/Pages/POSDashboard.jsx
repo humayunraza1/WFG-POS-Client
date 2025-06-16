@@ -612,12 +612,12 @@ const POSDashboard = () => {
           
           {/* Top Stats - Now using API data with pending payment */}
           <DashboardStats 
+            cash={isRegisterOpen ? dailyStats.cashRecvd : 0}
             sales={isRegisterOpen ? dailyStats.totalSales : 0}
             orders={isRegisterOpen ? dailyStats.orderCount : 0}
             pendingPayment={isRegisterOpen ? (dailyStats.totalPendingPayment || 0) : 0}
             totalExpenses={isRegisterOpen ? calculateTotalExpenses() : 0}
             cashInHand={isRegisterOpen ? (registerData?.startCash || 0) : 0}
-            onOpenRegister={handleOpenRegister}
             isRegisterOpen={isRegisterOpen}
             isLoading={statsLoading}
           />
@@ -631,6 +631,7 @@ const POSDashboard = () => {
                 onViewChange={handleViewChange}
                 products={products}
                 onCloseRegister={handleCloseRegister}
+                onOpenRegister={handleOpenRegister}
                 registerData={registerData}
                 isRegisterOpen={isRegisterOpen}
               />

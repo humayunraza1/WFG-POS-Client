@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,14 @@ const CheckoutDialog = ({
 }) => {
   const [amountReceived, setAmountReceived] = useState('');
   const [error, setError] = useState('');
+
+  // Reset state when dialog opens with new order data
+  useEffect(() => {
+    if (isOpen && orderData) {
+      setAmountReceived('');
+      setError('');
+    }
+  }, [isOpen, orderData]);
 
   if (!orderData) return null;
 

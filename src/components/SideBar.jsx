@@ -30,7 +30,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SidebarMenuItem from './SidebarMenuItem';
 import useOrders from '@/hooks/useOrders';
 
-const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, registerData, isRegisterOpen }) => {
+const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, onOpenRegister, registerData, isRegisterOpen }) => {
   const [expandedItems, setExpandedItems] = useState({});
   const { dailyStats, statsLoading } = useOrders();
 
@@ -81,6 +81,11 @@ const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, register
       label: "Orders"
     },
     {
+      key: 'expenses',
+      icon: Receipt,
+      label: 'Expenses'
+    },
+    {
       key: 'summary',
       icon: History,
       label: 'Register History'
@@ -95,11 +100,6 @@ const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, register
     //   icon: TrendingUp,
     //   label: 'Analysis'
     // },
-    {
-      key: 'expenses',
-      icon: Receipt,
-      label: 'Expenses'
-    },
     {
       key: 'add-product',
       icon: Plus,
@@ -179,8 +179,17 @@ const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, register
           </>
         )}
 
-        {/* Only show Close Register button if register is open */}
-        {isRegisterOpen && (
+        {/* Register Control Button - Shows Open when closed, Close when open */}
+        {!isRegisterOpen ? (
+          <Button
+            variant="default"
+            className="w-full"
+            onClick={onOpenRegister}
+          >
+            <Power className="mr-2 h-4 w-4" />
+            Open Register
+          </Button>
+        ) : (
           <Button
             variant="destructive"
             className="w-full"

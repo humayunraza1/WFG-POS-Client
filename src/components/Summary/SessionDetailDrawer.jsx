@@ -16,11 +16,12 @@ import SessionExpensesTable from './SessionExpensesTable';
 
 const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
   if (!session) return null;
-
+  console.log('Session Detail:', session);
   const formatCurrency = (amount) => {
     return `PKR ${(amount || 0).toLocaleString()}`;
   };
 
+  const discrepancy = (session.expectedBalance - session.finalCash) || 0;
   const formatDateTime = (date) => {
     if (!date) return 'N/A';
     return format(new Date(date), 'dd MMM yyyy, h:mm a');
@@ -82,7 +83,7 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
               <Wallet className="h-4 sm:h-5 w-4 sm:w-5" />
               Cash Information
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-xl">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
               <Card className="text-center">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-xs sm:text-sm font-medium flex items-center justify-center gap-1">
@@ -91,7 +92,7 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="text-lg sm:text-xl font-bold">
+                  <div className="text-sm sm:text-lg lg:text-xl font-bold">
                     {formatCurrency(session.startCash)}
                   </div>
                 </CardContent>
@@ -106,8 +107,40 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="text-lg sm:text-xl font-bold">
+                    <div className="text-sm sm:text-lg lg:text-xl font-bold">
                       {formatCurrency(session.finalCash)}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {session.expectedBalance !== undefined && (
+                <Card className="text-center">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs sm:text-sm font-medium flex items-center justify-center gap-1">
+                      <Wallet className="h-3 w-3" />
+                      Expected Cash
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="text-sm sm:text-lg lg:text-xl font-bold">
+                      {formatCurrency(session.expectedBalance)}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {session.expectedBalance !== undefined && (
+                <Card className="text-center bg-red-600 text-white">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs sm:text-sm font-medium flex items-center justify-center gap-1">
+                      <Wallet className="h-3 w-3" />
+                      Cash Discrepancy
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="text-sm sm:text-lg lg:text-xl font-bold">
+                      {formatCurrency(session.expectedBalance-session.finalCash)}
                     </div>
                   </CardContent>
                 </Card>
