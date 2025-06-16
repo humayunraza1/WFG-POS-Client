@@ -100,11 +100,11 @@ generateRestaurantCopy(order) {
  
   lines.push('');
   lines.push('');
-  lines.push(this.addMargin(`Gross:${' '.repeat(10)}PKR ${subtotal.toFixed(0).padStart(6)}`));
-  lines.push(this.addMargin(`Disc:${' '.repeat(11)}PKR ${discountAmount.toFixed(0).padStart(6)}`));
+  lines.push(this.addMargin(`Gross:${' '.repeat(22)}PKR ${subtotal.toFixed(0).padStart(3)}`));
+  lines.push(this.addMargin(`Disc:${' '.repeat(23)}PKR ${discountAmount.toFixed(0).padStart(3)}`));
   lines.push('');
   lines.push(this.createSingleLine());
-  lines.push(this.addMargin(`Total:${' '.repeat(10)}PKR ${order.finalPrice.toFixed(0).padStart(6)}`));
+  lines.push(this.addMargin(`Total:${' '.repeat(22)}PKR ${order.finalPrice.toFixed(0).padStart(3)}`));
 
   // Add some spacing at the end to prevent cut-off
   lines.push('');
@@ -661,11 +661,11 @@ formatItemsTable(order) {
     
     lines.push('');
     lines.push('');
-    lines.push(this.addMargin(`Gross:${' '.repeat(10)}PKR ${subtotal.toFixed(0).padStart(6)}`));
-    lines.push(this.addMargin(`Disc:${' '.repeat(11)}PKR ${discountAmount.toFixed(0).padStart(6)}`));
+    lines.push(this.addMargin(`Gross:${' '.repeat(22)}PKR ${subtotal.toFixed(0).padStart(3)}`));
+    lines.push(this.addMargin(`Disc:${' '.repeat(23)}PKR ${discountAmount.toFixed(0).padStart(3)}`));
     lines.push('');
     lines.push(this.createSingleLine());
-    lines.push(this.addMargin(`Total:${' '.repeat(10)}PKR ${order.finalPrice.toFixed(0).padStart(6)}`));
+    lines.push(this.addMargin(`Total:${' '.repeat(22)}PKR ${order.finalPrice.toFixed(0).padStart(3)}`));
     
     // Footer Messages
     lines.push('');
