@@ -28,7 +28,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import VariantsView from '../components/Sidebar/VariantsView';
 import SummaryView from '../components/Sidebar/SummaryView';
-import AnalysisView from '../components/AnalysisView';
 import ExpensesView from '../components/Sidebar/ExpensesView';
 import ProductManagement from '../components/Sidebar/ProductManagement';
 import DashboardStats from '../components/DashboardStats';
@@ -417,9 +416,9 @@ const POSDashboard = () => {
         case 'summary':
           return <SummaryView period={activeSubView || 'All Orders'} orders={orders} />;
         
-        case 'analysis':
-          // Handle analysis view with sub-tabs
-          return <AnalysisView activeTab={activeSubView} />;
+        // case 'analysis':
+        //   // Handle analysis view with sub-tabs
+        //   return <AnalysisView activeTab={activeSubView} />;
         
         case 'expenses':
           if (!isRegisterOpen) {
