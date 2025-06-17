@@ -144,7 +144,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
       const formattedOrderData = {
         registerSession: sessionId,
         items: orderData.items,
-        discount: orderData.discount,
+        discount: orderData.discount == null? 0 : orderData.discount, // Ensure discount is a number
         paymentType: orderData.paymentType,
         subtotal: orderData.subtotal,
         finalPrice: orderData.finalPrice,

@@ -59,6 +59,7 @@ const POSDashboard = () => {
     const [isOpeningRegister, setIsOpeningRegister] = useState(false);
     const [isClosingRegister, setIsClosingRegister] = useState(false);
     const [isProcessingOrder, setIsProcessingOrder] = useState(false);
+    const [discount, setDiscount] = useState(null);
     
     const {
       isOpen: isRegisterOpen,
@@ -322,6 +323,7 @@ const POSDashboard = () => {
         });
         
         setCartItems([]);
+        setDiscount(0);
         // Daily stats will be refreshed automatically in useOrders hook
       } catch (error) {
         toast.error('Failed to process order', {
@@ -649,6 +651,8 @@ const POSDashboard = () => {
                 onUpdateQuantity={handleUpdateQuantity}
                 onRemoveItem={handleRemoveFromCart}
                 onCheckout={handleCheckout}
+                discount={discount}
+                setDiscount={setDiscount}
                 onClearCart={handleClearCart}
                 isProcessingOrder={isProcessingOrder}
               />

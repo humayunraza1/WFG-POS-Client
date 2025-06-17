@@ -17,10 +17,11 @@ const Cart = ({
   onRemoveItem, 
   onCheckout, 
   onClearCart,
-  isProcessingOrder = false 
+  isProcessingOrder = false,
+  discount = 0,
+  setDiscount
 }) => {
     const [paymentType, setPaymentType] = useState('cash');
-    const [discount, setDiscount] = useState(0);
     const [showCheckoutDialog, setShowCheckoutDialog] = useState(false);
     const [pendingOrderData, setPendingOrderData] = useState(null);
 
