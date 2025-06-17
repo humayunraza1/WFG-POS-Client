@@ -43,6 +43,7 @@ const Cart = ({
                 variant: item.varID,   // Variant _id
                 quantity: item.quantity
             })),
+            subtotal,
             discount,
             paymentType,
             finalPrice: total

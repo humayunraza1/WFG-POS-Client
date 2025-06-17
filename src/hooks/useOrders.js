@@ -146,6 +146,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
         items: orderData.items,
         discount: orderData.discount,
         paymentType: orderData.paymentType,
+        subtotal: orderData.subtotal,
         finalPrice: orderData.finalPrice,
         amountPaid: orderData.amountPaid || 0 // Add initial payment amount
       };

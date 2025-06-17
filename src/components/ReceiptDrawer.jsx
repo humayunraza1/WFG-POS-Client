@@ -25,7 +25,7 @@ const ReceiptDrawer = ({ order, onClose, onUpdatePayment }) => {
 
   const discountRate = order.discount || 0;
   const discountedTotal = order.finalPrice;
-
+  const totalAmount = order.actualPrice || 0;
   // Function to get manager badge style
   const getManagerBadgeStyle = (manager) => {
     const styles = {
@@ -243,6 +243,10 @@ const ReceiptDrawer = ({ order, onClose, onUpdatePayment }) => {
 
             {/* Order Totals */}
             <div className="border-t pt-2 text-sm space-y-1">
+              <div className="flex justify-between">
+                <span>Gross Total</span>
+                <span>PKR {totalAmount}</span>
+              </div>
               <div className="flex justify-between">
                 <span>Discount</span>
                 <span>PKR {discountRate}</span>
