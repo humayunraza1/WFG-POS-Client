@@ -96,7 +96,7 @@ generateRestaurantCopy(order) {
 
   // Summary - better alignment for NCR 7197
   const subtotal = order.items.reduce((sum, item) => sum + (item.variant.price * item.quantity), 0);
-  const discountAmount = subtotal * (order.discount / 100);
+  const discountAmount = order.discount;
  
   lines.push('');
   lines.push('');
@@ -657,7 +657,7 @@ formatItemsTable(order) {
     
     // Pricing Summary - optimized for NCR 7197
     const subtotal = order.items.reduce((sum, item) => sum + (item.variant.price * item.quantity), 0);
-    const discountAmount = subtotal * (order.discount / 100);
+    const discountAmount =  order.discount;
     
     lines.push('');
     lines.push('');

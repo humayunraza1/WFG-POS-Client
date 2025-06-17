@@ -25,12 +25,12 @@ const Cart = ({
     const [pendingOrderData, setPendingOrderData] = useState(null);
 
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const discountAmount = (subtotal * discount) / 100;
+    const discountAmount = discount;
     const afterDiscount = subtotal - discountAmount;
     const total = afterDiscount;
 
     const handleDiscountChange = (e) => {
-        const value = Math.min(Math.max(0, parseInt(e.target.value) || 0), 100);
+        const {value} = e.target;
         setDiscount(value);
     };
 
@@ -104,16 +104,17 @@ const Cart = ({
 
                             {/* Discount Section */}
                             <div className="space-y-2">
-                                <Label htmlFor="discount">Discount (%)</Label>
+                                <Label htmlFor="discount">Discount (Rs)</Label>
                                 <Input
                                     id="discount"
                                     type="number"
                                     min="0"
-                                    max="100"
+                                    max={subtotal}
                                     value={discount}
                                     onChange={handleDiscountChange}
                                     className="w-full"
                                 />
+                                {discount>subtotal && <Label htmlFor="error" className='text-red-400'>Max discount cannot exceed order value.</Label>}
                             </div>
                             
                             {/* Payment Type Section */}
@@ -150,7 +151,7 @@ const Cart = ({
                                 </div>
                                 {discount > 0 && (
                                     <div className="flex justify-between text-sm text-green-600">
-                                        <span>Discount ({discount}%):</span>
+                                        <span>Discount ({(discount/subtotal)*100}%):</span>
                                         <span>- PKR {discountAmount.toLocaleString()}</span>
                                     </div>
                                 )}
@@ -165,7 +166,7 @@ const Cart = ({
                                 <Button 
                                     className="w-full" 
                                     onClick={handleInitialCheckout}
-                                    disabled={isProcessingOrder}
+                                    disabled={isProcessingOrder || (discount > subtotal)}
                                 >
                                     {isProcessingOrder ? (
                                         <>

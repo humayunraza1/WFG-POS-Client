@@ -245,7 +245,7 @@ const ReceiptDrawer = ({ order, onClose, onUpdatePayment }) => {
             <div className="border-t pt-2 text-sm space-y-1">
               <div className="flex justify-between">
                 <span>Discount</span>
-                <span>{discountRate}%</span>
+                <span>PKR {discountRate}</span>
               </div>
               <div className="flex justify-between font-bold border-t pt-2">
                 <span>Total</span>

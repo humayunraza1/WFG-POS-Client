@@ -98,7 +98,7 @@ const CheckoutDialog = ({
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-green-600">
-                    <span>Discount ({discount}%):</span>
+                    <span>Discount ({discount}Rs):</span>
                     <span>Applied</span>
                   </div>
                 )}
