@@ -31,7 +31,9 @@ import SidebarMenuItem from './SidebarMenuItem';
 import useOrders from '@/hooks/useOrders';
 
 const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, onOpenRegister, registerData, isRegisterOpen }) => {
-  const [expandedItems, setExpandedItems] = useState({});
+  const [expandedItems, setExpandedItems] = useState({
+    variants: true // Always expand products menu by default
+  });
   const { dailyStats, statsLoading } = useOrders();
 
   // Function to get manager badge style (same as in RegisterSessionTable)
@@ -61,6 +63,9 @@ const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, onOpenRe
   };
 
   const toggleExpanded = (key) => {
+    // Don't allow collapsing the products menu
+    if (key === 'variants') return;
+    
     setExpandedItems(prev => ({
       ...prev,
       [key]: !prev[key]
@@ -113,12 +118,12 @@ const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, onOpenRe
   ];
 
   return (
-    <Card className="w-64 h-fit">
+    <Card className="w-64 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto">
       <CardHeader>
         <CardTitle className="text-lg">Menu</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
-        <ScrollArea className="h-96">
+        <div className="space-y-1">
           {menuItems.map((item) => (
             <SidebarMenuItem
               key={item.key}
@@ -138,7 +143,7 @@ const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, onOpenRe
               hasSubItems={item.hasSubItems}
             />
           ))}
-        </ScrollArea>
+        </div>
 
         <Separator className="my-4" />
 
