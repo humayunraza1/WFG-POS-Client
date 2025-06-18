@@ -531,16 +531,6 @@ const POSDashboard = () => {
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
               {/* Logo placeholder - replace src with your actual logo */}
-              <img 
-                src="/logo.png" 
-                alt="POS Logo" 
-                className="h-10 w-10 object-contain"
-                onError={(e) => {
-                  // Fallback to ShoppingCart icon if logo fails to load
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'block';
-                }}
-              />
             <img src='/images/wfg-logo.png' className='h-25 w-25'/>
 
               <div>

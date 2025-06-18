@@ -11,15 +11,24 @@ import { toast } from 'sonner';
 const VariantsView = ({ category, products, onAddToCart, onViewChange }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Filter variants based on search query
+  // Filter variants based on search query and sort alphabetically
   const filteredVariants = useMemo(() => {
-    if (!searchQuery) return products.variants || [];
-    return products.variants?.filter(variant =>
-      variant.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ) || [];
+    if (!products.variants) return [];
+    
+    let variants = products.variants;
+    
+    // Filter by search query if provided
+    if (searchQuery) {
+      variants = variants.filter(variant =>
+        variant.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    // Sort alphabetically by name
+    return variants.sort((a, b) => a.name.localeCompare(b.name));
   }, [products.variants, searchQuery]);
 
-  // Separate variants into normal and ice cream variants
+  // Separate variants into normal and ice cream variants (both already sorted)
   const { normalVariants, iceCreamVariants } = useMemo(() => {
     const normal = filteredVariants.filter(variant => 
       !variant.name.toLowerCase().includes('+ ice cream')
