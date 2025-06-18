@@ -246,7 +246,7 @@ const POSDashboard = () => {
       const productId = category._id;
       const variantId = product._id;
       console.log(category);
-      console.log(`Adding to cart: ${product.name} (ID: ${variantId}) from category ${category.label} (ID: ${productId})`);
+      console.log(`Adding to cart: ${product.name} (ID: ${variantId}) from category ${category.name} (ID: ${productId})`);
       
       setCartItems(prevItems => {
         const existingItem = prevItems.find(item => item.varID === variantId);
@@ -278,6 +278,7 @@ const POSDashboard = () => {
     };
     
     const handleUpdateQuantity = (variantId, newQuantity) => {
+      console.log(`Updating quantity for variant ${variantId} to ${newQuantity}`);
       if (newQuantity === 0) {
         handleRemoveFromCart(variantId);
         return;
@@ -285,7 +286,7 @@ const POSDashboard = () => {
 
       setCartItems(prevItems =>
         prevItems.map(item =>
-          item.variantId === variantId
+          item.varID === variantId
             ? { ...item, quantity: newQuantity }
             : item
         )
@@ -293,7 +294,9 @@ const POSDashboard = () => {
     };
     
     const handleRemoveFromCart = (productId) => {
-      setCartItems(prevItems => prevItems.filter(item => item.customId !== productId));
+      console.log(`Removing item with ID ${productId} from cart`);
+      console.log(cartItems)
+      setCartItems(prevItems => prevItems.filter(item => item.varID !== productId));
       toast.success('Item removed from cart');
     };
     
