@@ -58,6 +58,7 @@ const ProductManagement = ({ mode, product = null, onSuccess }) => {
     try {
       setLoading(true);
       if (mode === 'add-product') {
+        console.log('Product added:', payload);
         await addProduct(payload);
         toast.success('Product added successfully!');
         setForm({ name: '', imageUrl: '' });

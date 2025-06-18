@@ -1,17 +1,25 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ShoppingCart, CreditCard, Banknote } from 'lucide-react';
+import { ShoppingCart, CreditCard, Banknote, X } from 'lucide-react';
 import CartItem from './CartItem';
 import CheckoutDialog from './CheckoutDialog';
 import { useState } from 'react';
 
 const Cart = ({ 
+  isOpen,
+  onClose,
   cartItems, 
   onUpdateQuantity, 
   onRemoveItem, 
@@ -73,128 +81,145 @@ const Cart = ({
     
     return (
         <>
-            <Card className="w-80 h-fit">
-                <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                        <span>Current Order</span>
-                        <Badge variant="secondary">{cartItems.length} items</Badge>
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {cartItems.length === 0 ? (
-                        <div className="text-center py-8">
-                            <ShoppingCart className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                            <p className="text-muted-foreground">Cart is empty</p>
-                            <p className="text-sm text-muted-foreground">Add items to get started</p>
-                        </div>
-                    ) : (
-                        <>
-                            <ScrollArea className="h-64">
-                                <div className="space-y-2">
-                                    {cartItems.map((item) => (
-                                        <CartItem
-                                            key={item._id}
-                                            item={item}
-                                            onUpdateQuantity={onUpdateQuantity}
-                                            onRemove={onRemoveItem}
-                                        />
-                                    ))}
+            <Sheet open={isOpen} onOpenChange={onClose}>
+                <SheetContent className="w-[400px] sm:w-[500px] flex flex-col p-6">
+                    <SheetHeader className="px-2">
+                        <SheetTitle className="flex items-center justify-between">
+                            <span>Current Order</span>
+                            <Badge variant="secondary">{cartItems.length} items</Badge>
+                        </SheetTitle>
+                        <SheetDescription>
+                            Review your order and proceed to checkout
+                        </SheetDescription>
+                    </SheetHeader>
+                    
+                    <div className="flex-1 flex flex-col space-y-4 py-4 px-2 min-h-0">
+                        {cartItems.length === 0 ? (
+                            <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
+                                <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
+                                <h3 className="text-lg font-semibold mb-2">Cart is empty</h3>
+                                <p className="text-muted-foreground">Add items to get started</p>
+                            </div>
+                        ) : (
+                            <>
+                                {/* Scrollable Cart Items Only */}
+                                <div className="flex-1 overflow-y-auto min-h-0">
+                                    <div className="space-y-2">
+                                        {cartItems.map((item) => (
+                                            <CartItem
+                                                key={item._id}
+                                                item={item}
+                                                onUpdateQuantity={onUpdateQuantity}
+                                                onRemove={onRemoveItem}
+                                            />
+                                        ))}
+                                    </div>
                                 </div>
-                            </ScrollArea>
-                            
-                            <Separator />
+                                
+                                {/* Fixed Bottom Section */}
+                                <div className="flex-shrink-0 space-y-4 pt-4 border-t bg-background">
+                                    <Separator />
 
-                            {/* Discount Section */}
-                            <div className="space-y-2">
-                                <Label htmlFor="discount">Discount (Rs)</Label>
-                                <Input
-                                    id="discount"
-                                    type="number"
-                                    min="0"
-                                    max={subtotal}
-                                    value={discount}
-                                    onChange={handleDiscountChange}
-                                    className="w-full"
-                                />
-                                {discount>subtotal && <Label htmlFor="error" className='text-red-400'>Max discount cannot exceed order value.</Label>}
-                            </div>
-                            
-                            {/* Payment Type Section */}
-                            <div className="space-y-2">
-                                <Label>Payment Type</Label>
-                                <RadioGroup
-                                    value={paymentType}
-                                    onValueChange={setPaymentType}
-                                    className="flex flex-col space-y-1"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="cash" id="cash" />
-                                        <Label htmlFor="cash" className="flex items-center">
-                                            <Banknote className="mr-2 h-4 w-4" />
-                                            Cash
-                                        </Label>
+                                    {/* Discount Section */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="discount">Discount (Rs)</Label>
+                                        <Input
+                                            id="discount"
+                                            type="number"
+                                            min="0"
+                                            max={subtotal}
+                                            value={discount}
+                                            onChange={handleDiscountChange}
+                                            className="w-full"
+                                        />
+                                        {discount > subtotal && (
+                                            <Label htmlFor="error" className='text-red-400 text-sm'>
+                                                Max discount cannot exceed order value.
+                                            </Label>
+                                        )}
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="online" id="online" />
-                                        <Label htmlFor="online" className="flex items-center">
-                                            <CreditCard className="mr-2 h-4 w-4" />
-                                            Online Transfer
-                                        </Label>
+                                    
+                                    {/* Payment Type Section */}
+                                    <div className="space-y-2">
+                                        <Label>Payment Type</Label>
+                                        <RadioGroup
+                                            value={paymentType}
+                                            onValueChange={setPaymentType}
+                                            className="flex flex-col space-y-1"
+                                        >
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem value="cash" id="cash" />
+                                                <Label htmlFor="cash" className="flex items-center">
+                                                    <Banknote className="mr-2 h-4 w-4" />
+                                                    Cash
+                                                </Label>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem value="online" id="online" />
+                                                <Label htmlFor="online" className="flex items-center">
+                                                    <CreditCard className="mr-2 h-4 w-4" />
+                                                    Online Transfer
+                                                </Label>
+                                            </div>
+                                        </RadioGroup>
                                     </div>
-                                </RadioGroup>
-                            </div>
-                            
-                            <Separator />
-                            
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span>Subtotal:</span>
-                                    <span>PKR {subtotal.toLocaleString()}</span>
+                                    
+                                    <Separator />
+                                    
+                                    {/* Order Summary */}
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-sm">
+                                            <span>Subtotal:</span>
+                                            <span>PKR {subtotal.toLocaleString()}</span>
+                                        </div>
+                                        {discount > 0 && (
+                                            <div className="flex justify-between text-sm text-green-600">
+                                                <span>Discount ({((discount/subtotal)*100).toFixed(1)}%):</span>
+                                                <span>- PKR {discountAmount.toLocaleString()}</span>
+                                            </div>
+                                        )}
+                                        <Separator />
+                                        <div className="flex justify-between font-bold text-lg">
+                                            <span>Total:</span>
+                                            <span>PKR {total.toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Action Buttons */}
+                                    <div className="space-y-2">
+                                        <Button 
+                                            className="w-full" 
+                                            size="lg"
+                                            onClick={handleInitialCheckout}
+                                            disabled={isProcessingOrder || (discount > subtotal)}
+                                        >
+                                            {isProcessingOrder ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                                    Processing...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <ShoppingCart className="mr-2 h-4 w-4" />
+                                                    Checkout PKR {total.toLocaleString()}
+                                                </>
+                                            )}
+                                        </Button>
+                                        <Button 
+                                            variant="outline" 
+                                            className="w-full" 
+                                            onClick={onClearCart}
+                                            disabled={isProcessingOrder}
+                                        >
+                                            Clear Cart
+                                        </Button>
+                                    </div>
                                 </div>
-                                {discount > 0 && (
-                                    <div className="flex justify-between text-sm text-green-600">
-                                        <span>Discount ({(discount/subtotal)*100}%):</span>
-                                        <span>- PKR {discountAmount.toLocaleString()}</span>
-                                    </div>
-                                )}
-                                <Separator />
-                                <div className="flex justify-between font-bold">
-                                    <span>Total:</span>
-                                    <span>PKR {total.toLocaleString()}</span>
-                                </div>
-                            </div>
-                            
-                            <div className="space-y-2">
-                                <Button 
-                                    className="w-full" 
-                                    onClick={handleInitialCheckout}
-                                    disabled={isProcessingOrder || (discount > subtotal)}
-                                >
-                                    {isProcessingOrder ? (
-                                        <>
-                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                                            Processing...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <ShoppingCart className="mr-2 h-4 w-4" />
-                                            Checkout PKR {total.toLocaleString()}
-                                        </>
-                                    )}
-                                </Button>
-                                <Button 
-                                    variant="outline" 
-                                    className="w-full" 
-                                    onClick={onClearCart}
-                                    disabled={isProcessingOrder}
-                                >
-                                    Clear Cart
-                                </Button>
-                            </div>
-                        </>
-                    )}
-                </CardContent>
-            </Card>
+                            </>
+                        )}
+                    </div>
+                </SheetContent>
+            </Sheet>
 
             {/* Checkout Dialog */}
             <CheckoutDialog

@@ -54,6 +54,7 @@ const POSDashboard = () => {
     const [cartItems, setCartItems] = useState([]);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
+    const [isCartSheetOpen, setIsCartSheetOpen] = useState(false);
     const [showStartCashModal, setShowStartCashModal] = useState(false);
     const [showFinalCashModal, setShowFinalCashModal] = useState(false);
     const [isOpeningRegister, setIsOpeningRegister] = useState(false);
@@ -324,6 +325,7 @@ const POSDashboard = () => {
         
         setCartItems([]);
         setDiscount(0);
+        setIsCartSheetOpen(false);
         // Daily stats will be refreshed automatically in useOrders hook
       } catch (error) {
         toast.error('Failed to process order', {
@@ -390,6 +392,9 @@ const POSDashboard = () => {
 
     const isLoading = registerLoading || productsLoading || ordersLoading || expensesLoading;
     
+    // Check if we should show the checkout button
+    const shouldShowCheckoutButton = (activeView === 'products' || activeView === 'variants') && totalItems > 0;
+
     const renderMainContent = () => {
       if (isLoading) {
         return (
@@ -624,7 +629,7 @@ const POSDashboard = () => {
             isLoading={statsLoading}
           />
                     
-          {/* Main Layout */}
+          {/* Main Layout - Now without cart, extended width */}
           <div className="flex gap-6">
             {/* Desktop Sidebar */}
             <div className="hidden lg:block">
@@ -639,25 +644,42 @@ const POSDashboard = () => {
               />
             </div>
             
-            {/* Main Content */}
+            {/* Main Content - Now takes full remaining width */}
             <div className="flex-1">
               {renderMainContent()}
             </div>
-            
-            {/* Desktop Cart */}
-            <div className="hidden lg:block">
-              <Cart
-                cartItems={cartItems}
-                onUpdateQuantity={handleUpdateQuantity}
-                onRemoveItem={handleRemoveFromCart}
-                onCheckout={handleCheckout}
-                discount={discount}
-                setDiscount={setDiscount}
-                onClearCart={handleClearCart}
-                isProcessingOrder={isProcessingOrder}
-              />
-            </div>
           </div>
+          
+          {/* Floating Checkout Button */}
+          {shouldShowCheckoutButton && (
+            <div className="fixed bottom-6 right-6 z-50">
+              <Button
+                size="lg"
+                onClick={() => setIsCartSheetOpen(true)}
+                className="shadow-lg hover:shadow-xl transition-shadow bg-primary hover:bg-primary/90 gap-2"
+              >
+                <ShoppingCart className="h-5 w-5" />
+                Checkout ({totalItems})
+                <Badge variant="secondary" className="ml-1">
+                  PKR {cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString()}
+                </Badge>
+              </Button>
+            </div>
+          )}
+          
+          {/* Cart Sheet */}
+          <Cart
+            isOpen={isCartSheetOpen}
+            onClose={() => setIsCartSheetOpen(false)}
+            cartItems={cartItems}
+            onUpdateQuantity={handleUpdateQuantity}
+            onRemoveItem={handleRemoveFromCart}
+            onCheckout={handleCheckout}
+            onClearCart={handleClearCart}
+            discount={discount}
+            setDiscount={setDiscount}
+            isProcessingOrder={isProcessingOrder}
+          />
           
           {/* Mobile Sidebar */}
           <MobileSidebar

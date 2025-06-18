@@ -20,8 +20,6 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
   const formatCurrency = (amount) => {
     return `PKR ${(amount || 0).toLocaleString()}`;
   };
-
-  const discrepancy = (session.expectedBalance - session.finalCash) || 0;
   const formatDateTime = (date) => {
     if (!date) return 'N/A';
     return format(new Date(date), 'dd MMM yyyy, h:mm a');
@@ -98,7 +96,7 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
                 </CardContent>
               </Card>
 
-              {session.finalCash !== undefined && (
+              {session.closingBalance !== undefined && (
                 <Card className="text-center">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-xs sm:text-sm font-medium flex items-center justify-center gap-1">
@@ -108,7 +106,7 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="text-sm sm:text-lg lg:text-xl font-bold">
-                      {formatCurrency(session.finalCash)}
+                      {formatCurrency(session.closingBalance)}
                     </div>
                   </CardContent>
                 </Card>
@@ -140,7 +138,7 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="text-sm sm:text-lg lg:text-xl font-bold">
-                      {formatCurrency(session.expectedBalance-session.finalCash)}
+                      {formatCurrency(session.expectedBalance-session.closingBalance)}
                     </div>
                   </CardContent>
                 </Card>
