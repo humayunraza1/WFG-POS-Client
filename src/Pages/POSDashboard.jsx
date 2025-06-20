@@ -95,6 +95,7 @@ const POSDashboard = () => {
       fetchAllOrders,
       fetchDailyStats,
       addOrder,
+      deleteOrder,
       updatePayment
     } = useOrders(sessionId, isRegisterOpen, checkRegisterStatus);
 
@@ -461,6 +462,7 @@ const POSDashboard = () => {
               orders={orders} 
               onRefresh={fetchOrders}
               onUpdatePayment={handleUpdatePayment}
+              onDeleteOrder={deleteOrder}
               isLoading={isLoading}
             />
           );
@@ -615,6 +617,7 @@ const POSDashboard = () => {
             cash={isRegisterOpen ? dailyStats.cashRecvd : 0}
             sales={isRegisterOpen ? dailyStats.totalSales : 0}
             orders={isRegisterOpen ? dailyStats.orderCount : 0}
+            online={isRegisterOpen ? dailyStats.onlinePaymnt : 0}
             pendingPayment={isRegisterOpen ? (dailyStats.totalPendingPayment || 0) : 0}
             totalExpenses={isRegisterOpen ? calculateTotalExpenses() : 0}
             cashInHand={isRegisterOpen ? (registerData?.startCash || 0) : 0}
@@ -717,7 +720,12 @@ const POSDashboard = () => {
             isLoading={isClosingRegister}
             registerData={registerData}
             totalSales={dailyStats.totalSales}
+            totalCash={dailyStats.cashRecvd}
+            totalOnline={dailyStats.onlinePaymnt}
+            totalPending={dailyStats.totalPendingPayment}
             totalExpenses={calculateTotalExpenses()}
+                        expectedOnline={isRegisterOpen ? dailyStats.expectedOnline : 0}
+            expectedCash={isRegisterOpen ? dailyStats.expectedCash : 0}
           />
         </div>
       </div>

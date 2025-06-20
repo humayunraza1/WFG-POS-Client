@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from '@/api/axios';
 import useReceiptPrinter from './useReceiptPrinter';
+import { toast } from 'sonner';
 
 const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
   const [orders, setOrders] = useState([]);
@@ -11,6 +12,9 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
   const [error, setError] = useState(null);
   const [dailyStats, setDailyStats] = useState({ 
     cashRecvd: 0,
+    onlinePaymnt:0,
+    expectedCash: 0,
+    expectedOnline: 0,
     totalSales: 0, 
     totalPendingPayment: 0, 
     orderCount: 0 
@@ -25,7 +29,10 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
     if (!isRegisterOpen) {
       setOrders([]);
       setDailyStats({
-        cashRecvd:0, 
+        cashRecvd:0,
+            onlinePaymnt:0, 
+        expectedCash: 0,
+        expectedOnline: 0,
         totalSales: 0, 
         totalPendingPayment: 0, 
         orderCount: 0 
@@ -41,6 +48,9 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
       setOrders([]);
       setDailyStats({ 
         cashRecvd:0,
+            onlinePaymnt:0,
+        expectedCash: 0,
+        expectedOnline: 0,
         totalSales: 0, 
         totalPendingPayment: 0, 
         orderCount: 0 
@@ -53,6 +63,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
       setOrders([]);
       setDailyStats({ 
         cashRecvd:0,
+            onlinePaymnt:0,
         totalSales: 0, 
         totalPendingPayment: 0, 
         orderCount: 0 
@@ -105,7 +116,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
 
   const fetchDailyStats = async () => {
     if (!isRegisterOpen || !sessionId) {
-      setDailyStats({ totalSales: 0, totalPendingPayment: 0, orderCount: 0 });
+      setDailyStats({ onlinePaymnt:0, cashRecvd:0,expectedCash:0,expectedOnline:0, totalSales: 0, totalPendingPayment: 0, orderCount: 0 });
       return;
     }
 
@@ -228,6 +239,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
     try {
       await axios.delete(`/orders/${id}`,{ withCredentials: true });
       setOrders(prev => prev.filter(o => o._id !== id));
+      toast.success('Order deleted successfully');
       fetchDailyStats();
     } catch (err) {
       setError(err.response?.data?.message || err.message);

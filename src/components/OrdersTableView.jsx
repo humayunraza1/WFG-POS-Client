@@ -7,17 +7,19 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext } from '@/components/ui/pagination';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Trash2, Eye, RefreshCw, Filter, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import ReceiptDrawer from './ReceiptDrawer';
 
 const ORDERS_PER_PAGE = 10;
 
-const OrdersTableView = ({ orders, onDelete, onRefresh, isLoading, onUpdatePayment }) => {
+const OrdersTableView = ({ orders, onDeleteOrder, onRefresh, isLoading, onUpdatePayment }) => {
   const [page, setPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [searchId, setSearchId] = useState('');
+  const [deleteConfirmation, setDeleteConfirmation] = useState({ open: false, order: null });
 
   const filteredOrders = useMemo(() => {
     let filtered = orders;
@@ -63,6 +65,21 @@ const OrdersTableView = ({ orders, onDelete, onRefresh, isLoading, onUpdatePayme
   const clearSearch = () => {
     setSearchId('');
     setPage(1);
+  };
+
+  const handleDeleteClick = (order) => {
+    setDeleteConfirmation({ open: true, order });
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteConfirmation.order) {
+      onDeleteOrder(deleteConfirmation.order._id);
+    }
+    setDeleteConfirmation({ open: false, order: null });
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirmation({ open: false, order: null });
   };
 
   const getPaymentStatusBadge = (status, outstandingPayment) => {
@@ -198,7 +215,7 @@ const OrdersTableView = ({ orders, onDelete, onRefresh, isLoading, onUpdatePayme
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              onClick={() => onDelete(order._id)}
+                              onClick={() => handleDeleteClick(order)}
                               className="h-8 w-8"
                             >
                               <Trash2 className="w-4 h-4 text-destructive" />
@@ -233,7 +250,7 @@ const OrdersTableView = ({ orders, onDelete, onRefresh, isLoading, onUpdatePayme
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              onClick={() => onDelete(order._id)}
+                              onClick={() => handleDeleteClick(order)}
                               className="h-8 w-8"
                             >
                               <Trash2 className="w-4 h-4 text-destructive" />
@@ -297,6 +314,31 @@ const OrdersTableView = ({ orders, onDelete, onRefresh, isLoading, onUpdatePayme
           </div>
         )}
       </CardContent>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmation.open} onOpenChange={(open) => !open && handleDeleteCancel()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Order</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete order{' '}
+              <span className="font-mono font-medium">
+                {deleteConfirmation.order?._id.slice(-6).toUpperCase()}
+              </span>
+              ? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDeleteCancel}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Yes, Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <ReceiptDrawer 
         order={selectedOrder} 

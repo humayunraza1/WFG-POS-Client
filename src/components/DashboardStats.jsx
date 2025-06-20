@@ -7,14 +7,16 @@ import {
   TrendingUp,
   TrendingDown,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  CreditCard
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const DashboardStats = ({ 
   cash,
+  online,
   sales, 
-  orders, 
+  orders,
   totalExpenses, 
   cashInHand, 
   pendingPayment = 0, // New prop for pending payments
@@ -24,9 +26,9 @@ const DashboardStats = ({
   const totalCash = (cash || 0) + (cashInHand || 0) - (totalExpenses || 0);
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-6">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
       {/* Today's Sales */}
-      <Card className="h-32">
+      <Card className="min-h-32">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
           <CardTitle className="text-xs font-medium">Total Sales</CardTitle>
           <DollarSign className="h-3 w-3 text-muted-foreground" />
@@ -43,7 +45,7 @@ const DashboardStats = ({
         </CardContent>
       </Card>
       {/* Today's Sales (Actual Cash Received) */}
-      <Card className="h-32">
+      <Card className="min-h-32">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
           <CardTitle className="text-xs font-medium">Cash Received</CardTitle>
           <DollarSign className="h-3 w-3 text-muted-foreground" />
@@ -59,9 +61,25 @@ const DashboardStats = ({
           <p className="text-xs text-muted-foreground">Today's payments</p>
         </CardContent>
       </Card>
-      
+      {/* Online Payments Received */}
+<Card className="min-h-32">
+  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+    <CardTitle className="text-xs font-medium">Online Payments</CardTitle>
+    <CreditCard className="h-3 w-3 text-muted-foreground" />
+  </CardHeader>
+  <CardContent className="pb-2">
+    <div className="text-lg font-bold flex items-center gap-1">
+      {isLoading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        `PKR ${online}`
+      )}
+    </div>
+    <p className="text-xs text-muted-foreground">Digital transfers</p>
+  </CardContent>
+</Card>
       {/* Pending Payment */}
-      <Card className="h-32 bg-red-500 border-red-600">
+      <Card className="min-h-32 bg-red-500 border-red-600">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
           <CardTitle className="text-xs font-medium text-white">Pending Payment</CardTitle>
           <AlertCircle className="h-3 w-3 text-white" />
@@ -79,7 +97,7 @@ const DashboardStats = ({
       </Card>
       
       {/* Today's Orders */}
-      <Card className="h-32">
+      <Card className="min-h-32">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
           <CardTitle className="text-xs font-medium">Today's Orders</CardTitle>
           <ShoppingCart className="h-3 w-3 text-muted-foreground" />
@@ -97,7 +115,7 @@ const DashboardStats = ({
       </Card>
 
       {/* Total Cash */}
-      <Card className="h-32">
+      <Card className="min-h-32">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
           <CardTitle className="text-xs font-medium">Total Cash</CardTitle>
           <TrendingUp className="h-3 w-3 text-green-600" />
@@ -115,7 +133,7 @@ const DashboardStats = ({
       </Card>
 
       {/* Total Expenses */}
-      <Card className="h-32">
+      <Card className="min-h-32">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
           <CardTitle className="text-xs font-medium">Total Expenses</CardTitle>
           <TrendingDown className="h-3 w-3 text-red-600" />
