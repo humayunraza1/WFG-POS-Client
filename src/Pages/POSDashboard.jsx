@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import VariantsView from '../components/Sidebar/VariantsView';
 import SummaryView from '../components/Sidebar/SummaryView';
 import ExpensesView from '../components/Sidebar/ExpensesView';
+import AllReports from '../components/Sidebar/AllReport';
 import ProductManagement from '../components/Sidebar/ProductManagement';
 import DashboardStats from '../components/DashboardStats';
 import Cart from '../components/Cart';
@@ -454,6 +455,7 @@ const POSDashboard = () => {
                 <p className="text-muted-foreground">Please open the register to manage expenses</p>
               </div>
             );
+        
           }
           return (
             <ExpensesView 
@@ -465,7 +467,10 @@ const POSDashboard = () => {
             />
           );
 
-        case 'orders':
+        case 'reports':
+            return <AllReports />;
+
+          case 'orders':
           if (!isRegisterOpen) {
             return (
               <div className="text-center p-8">

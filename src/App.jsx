@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './Pages/Login';
 import POSDashboard from './Pages/POSDashboard';
+import Report from './Pages/Report';
 
 function App() {
   return (
@@ -15,6 +16,16 @@ function App() {
         
         {/* Login page */}
         <Route path="/login" element={<LoginPage />} />
+        
+        {/* Protected report route */}
+        <Route 
+          path="/report/:id" 
+          element={
+            <ProtectedRoute>
+              <Report />
+            </ProtectedRoute>
+          } 
+        />
         
         {/* Protected dashboard route */}
         <Route 

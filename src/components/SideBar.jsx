@@ -100,6 +100,11 @@ const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, onOpenRe
       icon: FileText,
       label: 'Orders History'
     },
+    {
+      key: 'reports',
+      icon: BarChart3,
+      label: 'Reports'
+    },
     // {
     //   key: 'analysis',
     //   icon: TrendingUp,
