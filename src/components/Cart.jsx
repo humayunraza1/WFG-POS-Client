@@ -82,29 +82,34 @@ const Cart = ({
     return (
         <>
             <Sheet open={isOpen} onOpenChange={onClose}>
-                <SheetContent className="w-[400px] sm:w-[500px] flex flex-col p-6">
-                    <SheetHeader className="px-2">
-                        <SheetTitle className="flex items-center justify-between">
+                <SheetContent 
+                    side="right" 
+                    className="w-full sm:w-[500px] flex flex-col p-4 sm:p-6"
+                >
+                    <SheetHeader className="px-0 sm:px-2">
+                        <SheetTitle className="flex items-center justify-between text-lg sm:text-xl">
                             <span>Current Order</span>
-                            <Badge variant="secondary">{cartItems.length} items</Badge>
+                            <Badge variant="secondary" className="text-sm">
+                                {cartItems.length} items
+                            </Badge>
                         </SheetTitle>
-                        <SheetDescription>
+                        <SheetDescription className="hidden sm:block">
                             Review your order and proceed to checkout
                         </SheetDescription>
                     </SheetHeader>
                     
-                    <div className="flex-1 flex flex-col space-y-4 py-4 px-2 min-h-0">
+                    <div className="flex-1 flex flex-col space-y-4 py-4 px-0 sm:px-2 min-h-0">
                         {cartItems.length === 0 ? (
                             <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-                                <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
-                                <h3 className="text-lg font-semibold mb-2">Cart is empty</h3>
-                                <p className="text-muted-foreground">Add items to get started</p>
+                                <ShoppingCart className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mb-4 sm:mb-6" />
+                                <h3 className="text-base sm:text-lg font-semibold mb-2">Cart is empty</h3>
+                                <p className="text-sm text-muted-foreground">Add items to get started</p>
                             </div>
                         ) : (
                             <>
                                 {/* Scrollable Cart Items Only */}
                                 <div className="flex-1 overflow-y-auto min-h-0">
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 sm:space-y-3">
                                         {cartItems.map((item) => (
                                             <CartItem
                                                 key={item._id}
@@ -121,8 +126,10 @@ const Cart = ({
                                     <Separator />
 
                                     {/* Discount Section */}
-                                    <div className="space-y-2">
-                                        <Label htmlFor="discount">Discount (Rs)</Label>
+                                    <div className="space-y-2 sm:space-y-3">
+                                        <Label htmlFor="discount" className="text-sm sm:text-base font-medium">
+                                            Discount (Rs)
+                                        </Label>
                                         <Input
                                             id="discount"
                                             type="number"
@@ -130,35 +137,36 @@ const Cart = ({
                                             max={subtotal}
                                             value={discount}
                                             onChange={handleDiscountChange}
-                                            className="w-full"
+                                            className="w-full h-10 sm:h-11 text-sm sm:text-base"
+                                            placeholder="Enter discount amount"
                                         />
                                         {discount > subtotal && (
-                                            <Label htmlFor="error" className='text-red-400 text-sm'>
+                                            <Label htmlFor="error" className='text-red-400 text-xs sm:text-sm'>
                                                 Max discount cannot exceed order value.
                                             </Label>
                                         )}
                                     </div>
                                     
                                     {/* Payment Type Section */}
-                                    <div className="space-y-2">
-                                        <Label>Payment Type</Label>
+                                    <div className="space-y-2 sm:space-y-3">
+                                        <Label className="text-sm sm:text-base font-medium">Payment Type</Label>
                                         <RadioGroup
                                             value={paymentType}
                                             onValueChange={setPaymentType}
-                                            className="flex flex-col space-y-1"
+                                            className="grid grid-cols-2 gap-3 sm:gap-4"
                                         >
-                                            <div className="flex items-center space-x-2">
+                                            <div className="flex items-center space-x-2 border rounded-lg p-2 sm:p-3 hover:bg-muted/50 transition-colors">
                                                 <RadioGroupItem value="cash" id="cash" />
-                                                <Label htmlFor="cash" className="flex items-center">
-                                                    <Banknote className="mr-2 h-4 w-4" />
+                                                <Label htmlFor="cash" className="flex items-center cursor-pointer text-sm sm:text-base">
+                                                    <Banknote className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                                                     Cash
                                                 </Label>
                                             </div>
-                                            <div className="flex items-center space-x-2">
+                                            <div className="flex items-center space-x-2 border rounded-lg p-2 sm:p-3 hover:bg-muted/50 transition-colors">
                                                 <RadioGroupItem value="online" id="online" />
-                                                <Label htmlFor="online" className="flex items-center">
-                                                    <CreditCard className="mr-2 h-4 w-4" />
-                                                    Online Transfer
+                                                <Label htmlFor="online" className="flex items-center cursor-pointer text-sm sm:text-base">
+                                                    <CreditCard className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                                                    Online
                                                 </Label>
                                             </div>
                                         </RadioGroup>
@@ -167,28 +175,28 @@ const Cart = ({
                                     <Separator />
                                     
                                     {/* Order Summary */}
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between text-sm">
+                                    <div className="space-y-2 sm:space-y-3">
+                                        <div className="flex justify-between text-sm sm:text-base">
                                             <span>Subtotal:</span>
-                                            <span>PKR {subtotal.toLocaleString()}</span>
+                                            <span className="font-medium">PKR {subtotal.toLocaleString()}</span>
                                         </div>
                                         {discount > 0 && (
-                                            <div className="flex justify-between text-sm text-green-600">
+                                            <div className="flex justify-between text-sm sm:text-base text-green-600">
                                                 <span>Discount ({((discount/subtotal)*100).toFixed(1)}%):</span>
-                                                <span>- PKR {discountAmount.toLocaleString()}</span>
+                                                <span className="font-medium">- PKR {discountAmount.toLocaleString()}</span>
                                             </div>
                                         )}
                                         <Separator />
-                                        <div className="flex justify-between font-bold text-lg">
+                                        <div className="flex justify-between font-bold text-base sm:text-lg">
                                             <span>Total:</span>
                                             <span>PKR {total.toLocaleString()}</span>
                                         </div>
                                     </div>
                                     
                                     {/* Action Buttons */}
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 sm:space-y-3">
                                         <Button 
-                                            className="w-full" 
+                                            className="w-full h-11 sm:h-12 text-sm sm:text-base" 
                                             size="lg"
                                             onClick={handleInitialCheckout}
                                             disabled={isProcessingOrder || (discount > subtotal)}
@@ -200,16 +208,17 @@ const Cart = ({
                                                 </>
                                             ) : (
                                                 <>
-                                                    <ShoppingCart className="mr-2 h-4 w-4" />
+                                                    <ShoppingCart className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                                                     Checkout PKR {total.toLocaleString()}
                                                 </>
                                             )}
                                         </Button>
                                         <Button 
                                             variant="outline" 
-                                            className="w-full" 
+                                            className="w-full h-11 sm:h-12 text-sm sm:text-base" 
                                             onClick={onClearCart}
                                             disabled={isProcessingOrder}
+                                            size="lg"
                                         >
                                             Clear Cart
                                         </Button>

@@ -34,7 +34,6 @@ import DashboardStats from '../components/DashboardStats';
 import Cart from '../components/Cart';
 import Sidebar from '../components/SideBar';
 import MobileSidebar from '../components/Mobile/MobileSidebar';
-import MobileCart from '../components/Mobile/MobileCart';
 import useRegister from '../hooks/useRegister';
 import useOrders from '../hooks/useOrders';
 import useExpenses from '../hooks/useExpenses';
@@ -53,7 +52,6 @@ const POSDashboard = () => {
     const [activeSubView, setActiveSubView] = useState(null);
     const [cartItems, setCartItems] = useState([]);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-    const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
     const [isCartSheetOpen, setIsCartSheetOpen] = useState(false);
     const [showStartCashModal, setShowStartCashModal] = useState(false);
     const [showFinalCashModal, setShowFinalCashModal] = useState(false);
@@ -121,6 +119,24 @@ const POSDashboard = () => {
         fetchProducts();
       }
     }, [isRegisterOpen, sessionId]);
+
+    // Close mobile sidebar when screen size changes to desktop
+    useEffect(() => {
+      const handleResize = () => {
+        // Check if screen is now large (lg breakpoint is 1024px)
+        if (window.innerWidth >= 1024 && isMobileSidebarOpen) {
+          setIsMobileSidebarOpen(false);
+        }
+      };
+
+      // Add event listener
+      window.addEventListener('resize', handleResize);
+
+      // Cleanup event listener on component unmount
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
+    }, [isMobileSidebarOpen]);
 
     // Show error toasts when errors occur
     useEffect(() => {
@@ -599,7 +615,7 @@ const POSDashboard = () => {
                   variant="outline"
                   size="sm"
                   className="relative"
-                  onClick={() => setIsMobileCartOpen(true)}
+                  onClick={() => setIsCartSheetOpen(true)}
                 >
                   <ShoppingCart className="h-4 w-4" />
                   {totalItems > 0 && (
@@ -663,7 +679,7 @@ const POSDashboard = () => {
             </div>
           )}
           
-          {/* Cart Sheet */}
+          {/* Cart Sheet - Now responsive for both desktop and mobile */}
           <Cart
             isOpen={isCartSheetOpen}
             onClose={() => setIsCartSheetOpen(false)}
@@ -685,22 +701,11 @@ const POSDashboard = () => {
             onViewChange={handleViewChange}
             products={products}
             onCloseRegister={handleCloseRegister}
+            onOpenRegister={handleOpenRegister}
             registerData={registerData}
             isRegisterOpen={isRegisterOpen}
             user={user}
             onLogout={handleLogout}
-          />
-          
-          {/* Mobile Cart */}
-          <MobileCart
-            cartItems={cartItems}
-            onUpdateQuantity={handleUpdateQuantity}
-            onRemoveItem={handleRemoveFromCart}
-            onCheckout={handleCheckout}
-            onClearCart={handleClearCart}
-            isOpen={isMobileCartOpen}
-            onClose={() => setIsMobileCartOpen(false)}
-            isProcessingOrder={isProcessingOrder}
           />
 
           {/* Start Cash Modal with Managers */}
@@ -724,7 +729,7 @@ const POSDashboard = () => {
             totalOnline={dailyStats.onlinePaymnt}
             totalPending={dailyStats.totalPendingPayment}
             totalExpenses={calculateTotalExpenses()}
-                        expectedOnline={isRegisterOpen ? dailyStats.expectedOnline : 0}
+            expectedOnline={isRegisterOpen ? dailyStats.expectedOnline : 0}
             expectedCash={isRegisterOpen ? dailyStats.expectedCash : 0}
           />
         </div>

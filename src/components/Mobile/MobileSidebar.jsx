@@ -44,13 +44,16 @@ const MobileSidebar = ({
   activeView, 
   onViewChange, 
   products, 
-  onCloseRegister, 
+  onCloseRegister,
+  onOpenRegister,
   registerData, 
   isRegisterOpen,
   user,
   onLogout 
 }) => {
-  const [expandedItems, setExpandedItems] = useState({});
+  const [expandedItems, setExpandedItems] = useState({
+    variants: true // Always expand products menu by default
+  });
   
   // Function to get manager badge style (same as in desktop Sidebar)
   const getManagerBadgeStyle = (manager) => {
@@ -79,6 +82,9 @@ const MobileSidebar = ({
   };
   
   const toggleExpanded = (key) => {
+    // Don't allow collapsing the products menu
+    if (key === 'variants') return;
+    
     setExpandedItems(prev => ({
       ...prev,
       [key]: !prev[key]
@@ -90,17 +96,18 @@ const MobileSidebar = ({
       key: 'variants',
       icon: Package2,
       label: 'Products',
-      children: products.map(product => ({
-        id: product._id,
-        name: product.name,
-        variants: product.variants
-      })),
+      children: products,
       hasSubItems: true
     },
     {
       key: 'orders',
       icon: Receipt,
       label: "Orders"
+    },
+    {
+      key: 'expenses',
+      icon: Receipt,
+      label: 'Expenses'
     },
     {
       key: 'summary',
@@ -112,11 +119,11 @@ const MobileSidebar = ({
       icon: FileText,
       label: 'Orders History'
     },
-    {
-      key: 'expenses',
-      icon: Receipt,
-      label: 'Expenses'
-    },
+    // {
+    //   key: 'analysis',
+    //   icon: TrendingUp,
+    //   label: 'Analysis'
+    // },
     {
       key: 'add-product',
       icon: Plus,
@@ -246,8 +253,21 @@ const MobileSidebar = ({
               </>
             )}
             
-            {/* Only show Close Register button if register is open */}
-            {isRegisterOpen && (
+            {/* Register Control Button - Shows Open when closed, Close when open */}
+            {!isRegisterOpen ? (
+              <Button
+                variant="default"
+                className="w-full"
+                size="lg"
+                onClick={() => {
+                  onOpenRegister();
+                  onClose();
+                }}
+              >
+                <Power className="mr-2 h-4 w-4" />
+                Open Register
+              </Button>
+            ) : (
               <Button 
                 variant="destructive" 
                 className="w-full" 
