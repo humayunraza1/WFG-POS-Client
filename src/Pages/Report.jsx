@@ -13,12 +13,16 @@ import {
   Package2,
   AlertCircle,
   ArrowLeft,
-  CreditCard
+  CreditCard,
+    Calculator,  // Add this
+  CheckCircle,  // Add this
+  AlertTriangle  // Add this
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import useReports from '../hooks/useReports';
+import FinancialDiscrepancyChart from '../components/FinancialDiscrepancy';
 
 const Report = () => {
   const { id: reportId } = useParams();
@@ -432,6 +436,8 @@ const Report = () => {
         {/* Product Performance */}
         <ProductPerformance productSummary={currentReport.productSummary} />
 
+        <FinancialDiscrepancyChart sessions={currentReport.sessions} />
+        
         {/* Sessions Summary */}
         <Card className="shadow-sm">
           <CardHeader>

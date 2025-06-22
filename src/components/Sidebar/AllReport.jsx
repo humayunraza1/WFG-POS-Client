@@ -271,8 +271,6 @@ const AllReports = () => {
                       <TableHead>Created Date</TableHead>
                       <TableHead>Start Date</TableHead>
                       <TableHead>End Date</TableHead>
-                      <TableHead>Total Sales</TableHead>
-                      <TableHead>Orders</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -287,12 +285,6 @@ const AllReports = () => {
                         </TableCell>
                         <TableCell>
                           {formatDate(report.endDate)}
-                        </TableCell>
-                        <TableCell>
-                          PKR {report.summary?.totalSales?.toLocaleString() || '0'}
-                        </TableCell>
-                        <TableCell>
-                          {report.summary?.totalOrders || 0}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
