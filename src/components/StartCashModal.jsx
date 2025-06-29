@@ -22,6 +22,7 @@ import { DollarSign, Loader2, User } from 'lucide-react';
 const StartCashModal = ({ isOpen, onClose, onSubmit, isLoading, managers = [] }) => {
   const [startCash, setStartCash] = useState('');
   const [selectedManager, setSelectedManager] = useState('');
+  const [selectedManagerId, setSelectedManagerId] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = (e) => {
@@ -40,9 +41,10 @@ const StartCashModal = ({ isOpen, onClose, onSubmit, isLoading, managers = [] })
     }
 
     setError('');
+    console.log('Submitting start cash:', { startCash, manager: selectedManagerId });
     onSubmit({
       startCash: cashAmount,
-      manager: selectedManager
+      managerId: selectedManagerId
     });
   };
 
@@ -71,7 +73,7 @@ const StartCashModal = ({ isOpen, onClose, onSubmit, isLoading, managers = [] })
             <Label htmlFor="manager">Manager</Label>
             <Select
               value={selectedManager}
-              onValueChange={setSelectedManager}
+              onValueChange={(e)=>{setSelectedManager(e.name); setSelectedManagerId(e.id)}}
               disabled={isLoading}
             >
               <SelectTrigger className={error && !selectedManager ? 'border-red-500' : ''}>
@@ -86,10 +88,10 @@ const StartCashModal = ({ isOpen, onClose, onSubmit, isLoading, managers = [] })
               </SelectTrigger>
               <SelectContent>
                 {managers.map((manager) => (
-                  <SelectItem key={manager} value={manager}>
+                  <SelectItem key={manager._id} value={{name:manager.name, id: manager._id}}>
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      {manager}
+                      {manager.name}
                     </div>
                   </SelectItem>
                 ))}

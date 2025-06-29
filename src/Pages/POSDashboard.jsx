@@ -198,8 +198,10 @@ const POSDashboard = () => {
           description: 'Please close the current session before opening a new one'
         });
         return;
+      }else{
+        toast("Opening Register")
+        setShowStartCashModal(true);
       }
-      setShowStartCashModal(true);
     };
 
     const handleStartCashSubmit = async (registerData) => {

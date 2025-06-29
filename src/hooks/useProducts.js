@@ -25,7 +25,7 @@ const useProducts = () => {
 
   const addProduct = async (productData) => {
     try {
-      const { data } = await axios.post(`/products`, productData, { withCredentials: true });
+      const { data } = await axios.post(`/manager/add-product`, productData, { withCredentials: true });
       setProducts(prev => [...prev, data]);
       return data;
     } catch (err) {
@@ -36,7 +36,7 @@ const useProducts = () => {
 
   const updateProduct = async (id, productData) => {
     try {
-      const { data } = await axios.patch(`/products/${id}`, productData, { withCredentials: true });
+      const { data } = await axios.patch(`/manager/edit-product/${id}`, productData, { withCredentials: true });
       setProducts(prev => prev.map(p => p._id === id ? data : p));
       return data;
     } catch (err) {

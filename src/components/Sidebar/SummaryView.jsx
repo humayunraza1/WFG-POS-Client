@@ -141,12 +141,12 @@ const SummaryView = () => {
                     </div>
                   </SelectItem>
                   {managers.map((manager) => (
-                    <SelectItem key={manager} value={manager}>
+                    <SelectItem key={manager._id} value={manager.name}>
                       <Badge 
-                        style={getManagerBadgeStyle(manager)}
+                        style={getManagerBadgeStyle(manager.name)}
                         className="font-medium"
                       >
-                        {manager}
+                        {manager.name}
                       </Badge>
                     </SelectItem>
                   ))}

@@ -50,7 +50,7 @@ const useExpenses = (sessionId, isRegisterOpen, onExpenseChange) => {
 
   const addExpense = async (expenseData) => {
     try {
-      const { data } = await axios.post(`/expenses`, {
+      const { data } = await axios.post(`/manager/add-expense`, {
         ...expenseData,
         registerSession: sessionId
       },{withCredentials:true});
@@ -71,7 +71,7 @@ const useExpenses = (sessionId, isRegisterOpen, onExpenseChange) => {
 
   const updateExpense = async (id, expenseData) => {
     try {
-      const { data } = await axios.put(`/expenses/${id}`, expenseData,{withCredentials:true});
+      const { data } = await axios.put(`/manager/update-expense/${id}`, expenseData,{withCredentials:true});
       setExpenses(prev => prev.map(e => e._id === id ? data : e));
       
       // Call the callback to update dashboard stats
@@ -88,7 +88,7 @@ const useExpenses = (sessionId, isRegisterOpen, onExpenseChange) => {
 
   const deleteExpense = async (id) => {
     try {
-      await axios.delete(`/expenses/${id}`,{withCredentials:true});
+      await axios.delete(`/manager/delete-expense/${id}`,{withCredentials:true});
       setExpenses(prev => prev.filter(e => e._id !== id));
       
       // Call the callback to update dashboard stats

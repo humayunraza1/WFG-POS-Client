@@ -140,7 +140,7 @@ const useRegister = () => {
         params.manager = filters.manager;
       }
 
-      const { data } = await axios.get('/register/sessions', { params }, { withCredentials: true });
+      const { data } = await axios.get('/manager/register/sessions', { params }, { withCredentials: true });
       
       // Sort sessions by openedAt date, most recent first
       const sortedSessions = data.sort((a, b) => 
@@ -162,7 +162,7 @@ const useRegister = () => {
   // Function to get a specific session by ID
   const getSessionById = useCallback(async (sessionId) => {
     try {
-      const { data } = await axios.get(`/register/sessions/${sessionId}`, { withCredentials: true });
+      const { data } = await axios.get(`/manager/register/sessions/${sessionId}`, { withCredentials: true });
       return data;
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message;

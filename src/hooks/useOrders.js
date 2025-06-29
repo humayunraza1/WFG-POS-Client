@@ -237,21 +237,10 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
 
   const deleteOrder = async (id) => {
     try {
-      await axios.delete(`/orders/${id}`,{ withCredentials: true });
+      await axios.delete(`/manager/delete-order/${id}`,{ withCredentials: true });
       setOrders(prev => prev.filter(o => o._id !== id));
       toast.success('Order deleted successfully');
       fetchDailyStats();
-    } catch (err) {
-      setError(err.response?.data?.message || err.message);
-      throw err;
-    }
-  };
-
-  const getDailyOrderCount = async () => {
-    try {
-      const response = await axios.get(`/orders/daily-count`,{ withCredentials: true });
-      const data = response.data;
-      return data.count;
     } catch (err) {
       setError(err.response?.data?.message || err.message);
       throw err;
@@ -289,7 +278,6 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
     updateOrder,
     updatePayment, // New function
     deleteOrder,
-    getDailyOrderCount,
     reprintReceipt,
   };
 };
