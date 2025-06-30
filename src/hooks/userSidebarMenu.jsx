@@ -1,6 +1,8 @@
 import {
   Package2, Receipt, History, FileText,
-  BarChart3, Plus, Edit3
+  BarChart3, Plus, Edit3,
+  User,
+  DollarSign
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -29,7 +31,7 @@ const useSidebarMenu = (products) => {
     });
 
 
-  if (access.canViewExpenses) {
+  if (access.canManageExpenses) {
     menuItems.push({
       key: 'expenses',
       icon: Receipt,
@@ -38,6 +40,11 @@ const useSidebarMenu = (products) => {
   }
 
   if (access.isManager || access.isAdmin) {
+    menuItems.push({
+      key: 'registers',
+      icon: DollarSign,
+      label: 'Overview'
+    });
     menuItems.push({
       key: 'summary',
       icon: History,
@@ -48,30 +55,30 @@ const useSidebarMenu = (products) => {
       icon: FileText,
       label: 'Orders History'
     });
+            menuItems.push({
+      key: 'add-product',
+      icon: Plus,
+      label: 'Add Product'
+    });
+        menuItems.push({
+      key: 'edit-product',
+      icon: Edit3,
+      label: 'Edit Product'
+    });
+            menuItems.push({
+      key: 'employees',
+      icon: User,
+      label: 'Employees'
+    });
   }
 
-  if (access.canViewReport || access.canGenReport) {
+  if (access.canViewReport || access.canGenReport || access.isManager) {
     menuItems.push({
       key: 'reports',
       icon: BarChart3,
       label: 'Reports'
     });
-  }
 
-  if (access.canAddProducts) {
-    menuItems.push({
-      key: 'add-product',
-      icon: Plus,
-      label: 'Add Product'
-    });
-  }
-
-  if (access.canEditProducts) {
-    menuItems.push({
-      key: 'edit-product',
-      icon: Edit3,
-      label: 'Edit Product'
-    });
   }
 
   return menuItems;

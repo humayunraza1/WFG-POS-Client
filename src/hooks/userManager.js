@@ -17,6 +17,7 @@ const useManager = () => {
       setLoading(true);
       const url = sessionId ? `/manager/registers/summary?sessionId=${sessionId}` : '/manager/registers/summary';
       const res = await axios.get(url);
+      console.log('Fetched Summary:', res.data); // Debugging line
       setSummary(res.data);
     } catch (err) {
       setError(err.message);
@@ -24,6 +25,61 @@ const useManager = () => {
       setLoading(false);
     }
   };
+
+  const addAccount = async (employeeId, accountData) => {
+  try {
+    setLoading(true);
+    setError(null);
+    
+    const response = await axios.post('/manager/add-account', {
+      employeeId,
+      ...accountData
+    });
+    
+    // Refresh employees list after successful account creation
+    await fetchEmployees();
+    
+    return response.data;
+  } catch (err) {
+    const errorMessage = err.response?.data?.message || err.message;
+    const deniedPermissions = err.response?.data?.denied || [];
+    
+    setError(errorMessage);
+    
+    // Return error details for the component to handle
+    throw {
+      message: errorMessage,
+      denied: deniedPermissions,
+      status: err.response?.status
+    };
+  } finally {
+    setLoading(false);
+  }
+};
+
+const addEmployee = async (employeeData) => {
+  try {
+    setLoading(true);
+    setError(null);
+    
+    const response = await axios.post('/manager/add-employee', employeeData);
+    
+    // Refresh employees list after successful employee creation
+    await fetchEmployees();
+    
+    return response.data;
+  } catch (err) {
+    const errorMessage = err.response?.data?.message || err.message;
+    setError(errorMessage);
+    
+    throw {
+      message: errorMessage,
+      status: err.response?.status
+    };
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchActiveRegisters = async () => {
     try {
@@ -95,6 +151,8 @@ const useManager = () => {
     expenses,
     loading,
     error,
+    addAccount,
+    addEmployee,
     fetchSummary,
     fetchActiveRegisters,
     fetchEmployees,

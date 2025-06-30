@@ -138,7 +138,7 @@ const Sidebar = ({ activeView, onViewChange,user, products, onCloseRegister, onO
         )}
 
         {/* Register Control Button - Shows Open when closed, Close when open */}
-        {!isRegisterOpen ? (
+        {!user.access.isManager && (!isRegisterOpen ? (
           <Button
             variant="default"
             className="w-full"
@@ -156,7 +156,7 @@ const Sidebar = ({ activeView, onViewChange,user, products, onCloseRegister, onO
             <Power className="mr-2 h-4 w-4" />
             Close Register
           </Button>
-        )}
+        ))}
       </CardContent>
     </Card>
   );
