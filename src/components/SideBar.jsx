@@ -4,11 +4,6 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  ChevronDown,
-  ChevronRight,
-  DollarSign,
-  ShoppingCart,
-  Calculator,
   Package2,
   BarChart3,
   Receipt,
@@ -29,8 +24,9 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SidebarMenuItem from './SidebarMenuItem';
 import useOrders from '@/hooks/useOrders';
+import useSidebarMenu from '../hooks/userSidebarMenu';
 
-const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, onOpenRegister, registerData, isRegisterOpen }) => {
+const Sidebar = ({ activeView, onViewChange,user, products, onCloseRegister, onOpenRegister, registerData, isRegisterOpen }) => {
   const [expandedItems, setExpandedItems] = useState({
     variants: true // Always expand products menu by default
   });
@@ -72,55 +68,7 @@ const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, onOpenRe
     }));
   };
 
-  const menuItems = [
-    {
-      key: 'variants',
-      icon: Package2,
-      label: 'Products',
-      children: products,
-      hasSubItems: true
-    },
-    {
-      key: 'orders',
-      icon: Receipt,
-      label: "Orders"
-    },
-    {
-      key: 'expenses',
-      icon: Receipt,
-      label: 'Expenses'
-    },
-    {
-      key: 'summary',
-      icon: History,
-      label: 'Register History'
-    },
-    {
-      key: 'orders-history',
-      icon: FileText,
-      label: 'Orders History'
-    },
-    {
-      key: 'reports',
-      icon: BarChart3,
-      label: 'Reports'
-    },
-    // {
-    //   key: 'analysis',
-    //   icon: TrendingUp,
-    //   label: 'Analysis'
-    // },
-    {
-      key: 'add-product',
-      icon: Plus,
-      label: 'Add Product'
-    },
-    {
-      key: 'edit-product',
-      icon: Edit3,
-      label: 'Edit Product'
-    }
-  ];
+  const menuItems = useSidebarMenu(products);
 
   return (
     <Card className="w-64 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto">

@@ -3,8 +3,8 @@ import { Toaster } from 'sonner';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './Pages/Login';
-import POSDashboard from './Pages/POSDashboard';
 import Report from './Pages/Report';
+import DashboardRouter from './Pages/DashboardRouter';
 
 function App() {
   return (
@@ -32,7 +32,7 @@ function App() {
           path="/dashboard" 
           element={
             <ProtectedRoute>
-              <POSDashboard />
+              <DashboardRouter/>
             </ProtectedRoute>
           } 
         />

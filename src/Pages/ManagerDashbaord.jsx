@@ -1,0 +1,606 @@
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { 
+  ChevronDown, 
+  ChevronRight, 
+  DollarSign, 
+  ShoppingCart, 
+  Calculator,
+  Package2,
+  BarChart3,
+  Receipt,
+  Plus,
+  Edit3,
+  Power,
+  LogOut,
+  Minus,
+  Trash2,
+  Menu,
+  X,
+  Loader2,
+  History,
+  Monitor,
+  Clock,
+  User
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
+import VariantsView from '../components/Sidebar/VariantsView';
+import SummaryView from '../components/Sidebar/SummaryView';
+import ExpensesView from '../components/Sidebar/ExpensesView';
+import AllReports from '../components/Sidebar/AllReport';
+import ProductManagement from '../components/Sidebar/ProductManagement';
+import DashboardStats from '../components/DashboardStats';
+import Cart from '../components/Cart';
+import Sidebar from '../components/SideBar';
+import MobileSidebar from '../components/Mobile/MobileSidebar';
+import ActiveRegisters from '../components/ActiveRegisters';
+import RegisterSummary from '../components/RegisterSummary';
+import useRegister from '../hooks/useRegister';
+import useOrders from '../hooks/useOrders';
+import useExpenses from '../hooks/useExpenses';
+import ProductsView from '../components/ProductsView';
+import OrdersTableView from '../components/OrdersTableView';
+import useProducts from '../hooks/useProducts';
+import StartCashModal from '../components/StartCashModal';
+import FinalCashModal from '../components/FinalCashModal';
+import { useAuth } from '../hooks/useAuth';
+import OrdersHistory from '../components/Sidebar/OrderHistory';
+import useManager from '../hooks/userManager';
+
+// Main Dashboard Component
+const ManagerDashboard = () => {
+    const { logout, user } = useAuth();
+    const [activeView, setActiveView] = useState('dashboard');
+    const [activeSubView, setActiveSubView] = useState(null);
+    const [cartItems, setCartItems] = useState([]);
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [selectedSessionId, setSelectedSessionId] = useState(null);
+
+    const {
+      products,
+      fetchProducts
+    } = useProducts();
+
+    const {
+      orders,
+      fetchOrders,
+      deleteOrder,
+      updatePayment,
+      fetchAllOrders,
+      allOrders,
+      isLoadingAllOrders
+    } = useOrders();
+
+    const {
+      expenses,
+      addExpense,
+      updateExpense,
+      deleteExpense,
+      expensesLoading
+    } = useExpenses();
+
+    // Use the manager hook for register management
+    const {
+      summary: registerSummary,
+      activeRegisters,
+      loading: managerLoading,
+      error: managerError,
+      fetchSummary: fetchRegisterSummary,
+      fetchActiveRegisters
+    } = useManager();
+
+    // Separate loading state for register summary
+    const [summaryLoading, setSummaryLoading] = useState(false);
+
+    // Fetch products initially
+    useEffect(() => {
+      fetchProducts();
+    }, []);
+
+    // Fetch active registers on component mount
+    useEffect(() => {
+      fetchActiveRegisters();
+    }, []);
+
+    // Close mobile sidebar when screen size changes to desktop
+    useEffect(() => {
+      const handleResize = () => {
+        if (window.innerWidth >= 1024 && isMobileSidebarOpen) {
+          setIsMobileSidebarOpen(false);
+        }
+      };
+
+      window.addEventListener('resize', handleResize);
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
+    }, [isMobileSidebarOpen]);
+
+    // Handle register selection
+    const handleRegisterClick = async (sessionId) => {
+      setSelectedSessionId(sessionId);
+      setSummaryLoading(true);
+      try {
+        await fetchRegisterSummary(sessionId);
+      } finally {
+        setSummaryLoading(false);
+      }
+    };
+
+    // Handle view all summary
+    const handleGetAllSummary = async () => {
+      setSelectedSessionId(null);
+      setSummaryLoading(true);
+      try {
+        await fetchRegisterSummary();
+      } finally {
+        setSummaryLoading(false);
+      }
+    };
+
+    const handleViewChange = (view, subView = null) => {
+      console.log(`Switching to view: ${view}`, subView);
+      setActiveView(view);
+      setActiveSubView(subView);
+    };
+
+    // Payment update handler
+    const handleUpdatePayment = async (orderId, amount) => {
+      try {
+        const result = await updatePayment(orderId, amount);
+        toast.success('Payment updated successfully', {
+          description: result.message
+        });
+        
+        // Refresh register summary if viewing register data
+        if (selectedSessionId || activeView === 'registers') {
+          setSummaryLoading(true);
+          try {
+            await fetchRegisterSummary(selectedSessionId);
+          } finally {
+            setSummaryLoading(false);
+          }
+        }
+        
+        return result;
+      } catch (error) {
+        toast.error('Failed to update payment', {
+          description: error.message
+        });
+        throw error;
+      }
+    };
+
+    // Expense handlers
+    const handleAddExpense = async (expenseData) => {
+      try {
+        const result = await addExpense(expenseData);
+        
+        // Refresh register summary if viewing register data
+        if (selectedSessionId || activeView === 'registers') {
+          setSummaryLoading(true);
+          try {
+            await fetchRegisterSummary(selectedSessionId);
+          } finally {
+            setSummaryLoading(false);
+          }
+        }
+        
+        return result;
+      } catch (error) {
+        throw error;
+      }
+    };
+
+    const handleUpdateExpense = async (id, expenseData) => {
+      try {
+        const result = await updateExpense(id, expenseData);
+        
+        // Refresh register summary if viewing register data
+        if (selectedSessionId || activeView === 'registers') {
+          setSummaryLoading(true);
+          try {
+            await fetchRegisterSummary(selectedSessionId);
+          } finally {
+            setSummaryLoading(false);
+          }
+        }
+        
+        return result;
+      } catch (error) {
+        throw error;
+      }
+    };
+
+    const handleDeleteExpense = async (id) => {
+      try {
+        const result = await deleteExpense(id);
+        
+        // Refresh register summary if viewing register data
+        if (selectedSessionId || activeView === 'registers') {
+          fetchRegisterSummary(selectedSessionId);
+        }
+        
+        return result;
+      } catch (error) {
+        throw error;
+      }
+    };
+
+    const handleLogout = async () => {
+      try {
+        await logout();
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
+    };
+
+    useEffect(() => {
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
+    }, []);
+
+    // Get filtered orders based on selected register
+    const getFilteredOrders = () => {
+      if (!selectedSessionId) {
+        return orders; // Return all orders if no specific register selected
+      }
+      
+      // Filter orders from register summary if available
+      if (registerSummary && registerSummary.orders) {
+        return registerSummary.orders;
+      }
+      
+      // Fallback: filter orders by sessionId if available in orders data
+      return orders.filter(order => order.sessionId === selectedSessionId);
+    };
+
+    // Active Registers Component (inline for right sidebar)
+    const ActiveRegistersPanel = () => {
+      const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return {
+          date: date.toLocaleDateString(),
+          time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+      };
+
+      return (
+        <Card className="w-80 h-fit">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Active Registers</CardTitle>
+              <Badge variant="secondary" className="text-xs">
+                {activeRegisters.length} Active
+              </Badge>
+            </div>
+          </CardHeader>
+          
+          <CardContent className="space-y-4">
+            {/* Get All Summary Button */}
+            <Button 
+              onClick={handleGetAllSummary}
+              variant={selectedSessionId === null ? "default" : "outline"}
+              className="w-full"
+              size="sm"
+            >
+              View All Summary
+            </Button>
+            
+            {managerLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : activeRegisters.length === 0 ? (
+              <div className="text-center py-8">
+                <Monitor className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <p className="text-sm text-muted-foreground font-medium">No active registers found</p>
+                <p className="text-xs text-muted-foreground mt-1">All registers are currently closed</p>
+              </div>
+            ) : (
+              <ScrollArea className="max-h-96">
+                <div className="space-y-3">
+                  {activeRegisters.map((register) => {
+                    const { date, time } = formatDate(register.openedAt);
+                    const isSelected = selectedSessionId === register.sessionId;
+                    
+                    return (
+                      <Card 
+                        key={register._id}
+                        className={`cursor-pointer transition-all hover:shadow-md ${
+                          isSelected 
+                            ? 'ring-2 ring-primary bg-primary/5 border-primary/20' 
+                            : 'hover:border-primary/30'
+                        }`}
+                        onClick={() => {
+                          setActiveView('registers');
+                          handleRegisterClick(register.sessionId);
+                        }}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback className={`text-xs ${
+                                  isSelected 
+                                    ? 'bg-primary text-primary-foreground' 
+                                    : 'bg-muted text-muted-foreground'
+                                }`}>
+                                  {register.cashier.username.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-sm font-medium truncate ${
+                                  isSelected ? 'text-primary' : ''
+                                }`}>
+                                  {register.cashier.username}
+                                </p>
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <User className="h-3 w-3" />
+                                  <span>Cashier</span>
+                                </div>
+                              </div>
+                            </div>
+                            <Badge 
+                              variant="outline" 
+                              className={`text-xs ${
+                                isSelected 
+                                  ? 'bg-primary/10 text-primary border-primary/20' 
+                                  : 'bg-green-50 text-green-700 border-green-200'
+                              }`}
+                            >
+                              {isSelected ? 'Selected' : 'Active'}
+                            </Badge>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Clock className="h-3 w-3" />
+                              <span>Opened: {date} at {time}</span>
+                            </div>
+                            
+                            <div className="text-xs text-muted-foreground">
+                              Session: {register.sessionId.slice(-8)}...
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
+      );
+    };
+
+    const renderMainContent = () => { 
+      if (isLoading) {
+        return (
+          <div className="flex items-center justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        );
+      }
+
+      switch(activeView) {
+        case 'registers':
+          return (
+            <RegisterSummary
+              summary={registerSummary}
+              loading={summaryLoading}
+              selectedSessionId={selectedSessionId}
+            />
+          );
+        
+        case 'summary':
+          return <SummaryView period={activeSubView || 'All Orders'} orders={orders} />;
+        
+        case 'expenses':
+          return (
+            <ExpensesView 
+              expenses={expenses}
+              addExpense={handleAddExpense}
+              updateExpense={handleUpdateExpense}
+              deleteExpense={handleDeleteExpense}
+              isLoading={expensesLoading}
+            />
+          );
+
+        case 'reports':
+          return <AllReports />;
+
+        case 'orders':
+          const filteredOrders = getFilteredOrders();
+          return (
+            <div className="space-y-4">
+              {/* Header showing which register's orders are being displayed */}
+              {selectedSessionId && (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold">Register Orders</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Showing orders from session: {selectedSessionId.slice(-8)}...
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                    {filteredOrders.length} Orders
+                  </Badge>
+                </div>
+              )}
+              
+              <OrdersTableView 
+                orders={filteredOrders}
+                onRefresh={selectedSessionId ? () => fetchRegisterSummary(selectedSessionId) : fetchOrders}
+                onUpdatePayment={handleUpdatePayment}
+                onDeleteOrder={deleteOrder}
+                isLoading={summaryLoading}
+                selectedSessionId={selectedSessionId}
+              />
+            </div>
+          );
+
+        case 'orders-history':
+          return (
+            <OrdersHistory 
+              onUpdatePayment={handleUpdatePayment}
+              fetchAllOrders={fetchAllOrders}
+              allOrders={allOrders}
+              isLoadingAllOrders={isLoadingAllOrders}
+            />
+          );
+
+        case 'add-product':
+        case 'edit-product':
+          return <ProductManagement mode={activeView} />;
+        
+        default:
+          return (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold">Dashboard Overview</h2>
+              <p className="text-muted-foreground">
+                Welcome to your POS Manager Dashboard. Use the sidebar to navigate between different sections.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Card 
+                  className="cursor-pointer hover:shadow-md transition-shadow" 
+                  onClick={() => handleViewChange('registers')}
+                >
+                  <CardContent className="p-6 text-center">
+                    <Monitor className="mx-auto h-12 w-12 text-primary mb-4" />
+                    <h3 className="font-semibold">Active Registers</h3>
+                    <p className="text-sm text-muted-foreground">Monitor active cash registers</p>
+                  </CardContent>
+                </Card>
+                <Card 
+                  className="cursor-pointer hover:shadow-md transition-shadow" 
+                  onClick={() => handleViewChange('summary', 'All Orders')}
+                >
+                  <CardContent className="p-6 text-center">
+                    <History className="mx-auto h-12 w-12 text-primary mb-4" />
+                    <h3 className="font-semibold">View History</h3>
+                    <p className="text-sm text-muted-foreground">Check Register History</p>
+                  </CardContent>
+                </Card>
+                <Card 
+                  className="cursor-pointer hover:shadow-md transition-shadow" 
+                  onClick={() => handleViewChange('expenses')}
+                >
+                  <CardContent className="p-6 text-center">
+                    <Receipt className="mx-auto h-12 w-12 text-primary mb-4" />
+                    <h3 className="font-semibold">Manage Expenses</h3>
+                    <p className="text-sm text-muted-foreground">Track business expenses</p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          );
+      }
+    };
+  
+    return (
+      <div className="min-h-screen bg-background p-4 lg:p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Header with Mobile Controls */}
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img src='/images/wfg-logo.png' className='h-25 w-25' alt="Logo" />
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-bold">POS Manager Dashboard</h1>
+                <p className="text-muted-foreground">Manage your point of sale operations</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {/* User Card */}
+              {user && (
+                <Card className="border-0 h-15 bg-muted/50 hidden lg:block">
+                  <CardContent className="p-2 h-full flex items-center">
+                    <div className="flex items-center gap-2 w-full">
+                      <Avatar className="h-7 w-7 flex-shrink-0">
+                        <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-xs">
+                          {user.username.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-muted-foreground leading-tight truncate">
+                          Logged in as
+                        </p>
+                        <p className="font-semibold text-xs leading-tight truncate">
+                          {user.username}
+                        </p>
+                      </div>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleLogout}
+                        className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground flex-shrink-0"
+                        title="Logout"
+                      >
+                        <LogOut className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Mobile Controls */}
+              <div className="flex items-center gap-2 lg:hidden">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsMobileSidebarOpen(true)}
+                >
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Main Layout */}
+          <div className="flex gap-6">
+            {/* Desktop Sidebar */}
+            <div className="hidden lg:block">
+              <Sidebar 
+                activeView={activeView}
+                onViewChange={handleViewChange}
+              />
+            </div>
+            
+            {/* Main Content - Reduced width */}
+            <div className="flex-1 max-w-4xl">
+              {renderMainContent()}
+            </div>
+
+            {/* Right Sidebar - Active Registers */}
+            <div className="hidden lg:block">
+              <ActiveRegistersPanel />
+            </div>
+          </div>
+          
+          {/* Mobile Sidebar */}
+          <MobileSidebar
+            isOpen={isMobileSidebarOpen}
+            onClose={() => setIsMobileSidebarOpen(false)}
+            activeView={activeView}
+            onViewChange={handleViewChange}
+            products={products}
+            user={user}
+            onLogout={handleLogout}
+          />
+        </div>
+      </div>
+    );
+  };
+  
+  export default ManagerDashboard;

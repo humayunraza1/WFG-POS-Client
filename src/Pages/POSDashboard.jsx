@@ -656,6 +656,7 @@ const POSDashboard = () => {
                 activeView={activeView}
                 onViewChange={handleViewChange}
                 products={products}
+                user={user}
                 onCloseRegister={handleCloseRegister}
                 onOpenRegister={handleOpenRegister}
                 registerData={registerData}
