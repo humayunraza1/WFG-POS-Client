@@ -276,11 +276,9 @@ const ManagerDashboard = () => {
             <EmployeesTable
               employees={allEmployees}
               isLoading={managerLoading}
+              user={user}
             />
           );
-
-        case 'summary':
-          return <SummaryView period={activeSubView || 'All Orders'} orders={orders} />;
         
         case 'expenses':
           return (
@@ -326,19 +324,18 @@ const ManagerDashboard = () => {
             </div>
           );
 
-        case 'orders-history':
-          return (
+        case 'history':
+          return activeSubView == 'Orders History' ?  
             <OrdersHistory 
               onUpdatePayment={handleUpdatePayment}
               fetchAllOrders={fetchAllOrders}
               allOrders={allOrders}
               isLoadingAllOrders={isLoadingAllOrders}
-            />
-          );
+              />:
+          <SummaryView period={activeSubView || 'All Orders'} orders={orders} />;
 
-        case 'add-product':
-        case 'edit-product':
-          return <ProductManagement mode={activeView} />;
+        case 'manage-product':
+          return <ProductManagement mode={activeSubView} />;
         
         default:
           return (

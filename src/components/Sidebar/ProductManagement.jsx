@@ -57,13 +57,13 @@ const ProductManagement = ({ mode, product = null, onSuccess }) => {
 
     try {
       setLoading(true);
-      if (mode === 'add-product') {
+      if (mode === 'Add Product') {
         console.log('Product added:', payload);
         await addProduct(payload);
         toast.success('Product added successfully!');
         setForm({ name: '', imageUrl: '' });
         setVariants([{ name: '', price: '', imageUrl: '' }]);
-      } else if (mode === 'edit-product' && selectedProductId) {
+      } else if (mode === 'Edit Product' && selectedProductId) {
         await updateProduct(selectedProductId, payload);
         toast.success('Product updated successfully!');
       }
@@ -79,7 +79,7 @@ const ProductManagement = ({ mode, product = null, onSuccess }) => {
 
   // Load products only once when component mounts and mode is edit-product
   useEffect(() => {
-    if (mode === 'edit-product' && !hasInitialized) {
+    if (mode === 'Edit Product' && !hasInitialized) {
       fetchProducts();
       setHasInitialized(true);
     }
@@ -87,7 +87,7 @@ const ProductManagement = ({ mode, product = null, onSuccess }) => {
 
   // Load selected product data when selectedProductId changes
   useEffect(() => {
-    if (mode === 'edit-product' && selectedProductId && products.length) {
+    if (mode === 'Edit Product' && selectedProductId && products.length) {
       const found = products.find(p => p._id === selectedProductId);
       if (found) {
         setForm({ name: found.name, imageUrl: found.imageUrl });
@@ -100,13 +100,13 @@ const ProductManagement = ({ mode, product = null, onSuccess }) => {
     <Card>
       <CardHeader>
         <CardTitle>
-          {mode === 'add-product' ? 'Add New Product' : 'Edit Product'}
+          {mode === 'Add Product' ? 'Add New Product' : 'Edit Product'}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
 
-          {mode === 'edit-product' && (
+          {mode === 'Edit Product' && (
             <div className="space-y-2">
               <label className="text-sm font-medium">Select Product</label>
               <Select onValueChange={setSelectedProductId} value={selectedProductId}>
@@ -124,7 +124,7 @@ const ProductManagement = ({ mode, product = null, onSuccess }) => {
             </div>
           )}
 
-          {(mode === 'add-product' || (mode === 'edit-product' && selectedProductId)) && (
+          {(mode === 'Add Product' || (mode === 'Edit Product' && selectedProductId)) && (
             <>
               {/* Product Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -204,10 +204,10 @@ const ProductManagement = ({ mode, product = null, onSuccess }) => {
                 disabled={loading}
               >
                 {loading
-                  ? mode === 'add-product'
+                  ? mode === 'Add Product'
                     ? 'Adding...'
                     : 'Updating...'
-                  : mode === 'add-product'
+                  : mode === 'Add Product'
                   ? 'Add Product'
                   : 'Update Product'}
               </Button>

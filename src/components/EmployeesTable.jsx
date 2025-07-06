@@ -26,13 +26,14 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, User, Phone, Mail, DollarSign, Loader2 } from 'lucide-react';
+import { Plus, User, Phone, Mail, DollarSign, Loader2, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import useManager from '../hooks/userManager';
 import AddAccountDialog from './AddAccountDialog';
+import EmployeeDrawer from './EmployeeDrawer';
 
-const EmployeesTable = ({ employees = [], isLoading = false, userRole = 'manager', onEmployeeUpdate }) => {
+const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpdate }) => {
   const { addEmployee, loading: managerLoading } = useManager();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [addAccountDialog, setAddAccountDialog] = useState({
@@ -40,19 +41,24 @@ const EmployeesTable = ({ employees = [], isLoading = false, userRole = 'manager
     employeeId: null,
     employeeName: ''
   });
+    const [employeeDrawer, setEmployeeDrawer] = useState({
+    isOpen: false,
+    employee: null
+  });
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     salary: '',
-    role: ''
+    role: '',
+    salaryDate: ''
   });
   const [formErrors, setFormErrors] = useState({});
 
   // Define available roles based on user access level
   const getAvailableRoles = () => {
     const baseRoles = ['cashier', 'chef', 'employee', 'cleaner', 'waiter'];
-    if (userRole === 'admin') {
+    if (user.access.isAdmin) {
       return [...baseRoles, 'manager', 'company'];
     }
     return baseRoles;
@@ -141,7 +147,8 @@ const EmployeesTable = ({ employees = [], isLoading = false, userRole = 'manager
     try {
       const employeeData = {
         ...formData,
-        salary: parseFloat(formData.salary)
+        salary: parseFloat(formData.salary),
+        salaryDate: parseInt(formData.salaryDate)
       };
 
       await addEmployee(employeeData);
@@ -155,7 +162,8 @@ const EmployeesTable = ({ employees = [], isLoading = false, userRole = 'manager
         email: '',
         phone: '',
         salary: '',
-        role: ''
+        role: '',
+        salaryDate: ''
       });
       setFormErrors({});
       setIsModalOpen(false);
@@ -171,7 +179,8 @@ const EmployeesTable = ({ employees = [], isLoading = false, userRole = 'manager
       email: '',
       phone: '',
       salary: '',
-      role: ''
+      role: '',
+      salaryDate: ''
     });
     setFormErrors({});
   };
@@ -191,7 +200,19 @@ const EmployeesTable = ({ employees = [], isLoading = false, userRole = 'manager
       employeeName: ''
     });
   };
+  const handleOpenEmployeeDrawer = (employee) => {
+    setEmployeeDrawer({
+      isOpen: true,
+      employee: employee
+    });
+  };
 
+  const handleCloseEmployeeDrawer = () => {
+    setEmployeeDrawer({
+      isOpen: false,
+      employee: null
+    });
+  };
   const handleAccountAdded = () => {
     // The addAccount function in useManager already refreshes the employees list
     // So we don't need to do anything here, but we can call onEmployeeUpdate if needed
@@ -309,13 +330,35 @@ const EmployeesTable = ({ employees = [], isLoading = false, userRole = 'manager
                       )}
                     </div>
                   </div>
+                  <div className="grid grid-cols-2 gap-4">
 
+                  <div className="space-y-2">
+                      <Label htmlFor="salaryDate">Salary Date</Label>
+                      <Select 
+                        value={formData.salaryDate} 
+                        onValueChange={(value) => handleInputChange('salaryDate', value)}
+                      >
+                        <SelectTrigger className={formErrors.salaryDate ? 'border-red-500' : ''}>
+                          <SelectValue placeholder="Select salary date" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
+                            <SelectItem key={day} value={day.toString()}>
+                              {day}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {formErrors.salaryDate && (
+                        <p className="text-sm text-red-500">{formErrors.salaryDate}</p>
+                      )}
+                    </div>
                   <div className="space-y-2">
                     <Label htmlFor="role">Role</Label>
                     <Select 
                       value={formData.role} 
                       onValueChange={(value) => handleInputChange('role', value)}
-                    >
+                      >
                       <SelectTrigger className={formErrors.role ? 'border-red-500' : ''}>
                         <SelectValue placeholder="Select employee role" />
                       </SelectTrigger>
@@ -331,6 +374,7 @@ const EmployeesTable = ({ employees = [], isLoading = false, userRole = 'manager
                       <p className="text-sm text-red-500">{formErrors.role}</p>
                     )}
                   </div>
+                    </div>
 
                   <div className="flex justify-end gap-3 pt-4">
                     <Button
@@ -374,6 +418,7 @@ const EmployeesTable = ({ employees = [], isLoading = false, userRole = 'manager
                     <TableHead>Role</TableHead>
                     <TableHead className="hidden lg:table-cell">Salary</TableHead>
                     <TableHead>Account</TableHead>
+                    <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -436,6 +481,18 @@ const EmployeesTable = ({ employees = [], isLoading = false, userRole = 'manager
                           </Button>
                         )}
                       </TableCell>
+
+                                            <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => handleOpenEmployeeDrawer(employee)}
+                        >
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+
                     </TableRow>
                   ))}
                 </TableBody>
@@ -451,9 +508,10 @@ const EmployeesTable = ({ employees = [], isLoading = false, userRole = 'manager
         onClose={handleCloseAddAccount}
         employeeId={addAccountDialog.employeeId}
         employeeName={addAccountDialog.employeeName}
-        userRole={userRole}
+      userRole={user.access.isAdmin ? 'admin' : 'manager'}
         onAccountAdded={handleAccountAdded}
       />
+      <EmployeeDrawer isOpen={employeeDrawer.isOpen} onClose={handleCloseEmployeeDrawer} employee={employeeDrawer.employee}/>
     </>
   );
 };

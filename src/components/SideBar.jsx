@@ -86,12 +86,9 @@ const Sidebar = ({ activeView, onViewChange,user, products, onCloseRegister, onO
               isExpanded={expandedItems[item.key]}
               onToggle={() => toggleExpanded(item.key)}
               onClick={(subItem) => { 
-                if (item.key === 'analysis' && subItem) {
-                  onViewChange('analysis', subItem.key);
-                } else {
                   onViewChange(item.key, subItem);
                 }
-              }}
+              }
               isActive={activeView === item.key}
               hasSubItems={item.hasSubItems}
             />

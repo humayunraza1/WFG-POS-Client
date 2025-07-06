@@ -46,24 +46,16 @@ const useSidebarMenu = (products) => {
       label: 'Overview'
     });
     menuItems.push({
-      key: 'summary',
+      key: 'history',
       icon: History,
-      label: 'Register History'
+      children: ["Orders History", "Register History"],
+      label: 'History'
     });
-    menuItems.push({
-      key: 'orders-history',
-      icon: FileText,
-      label: 'Orders History'
-    });
-            menuItems.push({
-      key: 'add-product',
-      icon: Plus,
-      label: 'Add Product'
-    });
-        menuItems.push({
-      key: 'edit-product',
-      icon: Edit3,
-      label: 'Edit Product'
+         menuItems.push({
+      key: 'manage-product',
+      icon: Package2,
+      children: ["Add Product", "Edit Product"],
+      label: 'Manage Product'
     });
             menuItems.push({
       key: 'employees',

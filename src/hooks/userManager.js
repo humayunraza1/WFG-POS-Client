@@ -142,6 +142,54 @@ const addEmployee = async (employeeData) => {
     }
   };
 
+   const getEmployeePayments = async (employeeId, month, year) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const params = new URLSearchParams();
+      if (month) params.append('month', month);
+      if (year) params.append('year', year);
+      
+      const queryString = params.toString();
+      const url = `/employee/${employeeId}/payments${queryString ? '?' + queryString : ''}`;
+      
+      const response = await axios.get(url);
+      return response.data;
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message;
+      setError(errorMessage);
+      
+      throw {
+        message: errorMessage,
+        status: err.response?.status
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+    const addEmployeePayment = async (employeeId, paymentData) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await axios.post(`/employee/pay/${employeeId}`, paymentData);
+      return response.data;
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message;
+      setError(errorMessage);
+      
+      throw {
+        message: errorMessage,
+        status: err.response?.status
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     summary,
     activeRegisters,
@@ -151,6 +199,8 @@ const addEmployee = async (employeeData) => {
     expenses,
     loading,
     error,
+    addEmployeePayment,
+    getEmployeePayments,
     addAccount,
     addEmployee,
     fetchSummary,
