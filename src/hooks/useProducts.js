@@ -3,25 +3,68 @@ import axios from '@/api/axios';
 
 const useProducts = () => {
   const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
+  // useEffect(() => {
+  //   fetchProducts();
+  // }, []);
+
+    useEffect(() => {
+    fetchCategories();
     fetchProducts();
   }, []);
 
-  const fetchProducts = async () => {
+    const fetchCategories = async () => {
     try {
       setIsLoading(true);
-      const { data } = await axios.get(`/products`, { withCredentials: true });
-      setProducts(data);
-      console.log(data)
+      const { data } = await axios.get('/products/categories', { withCredentials: true });
+      console.log("category ",data)
+      setCategories(data);
     } catch (err) {
       setError(err.response?.data?.message || err.message);
     } finally {
       setIsLoading(false);
     }
   };
+
+    const addCategory = async (categoryData) => {
+    try {
+      const { data } = await axios.post('/products/add-category', categoryData, { withCredentials: true });
+      setCategories(prev => [...prev, data.category]);
+      return data.category;
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+      throw err;
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      setIsLoading(true);
+      const { data } = await axios.get(`/products`, { withCredentials: true });
+      setProducts(data);
+      console.log("products ",data)
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchProductsByCategory = async (categoryId) => {
+  try {
+    setIsLoading(true);
+    const { data } = await axios.get(`/products/${categoryId}`, { withCredentials: true });
+    setProducts(data);
+    console.log(data)
+  } catch (err) {
+    setError(err.response?.data?.message || err.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const addProduct = async (productData) => {
     try {
@@ -57,9 +100,13 @@ const useProducts = () => {
 
   return {
     products,
+    categories,
     isLoading,
     error,
     fetchProducts,
+    fetchCategories,
+    addCategory,
+    fetchProductsByCategory,
     addProduct,
     updateProduct,
     deleteProduct,

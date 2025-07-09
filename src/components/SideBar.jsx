@@ -26,7 +26,7 @@ import SidebarMenuItem from './SidebarMenuItem';
 import useOrders from '@/hooks/useOrders';
 import useSidebarMenu from '../hooks/userSidebarMenu';
 
-const Sidebar = ({ activeView, onViewChange,user, products, onCloseRegister, onOpenRegister, registerData, isRegisterOpen }) => {
+const Sidebar = ({ activeView, onViewChange,user, categories, onCloseRegister, onOpenRegister, registerData, isRegisterOpen }) => {
   const [expandedItems, setExpandedItems] = useState({
     variants: true // Always expand products menu by default
   });
@@ -68,7 +68,7 @@ const Sidebar = ({ activeView, onViewChange,user, products, onCloseRegister, onO
     }));
   };
 
-  const menuItems = useSidebarMenu(products);
+  const menuItems = useSidebarMenu(categories);
 
   return (
     <Card className="w-64 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto">

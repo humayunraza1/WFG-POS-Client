@@ -6,13 +6,13 @@ import { toast } from 'sonner';
 
 const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
   const [orders, setOrders] = useState([]);
-  const [allOrders, setAllOrders] = useState([]); // Add state for all orders
+  const [allOrders, setAllOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingAllOrders, setIsLoadingAllOrders] = useState(false); // Add loading state for all orders
+  const [isLoadingAllOrders, setIsLoadingAllOrders] = useState(false);
   const [error, setError] = useState(null);
   const [dailyStats, setDailyStats] = useState({ 
     cashRecvd: 0,
-    onlinePaymnt:0,
+    onlinePaymnt: 0,
     expectedCash: 0,
     expectedOnline: 0,
     totalSales: 0, 
@@ -29,8 +29,8 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
     if (!isRegisterOpen) {
       setOrders([]);
       setDailyStats({
-        cashRecvd:0,
-            onlinePaymnt:0, 
+        cashRecvd: 0,
+        onlinePaymnt: 0, 
         expectedCash: 0,
         expectedOnline: 0,
         totalSales: 0, 
@@ -44,11 +44,10 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
   // Fetch orders when sessionId becomes available or changes
   useEffect(() => {
     if (sessionId && isRegisterOpen) {
-      // Clear previous data first
       setOrders([]);
       setDailyStats({ 
-        cashRecvd:0,
-            onlinePaymnt:0,
+        cashRecvd: 0,
+        onlinePaymnt: 0,
         expectedCash: 0,
         expectedOnline: 0,
         totalSales: 0, 
@@ -62,8 +61,8 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
       setIsLoading(false);
       setOrders([]);
       setDailyStats({ 
-        cashRecvd:0,
-            onlinePaymnt:0,
+        cashRecvd: 0,
+        onlinePaymnt: 0,
         totalSales: 0, 
         totalPendingPayment: 0, 
         orderCount: 0 
@@ -79,7 +78,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
 
     try {
       setIsLoading(true);
-      const { data } = await axios.get(`/orders/session/${sessionId}`,{ withCredentials: true });
+      const { data } = await axios.get(`/orders/session/${sessionId}`, { withCredentials: true });
       console.log(data);
       setOrders(data);
     } catch (err) {
@@ -93,12 +92,10 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
     }
   };
 
-  // Add function to fetch all orders - use useCallback to prevent re-creation
   const fetchAllOrders = useCallback(async () => {
     try {
       setIsLoadingAllOrders(true);
       const { data } = await axios.get('/orders', { withCredentials: true });
-      // Sort orders by date (newest first)
       const sortedOrders = data.sort((a, b) => {
         const dateA = new Date(a.createdAt || a.dateOrdered);
         const dateB = new Date(b.createdAt || b.dateOrdered);
@@ -112,25 +109,31 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
     } finally {
       setIsLoadingAllOrders(false);
     }
-  }, []); // Empty dependency array since this function doesn't depend on any props or state
+  }, []);
 
   const fetchDailyStats = async () => {
     if (!isRegisterOpen || !sessionId) {
-      setDailyStats({ onlinePaymnt:0, cashRecvd:0,expectedCash:0,expectedOnline:0, totalSales: 0, totalPendingPayment: 0, orderCount: 0 });
+      setDailyStats({ 
+        onlinePaymnt: 0, 
+        cashRecvd: 0, 
+        expectedCash: 0, 
+        expectedOnline: 0, 
+        totalSales: 0, 
+        totalPendingPayment: 0, 
+        orderCount: 0 
+      });
       return;
     }
 
     setStatsLoading(true);
     try {
-      const { data } = await axios.get(`/orders/daily-sales/${sessionId}`,{ withCredentials: true });
+      const { data } = await axios.get(`/orders/daily-sales/${sessionId}`, { withCredentials: true });
       console.log('Daily stats:', data);
       setDailyStats(data);
     } catch (error) {
       console.error('Error fetching daily stats:', error);
       setError('Failed to fetch daily statistics');
-      // Fallback to calculating from current orders
       const sessionOrders = orders.filter(order => order.registerSession === sessionId);
-      console.log(sessionOrders);
       setDailyStats({
         totalSales: sessionOrders.reduce((total, order) => total + (order.amountPaid || 0), 0),
         totalPendingPayment: sessionOrders.reduce((total, order) => total + (order.outstandingPayment || 0), 0),
@@ -152,18 +155,27 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
         }
       }
 
+      // Validate that orderData matches the Order schema
       const formattedOrderData = {
         registerSession: sessionId,
-        items: orderData.items,
-        discount: orderData.discount == null? 0 : orderData.discount, // Ensure discount is a number
+        items: orderData.items.map(item => ({
+          category: item.category,        // ObjectId reference
+          product: item.product,          // ObjectId reference
+          optionName: item.optionName,    // String
+          unitPrice: item.unitPrice,      // Number
+          quantity: item.quantity,        // Number
+          totalPrice: item.totalPrice     // Number
+        })),
+        discount: orderData.discount || 0,
         paymentType: orderData.paymentType,
-        subtotal: orderData.subtotal,
-        finalPrice: orderData.finalPrice,
-        amountPaid: orderData.amountPaid || 0 // Add initial payment amount
+        actualPrice: orderData.actualPrice,     // Price before discount
+        finalPrice: orderData.finalPrice,       // Price after discount
+        amountPaid: orderData.amountPaid || 0,
+        outstandingPayment: orderData.outstandingPayment || orderData.finalPrice
       };
 
-      console.log('Adding order:', formattedOrderData);
-      const { data } = await axios.post(`/orders`, formattedOrderData,{ withCredentials: true });
+      console.log('Adding order with schema-compliant data:', formattedOrderData);
+      const { data } = await axios.post('/orders', formattedOrderData, { withCredentials: true });
       setOrders(prev => [...prev, data]);
       fetchDailyStats();
 
@@ -184,28 +196,24 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
     }
   };
 
-  // New function to update payment
   const updatePayment = async (orderId, amountReceived) => {
     try {
       const { data } = await axios.patch(`/orders/${orderId}/payment`, {
         amountReceived
       }, { withCredentials: true });
 
-      // Update the order in local state (session orders)
       setOrders(prev => 
         prev.map(order => 
           order._id === orderId ? data.order : order
         )
       );
 
-      // Update the order in all orders state as well
       setAllOrders(prev => 
         prev.map(order => 
           order._id === orderId ? data.order : order
         )
       );
 
-      // Refresh daily stats to reflect the payment update
       fetchDailyStats();
 
       return data;
@@ -225,7 +233,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
 
   const updateOrder = async (id, orderData) => {
     try {
-      const { data } = await axios.put(`/orders/${id}`, orderData,{ withCredentials: true });
+      const { data } = await axios.put(`/orders/${id}`, orderData, { withCredentials: true });
       setOrders(prev => prev.map(o => o._id === id ? data : o));
       fetchDailyStats();
       return data;
@@ -237,7 +245,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
 
   const deleteOrder = async (id) => {
     try {
-      await axios.delete(`/manager/delete-order/${id}`,{ withCredentials: true });
+      await axios.delete(`/manager/delete-order/${id}`, { withCredentials: true });
       setOrders(prev => prev.filter(o => o._id !== id));
       toast.success('Order deleted successfully');
       fetchDailyStats();
@@ -247,7 +255,6 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
     }
   };
 
-  // Manual print function for reprinting receipts
   const reprintReceipt = async (order) => {
     try {
       await printReceipt(order);
@@ -260,9 +267,9 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
 
   return {
     orders,
-    allOrders, // Add allOrders to return
+    allOrders,
     isLoading,
-    isLoadingAllOrders, // Add loading state for all orders
+    isLoadingAllOrders,
     error,
     dailyStats,
     statsLoading,
@@ -270,13 +277,13 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
     autoPrintEnabled,
     setAutoPrintEnabled,
     fetchOrders,
-    fetchAllOrders, // Add fetchAllOrders function
+    fetchAllOrders,
     fetchDailyStats,
     addOrder,
     addOrderWithPrint,
     addOrderWithoutPrint,
     updateOrder,
-    updatePayment, // New function
+    updatePayment,
     deleteOrder,
     reprintReceipt,
   };

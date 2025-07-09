@@ -77,9 +77,12 @@ const POSDashboard = () => {
 
     const {
       products,
+      categories,
       isLoading: productsLoading,
       error: productsError,
-      fetchProducts
+      fetchCategories,
+      fetchProducts,
+      fetchProductsByCategory
     } = useProducts();
 
     const {
@@ -111,13 +114,14 @@ const POSDashboard = () => {
 
     // Fetch products initially and when register opens
     useEffect(() => {
+      fetchCategories();
       fetchProducts();
     }, []);
 
     // Additional fetch when register opens to ensure fresh data
     useEffect(() => {
       if (isRegisterOpen && sessionId) {
-        fetchProducts();
+        fetchCategories();
       }
     }, [isRegisterOpen, sessionId]);
 
@@ -179,19 +183,25 @@ const POSDashboard = () => {
       return true;
     };
 
-    const handleViewChange = (view, subView = null) => {
-      // Check if view requires active session
-      if (['orders', 'expenses'].includes(view)) {
-        if (!requiresActiveSession(`access ${view}`)) {
-          return;
-        }
-      }
-      
-      console.log(`Switching to view: ${view}`, subView);
-      setActiveView(view);
-      setActiveSubView(subView);
-    };
-    
+        const handleViewChange = (view, subView = null) => {
+          // Check if view requires active session
+          if (['orders', 'expenses'].includes(view)) {
+            if (!requiresActiveSession(`access ${view}`)) {
+              return;
+            }
+          }
+          
+          // If switching to variants view, fetch products for the selected category
+          if (view === 'variants' && subView) {
+            fetchProductsByCategory(subView._id);
+          }
+
+          console.log(`Switching to view: ${view}`, subView);
+          setActiveView(view);
+          setActiveSubView(subView);
+        };
+
+
     const handleOpenRegister = () => {
       if (isRegisterOpen) {
         toast.error('Register Already Open', {
@@ -260,40 +270,25 @@ const POSDashboard = () => {
       if (!requiresActiveSession('add items to cart')) {
         return;
       }
-      console.log('product', product);
-      console.log('category', category);
+      console.log('Adding to cart - product:', product);
+      console.log('Adding to cart - category:', category);
 
-      const productId = category._id;
-      const variantId = product._id;
-      console.log(category);
-      console.log(`Adding to cart: ${product.name} (ID: ${variantId}) from category ${category.name} (ID: ${productId})`);
-      
-      setCartItems(prevItems => {
-        const existingItem = prevItems.find(item => item.varID === variantId);
+      const existingItem = cartItems.find(item => item.varID === product.varID);
 
-        if (existingItem) {
-          return prevItems.map(item =>
-            item.varID === variantId
+      if (existingItem) {
+        setCartItems(prevItems =>
+          prevItems.map(item =>
+            item.varID === product.varID
               ? { ...item, quantity: item.quantity + 1 }
               : item
-          );
-        } else {
-          return [
-            ...prevItems,
-            {
-              prodID: productId,
-              varID: variantId,
-              name: product.name,
-              price: product.price,
-              category: category.name,
-              quantity: 1
-            }
-          ];
-        }
-      });
+          )
+        );
+      } else {
+        setCartItems(prevItems => [...prevItems, product]);
+      }
 
       toast.success('Added to cart', {
-        description: `${category.name} - ${product.name} added to cart`
+        description: `${product.name} - ${product.option.name} added to cart`
       });
     };
     
@@ -334,7 +329,17 @@ const POSDashboard = () => {
       setIsProcessingOrder(true);
       
       try {
-        await addOrder(orderData);
+        // Transform cart items to match the expected API structure
+        const transformedOrderData = {
+          ...orderData,
+          items: cartItems.map(item => ({
+            product: item.prodID,
+            variant: item.varID,
+            quantity: item.quantity
+          }))
+        };
+
+        await addOrder(transformedOrderData);
         
         // Show success message with payment status
         const paymentStatus = orderData.outstandingPayment > 0 ? 'partial payment' : 'full payment';
@@ -430,18 +435,21 @@ const POSDashboard = () => {
       switch(activeView) {
         case 'variants':
           return activeSubView ? 
-            <VariantsView 
-              category={activeSubView} 
-              products={activeSubView} 
-              onAddToCart={handleAddToCart}
-              onViewChange={handleViewChange}
-            /> :
+        <VariantsView 
+          selectedCategory={activeSubView}
+          products={products} // This should be the products array from fetchProductsByCategory
+          onAddToCart={handleAddToCart}
+          onViewChange={handleViewChange}
+        /> :
             <div className="text-center p-8">
               <p className="text-muted-foreground">Select a product category from the sidebar</p>
             </div>;
         
         case 'products':
-          return <ProductsView onViewChange={handleViewChange} products={products}/>;
+          return         <ProductsView 
+          categories={categories} // Pass categories, not products
+          onViewChange={handleViewChange}
+        />;
         
         case 'summary':
           return <SummaryView period={activeSubView || 'All Orders'} orders={orders} />;
@@ -655,7 +663,7 @@ const POSDashboard = () => {
               <Sidebar 
                 activeView={activeView}
                 onViewChange={handleViewChange}
-                products={products}
+                categories={categories}
                 user={user}
                 onCloseRegister={handleCloseRegister}
                 onOpenRegister={handleOpenRegister}

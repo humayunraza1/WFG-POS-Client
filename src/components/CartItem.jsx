@@ -27,9 +27,12 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
   return (
     <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
       <div className="flex-1">
-        {console.log(item)}
         <h4 className="font-medium text-sm">{item.name}</h4>
-        <p className="text-sm text-slate-500">{item.category}</p>
+        <p className="text-xs text-muted-foreground">{item.category}</p>
+        {/* Show option name if available */}
+        {item.option && (
+          <p className="text-xs text-slate-500 font-medium">{item.option.name}</p>
+        )}
       </div>
       
       <div className="flex items-center gap-2">
@@ -65,8 +68,13 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
         </Button>
       </div>
       
-      <div className="w-16 text-right">
-        <span className="font-medium text-sm">PKR {(item.price * item.quantity)}</span>
+      <div className="w-20 text-right">
+        <div className="text-xs text-muted-foreground">
+          PKR {item.price.toLocaleString()} × {item.quantity}
+        </div>
+        <div className="font-medium text-sm">
+          PKR {(item.price * item.quantity).toLocaleString()}
+        </div>
       </div>
     </div>
   );

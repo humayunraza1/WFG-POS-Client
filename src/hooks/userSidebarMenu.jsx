@@ -11,7 +11,6 @@ const useSidebarMenu = (products) => {
   const access = user?.access || {};
     console.log('Access:', access);
   const menuItems = [];
-
   // Products with variants (Always shown if products exist)
   if (access.isCashier && (!access.isAdmin && !access.usManager)) {
     menuItems.push({

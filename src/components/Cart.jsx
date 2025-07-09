@@ -46,16 +46,27 @@ const Cart = ({
     const handleInitialCheckout = () => {
         if (cartItems.length === 0) return;
 
+        // Transform cart items to match Order schema
+        const transformedItems = cartItems.map(item => ({
+            category: item.categoryId,           // Category ObjectId
+            product: item.prodID,                // Product ObjectId
+            optionName: item.option?.name || '', // Option name as string
+            unitPrice: item.price,               // Unit price
+            quantity: item.quantity,             // Quantity
+            totalPrice: item.price * item.quantity // Calculate total price
+        }));
+
+        // Calculate actual price (subtotal)
+        const actualPrice = transformedItems.reduce((sum, item) => sum + item.totalPrice, 0);
+
         const orderData = {
-            items: cartItems.map(item => ({
-                product: item.prodID,  // Product _id
-                variant: item.varID,   // Variant _id
-                quantity: item.quantity
-            })),
-            subtotal,
-            discount,
+            items: transformedItems,
+            discount: discountAmount,
             paymentType,
-            finalPrice: total
+            actualPrice,                    // Subtotal before discount
+            finalPrice: total,             // Final price after discount
+            amountPaid: 0,                 // Will be set in checkout dialog
+            outstandingPayment: total      // Will be calculated in checkout dialog
         };
 
         setPendingOrderData(orderData);
@@ -78,6 +89,9 @@ const Cart = ({
         setShowCheckoutDialog(false);
         setPendingOrderData(null);
     };
+
+    // Calculate total items count
+    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     
     return (
         <>
@@ -90,7 +104,7 @@ const Cart = ({
                         <SheetTitle className="flex items-center justify-between text-lg sm:text-xl">
                             <span>Current Order</span>
                             <Badge variant="secondary" className="text-sm">
-                                {cartItems.length} items
+                                {totalItems} {totalItems === 1 ? 'item' : 'items'}
                             </Badge>
                         </SheetTitle>
                         <SheetDescription className="hidden sm:block">
@@ -112,7 +126,7 @@ const Cart = ({
                                     <div className="space-y-2 sm:space-y-3">
                                         {cartItems.map((item) => (
                                             <CartItem
-                                                key={item._id}
+                                                key={`${item.prodID}-${item.varID}`}
                                                 item={item}
                                                 onUpdateQuantity={onUpdateQuantity}
                                                 onRemove={onRemoveItem}
