@@ -53,7 +53,7 @@ const CheckoutDialog = ({
       amountPaid: amountReceivedNum,
       outstandingPayment: outstandingPayment
     };
-
+    console.log('order data p1: ', finalOrderData)
     onConfirmOrder(finalOrderData);
   };
 

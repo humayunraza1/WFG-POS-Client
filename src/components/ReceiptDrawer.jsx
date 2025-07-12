@@ -224,15 +224,15 @@ const ReceiptDrawer = ({ order, onClose, onUpdatePayment }) => {
                       <tr key={idx}>
                         <td className="py-2 px-2 border-b">
                           <div className="flex flex-col">
-                            <span className="font-medium">{item.product.name} - {item.variant.name}</span>
+                            <span className="font-medium">{item.category.name} - {item.product.name} - {item.optionName}</span>
                             <span className='text-xs text-slate-600'>
-                              Unit Price: {item.variant.price.toLocaleString()}/rs
+                              Unit Price: {item.unitPrice.toLocaleString()}/rs
                             </span>
                           </div>
                         </td>
                         <td className="py-2 px-2 border-b text-center">{item.quantity}</td>
                         <td className="py-2 px-2 border-b text-right">
-                          PKR {(item.variant.price * item.quantity).toLocaleString()}
+                          PKR {(item.unitPrice * item.quantity).toLocaleString()}
                         </td>
                       </tr>
                     ))}

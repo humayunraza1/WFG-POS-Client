@@ -45,11 +45,12 @@ const Cart = ({
 
     const handleInitialCheckout = () => {
         if (cartItems.length === 0) return;
-
+        console.log('final cart: ', cartItems)
         // Transform cart items to match Order schema
         const transformedItems = cartItems.map(item => ({
-            category: item.categoryId,           // Category ObjectId
+            category: item.catID,           // Category ObjectId
             product: item.prodID,                // Product ObjectId
+            option:item._id,
             optionName: item.option?.name || '', // Option name as string
             unitPrice: item.price,               // Unit price
             quantity: item.quantity,             // Quantity
@@ -68,7 +69,7 @@ const Cart = ({
             amountPaid: 0,                 // Will be set in checkout dialog
             outstandingPayment: total      // Will be calculated in checkout dialog
         };
-
+        console.log("Checkout Cart: ", orderData)
         setPendingOrderData(orderData);
         setShowCheckoutDialog(true);
     };

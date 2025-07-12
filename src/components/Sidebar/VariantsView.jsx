@@ -37,8 +37,8 @@ const VariantsView = ({ selectedCategory, products, onAddToCart, onViewChange })
       price: option.price,
       category: selectedCategory.name,
       quantity: 1,
-      prodID: selectedCategory._id,
-      varID: product._id,
+      catID: selectedCategory._id,
+      prodID: product._id,
       option: option
     };
     onAddToCart(selectedCategory, cartItem);

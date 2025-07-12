@@ -154,29 +154,24 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
           throw err;
         }
       }
-
+      console.log("order data p2: ",orderData)
       // Validate that orderData matches the Order schema
       const formattedOrderData = {
         registerSession: sessionId,
-        items: orderData.items.map(item => ({
-          category: item.category,        // ObjectId reference
-          product: item.product,          // ObjectId reference
-          optionName: item.optionName,    // String
-          unitPrice: item.unitPrice,      // Number
-          quantity: item.quantity,        // Number
-          totalPrice: item.totalPrice     // Number
-        })),
+        items: orderData.items,
         discount: orderData.discount || 0,
         paymentType: orderData.paymentType,
         actualPrice: orderData.actualPrice,     // Price before discount
         finalPrice: orderData.finalPrice,       // Price after discount
         amountPaid: orderData.amountPaid || 0,
-        outstandingPayment: orderData.outstandingPayment || orderData.finalPrice
+        outstandingPayment: orderData.outstandingPayment,
+        paymentStatus: orderData.outstandingPayment > 0 ? 'pending':'paid'
       };
 
       console.log('Adding order with schema-compliant data:', formattedOrderData);
       const { data } = await axios.post('/orders', formattedOrderData, { withCredentials: true });
       setOrders(prev => [...prev, data]);
+      console.log('order placed: ', data)
       fetchDailyStats();
 
       // Auto-print receipt if enabled and not explicitly disabled

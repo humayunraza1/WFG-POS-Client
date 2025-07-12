@@ -95,7 +95,6 @@ const POSDashboard = () => {
       statsLoading,
       fetchOrders,
       fetchAllOrders,
-      fetchDailyStats,
       addOrder,
       deleteOrder,
       updatePayment
@@ -272,9 +271,9 @@ const POSDashboard = () => {
       }
       console.log('Adding to cart - product:', product);
       console.log('Adding to cart - category:', category);
-
-      const existingItem = cartItems.find(item => item.varID === product.varID);
-
+  
+      const existingItem = cartItems.find(item => item.option._id === product.option._id);
+      console.log("Cart: ",cartItems)
       if (existingItem) {
         setCartItems(prevItems =>
           prevItems.map(item =>
@@ -298,10 +297,10 @@ const POSDashboard = () => {
         handleRemoveFromCart(variantId);
         return;
       }
-
+      console.log("update quantity: ",cartItems)
       setCartItems(prevItems =>
         prevItems.map(item =>
-          item.varID === variantId
+          item.option._id === variantId
             ? { ...item, quantity: newQuantity }
             : item
         )
@@ -311,7 +310,7 @@ const POSDashboard = () => {
     const handleRemoveFromCart = (productId) => {
       console.log(`Removing item with ID ${productId} from cart`);
       console.log(cartItems)
-      setCartItems(prevItems => prevItems.filter(item => item.varID !== productId));
+      setCartItems(prevItems => prevItems.filter(item => item._id !== productId));
       toast.success('Item removed from cart');
     };
     
@@ -329,17 +328,7 @@ const POSDashboard = () => {
       setIsProcessingOrder(true);
       
       try {
-        // Transform cart items to match the expected API structure
-        const transformedOrderData = {
-          ...orderData,
-          items: cartItems.map(item => ({
-            product: item.prodID,
-            variant: item.varID,
-            quantity: item.quantity
-          }))
-        };
-
-        await addOrder(transformedOrderData);
+        await addOrder(orderData);
         
         // Show success message with payment status
         const paymentStatus = orderData.outstandingPayment > 0 ? 'partial payment' : 'full payment';
@@ -356,6 +345,7 @@ const POSDashboard = () => {
         setIsCartSheetOpen(false);
         // Daily stats will be refreshed automatically in useOrders hook
       } catch (error) {
+        console.log(error)
         toast.error('Failed to process order', {
           description: error.message
         });

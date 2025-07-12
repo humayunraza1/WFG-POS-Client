@@ -41,7 +41,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
             size="sm"
             variant="outline"
             className="h-8 w-8 p-0"
-            onClick={() => onUpdateQuantity(item.varID, Math.max(0, item.quantity - 1))}
+            onClick={() => onUpdateQuantity(item._id, Math.max(0, item.quantity - 1))}
           >
             <Minus className="h-3 w-3" />
           </Button>
@@ -52,7 +52,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
             size="sm"
             variant="outline"
             className="h-8 w-8 p-0"
-            onClick={() => onUpdateQuantity(item.varID, item.quantity + 1)}
+            onClick={() => onUpdateQuantity(item._id, item.quantity + 1)}
           >
             <Plus className="h-3 w-3" />
           </Button>
@@ -62,7 +62,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
           size="sm"
           variant="ghost"
           className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-          onClick={() => onRemove(item.varID)}
+          onClick={() => onRemove(item._id)}
         >
           <Trash2 className="h-3 w-3" />
         </Button>
