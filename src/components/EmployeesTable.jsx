@@ -63,7 +63,7 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
     }
     return baseRoles;
   };
-
+  let role = user.access.isAdmin ? 'admin' : 'manager'
   const availableRoles = getAvailableRoles();
 
   const formatSalary = (salary) => {
@@ -508,10 +508,10 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
         onClose={handleCloseAddAccount}
         employeeId={addAccountDialog.employeeId}
         employeeName={addAccountDialog.employeeName}
-      userRole={user.access.isAdmin ? 'admin' : 'manager'}
+      userRole={role}
         onAccountAdded={handleAccountAdded}
       />
-      <EmployeeDrawer isOpen={employeeDrawer.isOpen} onClose={handleCloseEmployeeDrawer} employee={employeeDrawer.employee}/>
+      <EmployeeDrawer userRole={role} isOpen={employeeDrawer.isOpen} onClose={handleCloseEmployeeDrawer} employee={employeeDrawer.employee}/>
     </>
   );
 };

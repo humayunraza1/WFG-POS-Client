@@ -57,6 +57,15 @@ const useManager = () => {
   }
 };
 
+async function getAccountDetails(accountId){
+  try{
+    const res = await axios.get(`/manager/account/${accountId}`)
+    return res.data
+  }catch(err){
+    console.log(err)
+  }
+}
+
 const addEmployee = async (employeeData) => {
   try {
     setLoading(true);
@@ -200,6 +209,7 @@ const addEmployee = async (employeeData) => {
     loading,
     error,
     addEmployeePayment,
+    getAccountDetails,
     getEmployeePayments,
     addAccount,
     addEmployee,

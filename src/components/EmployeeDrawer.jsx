@@ -51,6 +51,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import useManager from '../hooks/userManager';
+import AddAccountDialog from './AddAccountDialog';
 
 const PAYMENT_TYPES = {
   ADVANCE: 'Advance',
@@ -59,12 +60,14 @@ const PAYMENT_TYPES = {
   SALARY: 'Salary'
 };
 
-const EmployeeDrawer = ({ isOpen, onClose, employee }) => {
-  const { getEmployeePayments, addEmployeePayment, loading } = useManager();
+const EmployeeDrawer = ({ isOpen, onClose, employee,userRole }) => {
+  const { getEmployeePayments, addEmployeePayment, loading,getAccountDetails } = useManager();
   const [paymentData, setPaymentData] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+const [editData, setEditData] = useState(null);
   const [paymentForm, setPaymentForm] = useState({
     amount: '',
     type: '',
@@ -73,7 +76,6 @@ const EmployeeDrawer = ({ isOpen, onClose, employee }) => {
     deductible: false
   });
   const [formErrors, setFormErrors] = useState({});
-
   // Generate month and year options
   const months = [
     { value: 1, label: 'January' },
@@ -91,7 +93,7 @@ const EmployeeDrawer = ({ isOpen, onClose, employee }) => {
   ];
 
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
-
+  console.log("employee information: ", employee)
   useEffect(() => {
     if (isOpen && employee) {
       fetchPaymentData();
@@ -140,6 +142,17 @@ const EmployeeDrawer = ({ isOpen, onClose, employee }) => {
     
     return `${startDate.toLocaleDateString('en-US', formatOptions)} - ${endDate.toLocaleDateString('en-US', formatOptions)}`;
   };
+
+  async function editAccDetails(id){
+    try{
+      const data = await getAccountDetails(id)
+          setEditData(data); // You will use this to prefill the dialog
+    setIsEditOpen(true);
+      console.log(data)
+    }catch(err){
+      console.log(err)
+    }
+  }
 
   const getPaymentTypeIcon = (type) => {
     switch (type) {
@@ -254,7 +267,27 @@ const EmployeeDrawer = ({ isOpen, onClose, employee }) => {
 
   if (!employee) return null;
 
+  const closeDialog = () => {
+  setEditData(null);
+  setIsEditOpen(false);
+};
+
   return (
+    <>
+        {editData && (
+      <AddAccountDialog
+        isOpen={isEditOpen}
+        handleClose={closeDialog}
+        mode="edit"
+        defaultValues={{
+          username: editData.username,
+          access: editData.access,
+          employeeId: editData.employee?._id,
+        }}
+        userRole={userRole}
+        employeeName={editData.employee?.name || 'Employee'}
+      />
+    )}
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="w-full sm:max-w-lg lg:max-w-xl overflow-y-auto">
         <SheetHeader>
@@ -268,12 +301,45 @@ const EmployeeDrawer = ({ isOpen, onClose, employee }) => {
         </SheetHeader>
 
         <div className="space-y-6 py-6 px-2">
+          {/* Account details */}
+<Card className="shadow-md rounded-2xl border">
+  <CardHeader className="pb-2">
+    <CardTitle className="text-lg">Account Information</CardTitle>
+  </CardHeader>
+  <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground">
+    <div className="flex justify-between items-center">
+      <span className="text-muted-foreground font-medium">Username:</span>
+      <span className="text-foreground font-semibold">{employee.accountRef?.username || 'N/A'}</span>
+    </div>
+
+    <div className="flex justify-between items-center">
+      <span className="text-muted-foreground font-medium">Role:</span>
+      <span className="capitalize font-semibold text-foreground">{employee.role}</span>
+    </div>
+
+    <div className="flex justify-between items-center">
+      <span className="text-muted-foreground font-medium">Created At:</span>
+      <span className="font-semibold">{new Date(employee.accountRef?.createdAt).toLocaleDateString()}</span>
+    </div>
+
+    <div className="pt-4 flex justify-end">
+      <Button 
+        size="sm" 
+        variant="default"
+        onClick={() => editAccDetails(employee.accountRef?._id)}
+      >
+        Edit Account
+      </Button>
+    </div>
+  </CardContent>
+</Card>
           {/* Employee Information */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Employee Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-3">
                   <User className="h-5 w-5 text-muted-foreground" />
@@ -567,6 +633,7 @@ const EmployeeDrawer = ({ isOpen, onClose, employee }) => {
         </div>
       </SheetContent>
     </Sheet>
+    </>
   );
 };
 
