@@ -2,219 +2,129 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Plus, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import useProducts from '../../hooks/useProducts';
+import { Plus, Pencil, Upload } from 'lucide-react';
+import useProducts from '@/hooks/useProducts';
+import ProductForm from './ProductForm';
+import BulkProductUploader from './BulkProductUploader';
 
-const ProductManagement = ({ mode, product = null, onSuccess }) => {
-  const { addProduct, updateProduct, products, fetchProducts } = useProducts();
+const ProductManagement = () => {
+  const { products, categories, fetchProducts, fetchCategories } = useProducts();
+  const [view, setView] = useState('list'); // 'list' | 'add' | 'edit' | 'bulk'
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
 
-  const [form, setForm] = useState({
-    name: product?.name || '',
-    imageUrl: product?.imageUrl || '',
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
+
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory ? p.category._id === selectedCategory : true;
+    return matchesSearch && matchesCategory;
   });
-
-  const [variants, setVariants] = useState(
-    product?.variants?.length > 0
-      ? product.variants
-      : [{ name: '', price: '', imageUrl: '' }]
-  );
-
-  const [selectedProductId, setSelectedProductId] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [hasInitialized, setHasInitialized] = useState(false);
-
-  const handleChange = (field, value) => {
-    setForm(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleVariantChange = (index, field, value) => {
-    const updated = [...variants];
-    updated[index][field] = value;
-    setVariants(updated);
-  };
-
-  const addVariantRow = () => {
-    setVariants([...variants, { name: '', price: '', imageUrl: '' }]);
-  };
-
-  const removeVariantRow = (index) => {
-    const updated = variants.filter((_, i) => i !== index);
-    setVariants(updated);
-  };
-
-  const handleSubmit = async () => {
-    const payload = {
-      name: form.name,
-      imageUrl: form.imageUrl,
-      variants: variants.map(v => ({
-        name: v.name,
-        price: Number(v.price),
-        imageUrl: v.imageUrl,
-      })),
-    };
-
-    try {
-      setLoading(true);
-      if (mode === 'Add Product') {
-        console.log('Product added:', payload);
-        await addProduct(payload);
-        toast.success('Product added successfully!');
-        setForm({ name: '', imageUrl: '' });
-        setVariants([{ name: '', price: '', imageUrl: '' }]);
-      } else if (mode === 'Edit Product' && selectedProductId) {
-        await updateProduct(selectedProductId, payload);
-        toast.success('Product updated successfully!');
-      }
-
-      if (onSuccess) onSuccess();
-    } catch (err) {
-      console.error('Submission error:', err);
-      toast.error('Something went wrong. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Load products only once when component mounts and mode is edit-product
-  useEffect(() => {
-    if (mode === 'Edit Product' && !hasInitialized) {
-      fetchProducts();
-      setHasInitialized(true);
-    }
-  }, [mode, hasInitialized, fetchProducts]);
-
-  // Load selected product data when selectedProductId changes
-  useEffect(() => {
-    if (mode === 'Edit Product' && selectedProductId && products.length) {
-      const found = products.find(p => p._id === selectedProductId);
-      if (found) {
-        setForm({ name: found.name, imageUrl: found.imageUrl });
-        setVariants(found.variants || []);
-      }
-    }
-  }, [selectedProductId, products, mode]);
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>
-          {mode === 'Add Product' ? 'Add New Product' : 'Edit Product'}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-
-          {mode === 'Edit Product' && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Select Product</label>
-              <Select onValueChange={setSelectedProductId} value={selectedProductId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a product to edit" />
+      {view === 'list' && (
+        <>
+          <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <CardTitle>Product Management</CardTitle>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setView('bulk')}>
+                <Upload className="w-4 h-4 mr-2" /> Bulk Add
+              </Button>
+              <Button onClick={() => setView('add')}>
+                <Plus className="w-4 h-4 mr-2" /> Add Product
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+              <Input
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full md:w-1/3"
+              />
+              <Select onValueChange={value => setSelectedCategory(value === 'all' ? '' : value)}>
+                <SelectTrigger className="w-full md:w-1/4">
+                  <SelectValue placeholder="Filter by category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {products.map(p => (
-                    <SelectItem key={p._id} value={p._id}>
-                      {p.name}
-                    </SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map(cat => (
+                    <SelectItem key={cat._id} value={cat._id}>{cat.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          )}
 
-          {(mode === 'Add Product' || (mode === 'Edit Product' && selectedProductId)) && (
-            <>
-              {/* Product Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Product Name</label>
-                  <Input
-                    value={form.name}
-                    onChange={e => handleChange('name', e.target.value)}
-                    placeholder="Enter product name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Main Image URL</label>
-                  <Input
-                    value={form.imageUrl}
-                    onChange={e => handleChange('imageUrl', e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                  />
-                </div>
-              </div>
-
-              {/* Variants */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Variants</label>
-                <div className="border rounded-md overflow-hidden">
-                  <div className="grid grid-cols-12 bg-muted p-2 text-sm font-medium">
-                    <div className="col-span-4">Name</div>
-                    <div className="col-span-3">Price</div>
-                    <div className="col-span-4">Image URL</div>
-                    <div className="col-span-1 text-center">Action</div>
-                  </div>
-                  {variants.map((variant, index) => (
-                    <div key={index} className="grid grid-cols-12 gap-2 p-2 items-center">
-                      <Input
-                        className="col-span-4"
-                        value={variant.name}
-                        onChange={e => handleVariantChange(index, 'name', e.target.value)}
-                        placeholder="Variant name"
-                      />
-                      <Input
-                        className="col-span-3"
-                        type="number"
-                        min="0"
-                        value={variant.price}
-                        onChange={e => handleVariantChange(index, 'price', e.target.value)}
-                        placeholder="Price"
-                      />
-                      <Input
-                        className="col-span-4"
-                        value={variant.imageUrl}
-                        onChange={e => handleVariantChange(index, 'imageUrl', e.target.value)}
-                        placeholder="Image URL"
-                      />
-                      <div className="col-span-1 flex justify-center">
-                        {variants.length > 1 && (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-muted text-left">
+                  <tr>
+                    <th className="p-2">Name</th>
+                    <th className="p-2">Category</th>
+                    <th className="p-2">Options</th>
+                    <th className="p-2">Price Range</th>
+                    <th className="p-2 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredProducts.map(product => {
+                    const prices = product.options.map(o => o.price);
+                    const min = Math.min(...prices);
+                    const max = Math.max(...prices);
+                    return (
+                      <tr key={product._id} className="border-b">
+                        <td className="p-2">{product.name}</td>
+                        <td className="p-2">{product.category.name}</td>
+                        <td className="p-2">{product.options.length}</td>
+                        <td className="p-2">Rs. {min}{min !== max && ` - Rs. ${max}`}</td>
+                        <td className="p-2 text-center">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => removeVariantRow(index)}
+                            onClick={() => {
+                              setSelectedProduct(product);
+                              setView('edit');
+                            }}
                           >
-                            <Trash2 className="w-4 h-4 text-red-500" />
+                            <Pencil className="w-4 h-4" />
                           </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <Button variant="outline" size="sm" onClick={addVariantRow}>
-                  <Plus className="w-4 h-4 mr-1" /> Add Variant
-                </Button>
-              </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </>
+      )}
 
-              {/* Submit */}
-              <Button
-                className="w-full md:w-auto"
-                onClick={handleSubmit}
-                disabled={loading}
-              >
-                {loading
-                  ? mode === 'Add Product'
-                    ? 'Adding...'
-                    : 'Updating...'
-                  : mode === 'Add Product'
-                  ? 'Add Product'
-                  : 'Update Product'}
-              </Button>
-            </>
-          )}
-        </div>
-      </CardContent>
+      {(view === 'add' || view === 'edit') && (
+        <ProductForm
+          mode={view === 'add' ? 'Add Product' : 'Edit Product'}
+          product={view === 'edit' ? selectedProduct : null}
+          onBack={() => {
+            setView('list');
+            setSelectedProduct(null);
+          }}
+          onSuccess={() => {
+            fetchProducts();
+            setView('list');
+            setSelectedProduct(null);
+          }}
+        />
+      )}
+
+      {view === 'bulk' && (
+        <BulkProductUploader onBack={() => setView('list')} />
+      )}
     </Card>
   );
 };

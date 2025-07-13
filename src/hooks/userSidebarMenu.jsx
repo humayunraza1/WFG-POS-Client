@@ -53,7 +53,6 @@ const useSidebarMenu = (products) => {
          menuItems.push({
       key: 'manage-product',
       icon: Package2,
-      children: ["Add Product", "Edit Product"],
       label: 'Manage Product'
     });
             menuItems.push({

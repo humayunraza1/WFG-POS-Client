@@ -335,7 +335,7 @@ const ManagerDashboard = () => {
           <SummaryView period={activeSubView || 'All Orders'} orders={orders} />;
 
         case 'manage-product':
-          return <ProductManagement mode={activeSubView} />;
+          return <ProductManagement />;
         
         default:
           return (

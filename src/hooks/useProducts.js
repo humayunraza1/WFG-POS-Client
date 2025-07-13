@@ -68,7 +68,7 @@ const useProducts = () => {
 
   const addProduct = async (productData) => {
     try {
-      const { data } = await axios.post(`/manager/add-product`, productData, { withCredentials: true });
+      const { data } = await axios.post(`/products/add-product`, productData, { withCredentials: true });
       setProducts(prev => [...prev, data]);
       return data;
     } catch (err) {
@@ -77,10 +77,21 @@ const useProducts = () => {
     }
   };
 
+  const bulkAddProducts = async (products) => {
+  try{
+    console.log("bulk add: ",products)
+    const res = await axios.post('/products/bulk-add', products);
+    setProducts(prev => [...prev, res.data]);
+    return res.data;
+  }catch(err){
+    setError(err.response?.data?.message||err.message)
+  }
+};
+
   const updateProduct = async (id, productData) => {
     try {
-      const { data } = await axios.patch(`/manager/edit-product/${id}`, productData, { withCredentials: true });
-      setProducts(prev => prev.map(p => p._id === id ? data : p));
+      const { data } = await axios.patch(`/products/edit-product/${id}`, productData, { withCredentials: true });
+      setProducts(prev => prev.map(p => p._id === id ? data.product : p));
       return data;
     } catch (err) {
       setError(err.response?.data?.message || err.message);
@@ -105,6 +116,7 @@ const useProducts = () => {
     error,
     fetchProducts,
     fetchCategories,
+    bulkAddProducts,
     addCategory,
     fetchProductsByCategory,
     addProduct,
