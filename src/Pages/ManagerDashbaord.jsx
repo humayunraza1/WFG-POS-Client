@@ -459,9 +459,14 @@ const ManagerDashboard = () => {
             </div>
 
             {/* Right Sidebar - Active Registers */}
-            <div className="hidden lg:block">
-              <ActiveRegisters activeRegisters={activeRegisters} handleGetAllSummary={handleGetAllSummary} selectedSessionId={selectedSessionId} handleRegisterClick={handleRegisterClick} setActiveView={setActiveView} managerLoading={managerLoading}/>
-            </div>
+            <ActiveRegisters 
+              activeRegisters={activeRegisters} 
+              handleGetAllSummary={handleGetAllSummary} 
+              selectedSessionId={selectedSessionId} 
+              handleRegisterClick={handleRegisterClick} 
+              setActiveView={setActiveView} 
+              managerLoading={managerLoading}
+            />
           </div>
           
           {/* Mobile Sidebar */}

@@ -703,14 +703,14 @@ const POSDashboard = () => {
           <MobileSidebar
             isOpen={isMobileSidebarOpen}
             onClose={() => setIsMobileSidebarOpen(false)}
-            activeView={activeView}
-            onViewChange={handleViewChange}
-            products={products}
-            onCloseRegister={handleCloseRegister}
-            onOpenRegister={handleOpenRegister}
-            registerData={registerData}
-            isRegisterOpen={isRegisterOpen}
-            user={user}
+                activeView={activeView}
+                onViewChange={handleViewChange}
+                categories={categories}
+                user={user}
+                onCloseRegister={handleCloseRegister}
+                onOpenRegister={handleOpenRegister}
+                registerData={registerData}
+                isRegisterOpen={isRegisterOpen}
             onLogout={handleLogout}
           />
 

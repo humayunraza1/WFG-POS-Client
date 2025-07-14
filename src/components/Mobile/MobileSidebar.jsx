@@ -36,21 +36,10 @@ import {
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SidebarMenuItem from '../SidebarMenuItem';
+import useSidebarMenu from '../../hooks/userSidebarMenu';
 
 // Mobile Sidebar Component
-const MobileSidebar = ({ 
-  isOpen, 
-  onClose, 
-  activeView, 
-  onViewChange, 
-  products, 
-  onCloseRegister,
-  onOpenRegister,
-  registerData, 
-  isRegisterOpen,
-  user,
-  onLogout 
-}) => {
+const MobileSidebar = ({ activeView, onViewChange,user, categories, onCloseRegister, onOpenRegister, registerData, isRegisterOpen,onLogout,isOpen,onClose }) => {
   const [expandedItems, setExpandedItems] = useState({
     variants: true // Always expand products menu by default
   });
@@ -91,50 +80,7 @@ const MobileSidebar = ({
     }));
   };
   
-  const menuItems = [
-    {
-      key: 'variants',
-      icon: Package2,
-      label: 'Products',
-      children: products,
-      hasSubItems: true
-    },
-    {
-      key: 'orders',
-      icon: Receipt,
-      label: "Orders"
-    },
-    {
-      key: 'expenses',
-      icon: Receipt,
-      label: 'Expenses'
-    },
-    {
-      key: 'summary',
-      icon: History,
-      label: 'Register History'
-    },
-    {
-      key: 'orders-history',
-      icon: FileText,
-      label: 'Orders History'
-    },
-    // {
-    //   key: 'analysis',
-    //   icon: TrendingUp,
-    //   label: 'Analysis'
-    // },
-    {
-      key: 'add-product',
-      icon: Plus,
-      label: 'Add Product'
-    },
-    {
-      key: 'edit-product',
-      icon: Edit3,
-      label: 'Edit Product'
-    }
-  ];
+  const menuItems = useSidebarMenu(categories);
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>

@@ -59,7 +59,7 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
   const getAvailableRoles = () => {
     const baseRoles = ['cashier', 'chef', 'employee', 'cleaner', 'waiter'];
     if (user.access.isAdmin) {
-      return [...baseRoles, 'manager', 'company'];
+      return [...baseRoles, 'manager'];
     }
     return baseRoles;
   };
@@ -84,7 +84,6 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
       employee: 'bg-gray-100 text-gray-800 border-gray-200',
       cleaner: 'bg-green-100 text-green-800 border-green-200',
       waiter: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      company: 'bg-indigo-100 text-indigo-800 border-indigo-200',
     };
 
     return (
