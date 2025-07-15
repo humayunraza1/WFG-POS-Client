@@ -48,7 +48,7 @@ const useExpenses = (sessionId, isRegisterOpen, onExpenseChange) => {
     }
   };
 
-  const addExpense = async (expenseData) => {
+  const addExpense = async (expenseData,sessionId) => {
     try {
       const { data } = await axios.post(`/manager/add-expense`, {
         ...expenseData,

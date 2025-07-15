@@ -88,7 +88,7 @@ const DeleteConfirmDialog = ({ isOpen, onClose, onConfirm, expenseName, isDeleti
   </Dialog>
 );
 
-const ExpensesView = ({expenses, isLoading, addExpense, updateExpense, deleteExpense}) => {
+const ExpensesView = ({expenses, isLoading, addExpense, updateExpense, deleteExpense,sessionId}) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -116,8 +116,9 @@ const ExpensesView = ({expenses, isLoading, addExpense, updateExpense, deleteExp
     try {
       await addExpense({
         name: formData.name,
-        amount: parseFloat(formData.amount)
-      });
+        amount: parseFloat(formData.amount),
+        
+      },sessionId);
       
       toast.success('Expense added successfully', {
         description: `${formData.name} - PKR ${parseFloat(formData.amount).toLocaleString()}`
@@ -128,7 +129,7 @@ const ExpensesView = ({expenses, isLoading, addExpense, updateExpense, deleteExp
     } catch (error) {
       console.error('Error adding expense:', error);
       toast.error('Failed to add expense', {
-        description: error.message || 'An error occurred while adding the expense'
+        description: error.response.data || 'An error occurred while adding the expense'
       });
     } finally {
       setIsSubmitting(false);

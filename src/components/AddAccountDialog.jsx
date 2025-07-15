@@ -31,7 +31,7 @@ const AddAccountDialog = ({
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { addAccount, loading: managerLoading } = useManager();
+  const { addAccount, loading: managerLoading ,updateAccount} = useManager();
 
   const {
     register,
@@ -94,7 +94,6 @@ const AddAccountDialog = ({
     canAddEmployee: true,
     canDeleteEmployees: true,
     canEditRoles: true,
-    canGenReport: true,
     canManageExpenses: true,
   };
 
@@ -212,7 +211,7 @@ const AddAccountDialog = ({
       }
 
       if (mode === 'edit') {
-        await axios.put(`/api/account/edit-account/${defaultValues.accountId}`, payload);
+        await updateAccount(defaultValues.accountId,payload)
         toast.success("Account updated successfully");
       } else {
         // Use the existing addAccount function for create mode

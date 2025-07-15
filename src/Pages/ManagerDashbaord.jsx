@@ -62,7 +62,7 @@ const ManagerDashboard = () => {
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedSessionId, setSelectedSessionId] = useState(null);
-
+    const [showRegisters, setShowRegisters] = useState(true)
     const {
       products,
       fetchProducts
@@ -148,7 +148,13 @@ const ManagerDashboard = () => {
     };
 
     const handleViewChange = (view, subView = null) => {
-      console.log(`Switching to view: ${view}`, subView);
+      const dontShow = ['employees','manage-product','accounts','history','reports']
+      if (dontShow.includes(view)){
+        setShowRegisters(false)
+      }else{
+        setShowRegisters(true)
+      }
+      console.log("view: ", view)
       setActiveView(view);
       setActiveSubView(subView);
     };
@@ -181,9 +187,9 @@ const ManagerDashboard = () => {
     };
 
     // Expense handlers
-    const handleAddExpense = async (expenseData) => {
+    const handleAddExpense = async (expenseData,sessionId) => {
       try {
-        const result = await addExpense(expenseData);
+        const result = await addExpense(expenseData,sessionId);
         
         // Refresh register summary if viewing register data
         if (selectedSessionId || activeView === 'registers') {
@@ -249,9 +255,6 @@ const ManagerDashboard = () => {
       setIsLoading(false);
     }, []);
 
-    // Active Registers Component (inline for right sidebar)
-
-
     const renderMainContent = () => { 
       if (isLoading) {
         return (
@@ -270,7 +273,7 @@ const ManagerDashboard = () => {
               selectedSessionId={selectedSessionId}
             />
           );
-         // Add the new employees case
+         
         case 'employees':
           return (
             <EmployeesTable
@@ -285,6 +288,7 @@ const ManagerDashboard = () => {
             <ExpensesView 
               expenses={expenses}
               addExpense={handleAddExpense}
+              sessionId = {selectedSessionId}
               updateExpense={handleUpdateExpense}
               deleteExpense={handleDeleteExpense}
               isLoading={expensesLoading}
@@ -453,20 +457,24 @@ const ManagerDashboard = () => {
               />
             </div>
             
-            {/* Main Content - Reduced width */}
-            <div className="flex-1 max-w-4xl">
-              {renderMainContent()}
+            {/* Main Content - Dynamic width based on view */}
+            <div className={`flex-1 ${!showRegisters ? 'w-full' : 'max-w-4xl'}`}>
+              <div className={`${!showRegisters ? 'w-full mx-auto' : ''}`}>
+                {renderMainContent()}
+              </div>
             </div>
 
-            {/* Right Sidebar - Active Registers */}
-            <ActiveRegisters 
-              activeRegisters={activeRegisters} 
-              handleGetAllSummary={handleGetAllSummary} 
-              selectedSessionId={selectedSessionId} 
-              handleRegisterClick={handleRegisterClick} 
-              setActiveView={setActiveView} 
-              managerLoading={managerLoading}
-            />
+            {/* Right Sidebar - Only show for non-employees views */}
+            {showRegisters && (
+              <ActiveRegisters 
+                activeRegisters={activeRegisters} 
+                handleGetAllSummary={handleGetAllSummary} 
+                selectedSessionId={selectedSessionId} 
+                handleRegisterClick={handleRegisterClick} 
+                setActiveView={setActiveView} 
+                managerLoading={managerLoading}
+              />
+            )}
           </div>
           
           {/* Mobile Sidebar */}

@@ -26,6 +26,15 @@ const useManager = () => {
     }
   };
 
+  async function updateAccount(id,payload){
+    try{
+      const res = await axios.put(`/manager/edit-account/${id}`,{username:payload.username,password:payload.password,access:payload.access})
+      console.log(res.data)
+    }catch(err){
+      console.log(err)
+    }
+  }
+
   const addAccount = async (employeeId, accountData) => {
   try {
     setLoading(true);
@@ -210,6 +219,7 @@ const addEmployee = async (employeeData) => {
     error,
     addEmployeePayment,
     getAccountDetails,
+    updateAccount,
     getEmployeePayments,
     addAccount,
     addEmployee,

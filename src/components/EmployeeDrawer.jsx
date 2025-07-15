@@ -282,6 +282,7 @@ const [editData, setEditData] = useState(null);
         defaultValues={{
           username: editData.username,
           access: editData.access,
+          accountId: editData._id,
           employeeId: editData.employee?._id,
         }}
         userRole={userRole}
