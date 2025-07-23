@@ -5,10 +5,12 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './Pages/Login';
 import Report from './Pages/Report';
 import DashboardRouter from './Pages/DashboardRouter';
+import AxiosInterceptorProvider from './contexts/AxiosInterceptorProvider';
 
 function App() {
   return (
     <AuthProvider>
+      <AxiosInterceptorProvider />
       <Toaster richColors position="top-right" />
       <Routes>
         {/* Default route - redirect to login */}

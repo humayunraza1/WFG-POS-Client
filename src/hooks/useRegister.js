@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import axios from '@/api/axios';
+import axiosPublic,{axiosPrivate} from '@/api/axios';
 
 const useRegister = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,7 +35,7 @@ const useRegister = () => {
   const fetchManagers = async () => {
     try {
       setManagersLoading(true);
-      const { data } = await axios.get('/register/managers');
+      const { data } = await axiosPrivate.get('/register/managers');
       setManagers(data.managers);
       setManagersError(null);
     } catch (err) {
@@ -50,7 +50,7 @@ const useRegister = () => {
   const checkRegisterStatus = async () => {
     try {
       setIsLoading(true);
-      const { data } = await axios.get(`/register/status`, { withCredentials: true });
+      const { data } = await axiosPrivate.get(`/register/status`, { withCredentials: true });
 
       if (data.isOpen) {
         setIsOpen(true);
@@ -80,7 +80,7 @@ const useRegister = () => {
         ? { startCash: registerData } 
         : registerData;
 
-      const { data } = await axios.post(`/register/open`, requestData, { withCredentials: true } );
+      const { data } = await axiosPrivate.post(`/register/open`, requestData, { withCredentials: true } );
       
       setIsOpen(true);
       setSessionId(data.sessionId);
@@ -96,7 +96,7 @@ const useRegister = () => {
 
   const closeRegister = async (finalCash) => {
     try {
-      const { data } = await axios.post(`/register/close`, {
+      const { data } = await axiosPrivate.post(`/register/close`, {
         finalCash
       }, { withCredentials: true });
       
@@ -116,7 +116,7 @@ const useRegister = () => {
     if (!isOpen) return;
     
     try {
-      await axios.post(`/register/activity`, {}, { withCredentials: true });
+      await axiosPrivate.post(`/register/activity`, {}, { withCredentials: true });
     } catch (err) {
       console.error('Failed to update activity:', err);
     }
@@ -140,7 +140,7 @@ const useRegister = () => {
         params.manager = filters.manager;
       }
 
-      const { data } = await axios.get('/manager/register/sessions', { params }, { withCredentials: true });
+      const { data } = await axiosPrivate.get('/manager/register/sessions', { params }, { withCredentials: true });
       
       // Sort sessions by openedAt date, most recent first
       const sortedSessions = data.sort((a, b) => 
@@ -162,7 +162,7 @@ const useRegister = () => {
   // Function to get a specific session by ID
   const getSessionById = useCallback(async (sessionId) => {
     try {
-      const { data } = await axios.get(`/manager/register/sessions/${sessionId}`, { withCredentials: true });
+      const { data } = await axiosPrivate.get(`/manager/register/sessions/${sessionId}`, { withCredentials: true });
       return data;
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message;

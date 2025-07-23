@@ -1,6 +1,6 @@
 // hooks/useOrders.js
 import { useState, useEffect, useCallback } from 'react';
-import axios from '@/api/axios';
+import axiosPublic,{axiosPrivate} from '@/api/axios';
 import useReceiptPrinter from './useReceiptPrinter';
 import { toast } from 'sonner';
 
@@ -78,7 +78,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
 
     try {
       setIsLoading(true);
-      const { data } = await axios.get(`/orders/session/${sessionId}`, { withCredentials: true });
+      const { data } = await axiosPrivate.get(`/orders/session/${sessionId}`, { withCredentials: true });
       console.log(data);
       setOrders(data);
     } catch (err) {
@@ -95,7 +95,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
   const fetchAllOrders = useCallback(async () => {
     try {
       setIsLoadingAllOrders(true);
-      const { data } = await axios.get('/orders', { withCredentials: true });
+      const { data } = await axiosPrivate.get('/orders', { withCredentials: true });
       const sortedOrders = data.sort((a, b) => {
         const dateA = new Date(a.createdAt || a.dateOrdered);
         const dateB = new Date(b.createdAt || b.dateOrdered);
@@ -127,7 +127,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
 
     setStatsLoading(true);
     try {
-      const { data } = await axios.get(`/orders/daily-sales/${sessionId}`, { withCredentials: true });
+      const { data } = await axiosPrivate.get(`/orders/daily-sales/${sessionId}`, { withCredentials: true });
       console.log('Daily stats:', data);
       setDailyStats(data);
     } catch (error) {
@@ -169,7 +169,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
       };
 
       console.log('Adding order with schema-compliant data:', formattedOrderData);
-      const { data } = await axios.post('/orders', formattedOrderData, { withCredentials: true });
+      const { data } = await axiosPrivate.post('/orders', formattedOrderData, { withCredentials: true });
       setOrders(prev => [...prev, data]);
       console.log('order placed: ', data)
       fetchDailyStats();
@@ -193,7 +193,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
 
   const updatePayment = async (orderId, amountReceived) => {
     try {
-      const { data } = await axios.patch(`/orders/${orderId}/payment`, {
+      const { data } = await axiosPrivate.patch(`/orders/${orderId}/payment`, {
         amountReceived
       }, { withCredentials: true });
 
@@ -228,7 +228,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
 
   const updateOrder = async (id, orderData) => {
     try {
-      const { data } = await axios.put(`/orders/${id}`, orderData, { withCredentials: true });
+      const { data } = await axiosPrivate.put(`/orders/${id}`, orderData, { withCredentials: true });
       setOrders(prev => prev.map(o => o._id === id ? data : o));
       fetchDailyStats();
       return data;
@@ -240,7 +240,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
 
   const deleteOrder = async (id) => {
     try {
-      await axios.delete(`/manager/delete-order/${id}`, { withCredentials: true });
+      await axiosPrivate.delete(`/manager/delete-order/${id}`, { withCredentials: true });
       setOrders(prev => prev.filter(o => o._id !== id));
       toast.success('Order deleted successfully');
       fetchDailyStats();

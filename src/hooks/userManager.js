@@ -1,6 +1,6 @@
 // src/hooks/useManager.js
 import { useState, useEffect } from 'react';
-import axios from '@/api/axios';
+import axiosPublic,{axiosPrivate} from '@/api/axios';
 
 const useManager = () => {
   const [summary, setSummary] = useState(null);
@@ -11,12 +11,11 @@ const useManager = () => {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
   const fetchSummary = async (sessionId = null) => {
     try {
       setLoading(true);
       const url = sessionId ? `/manager/registers/summary?sessionId=${sessionId}` : '/manager/registers/summary';
-      const res = await axios.get(url);
+      const res = await axiosPrivate.get(url);
       console.log('Fetched Summary:', res.data); // Debugging line
       setSummary(res.data);
     } catch (err) {
@@ -28,7 +27,7 @@ const useManager = () => {
 
   async function updateAccount(id,payload){
     try{
-      const res = await axios.put(`/manager/edit-account/${id}`,{username:payload.username,password:payload.password,access:payload.access})
+      const res = await axiosPrivate.put(`/manager/edit-account/${id}`,{username:payload.username,password:payload.password,access:payload.access})
       console.log(res.data)
     }catch(err){
       console.log(err)
@@ -40,7 +39,7 @@ const useManager = () => {
     setLoading(true);
     setError(null);
     
-    const response = await axios.post('/manager/add-account', {
+    const response = await axiosPrivate.post('/manager/add-account', {
       employeeId,
       ...accountData
     });
@@ -68,7 +67,7 @@ const useManager = () => {
 
 async function getAccountDetails(accountId){
   try{
-    const res = await axios.get(`/manager/account/${accountId}`)
+    const res = await axiosPrivate.get(`/manager/account/${accountId}`)
     return res.data
   }catch(err){
     console.log(err)
@@ -80,7 +79,7 @@ const addEmployee = async (employeeData) => {
     setLoading(true);
     setError(null);
     
-    const response = await axios.post('/manager/add-employee', employeeData);
+    const response = await axiosPrivate.post('/manager/add-employee', employeeData);
     
     // Refresh employees list after successful employee creation
     await fetchEmployees();
@@ -99,10 +98,19 @@ const addEmployee = async (employeeData) => {
   }
 };
 
+async function updateEmployee(id, employeeData){
+  try{
+    const res = await axiosPrivate.put('/manager/update-employee',{id,employeeData})
+    console.log(res.data)
+  }catch(err){
+    console.log(err)
+  }
+}
+
   const fetchActiveRegisters = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('/manager/registers/active');
+      const res = await axiosPrivate.get('/manager/registers/active');
       setActiveRegisters(res.data);
     } catch (err) {
       setError(err.message);
@@ -114,8 +122,8 @@ const addEmployee = async (employeeData) => {
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('/manager/employees');
-      setAllEmployees(res.data);
+      const res = await axiosPrivate.get('/manager/employees');
+      return res.data
     } catch (err) {
       setError(err.message);
     } finally {
@@ -127,7 +135,7 @@ const addEmployee = async (employeeData) => {
     try {
       setLoading(true);
       const query = new URLSearchParams(params).toString();
-      const res = await axios.get(`/manager/register/sessions${query ? '?' + query : ''}`);
+      const res = await axiosPrivate.get(`/manager/register/sessions${query ? '?' + query : ''}`);
       setSessions(res.data);
     } catch (err) {
       setError(err.message);
@@ -139,7 +147,7 @@ const addEmployee = async (employeeData) => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('/manager/orders');
+      const res = await axiosPrivate.get('/manager/orders');
       setOrders(res.data);
     } catch (err) {
       setError(err.message);
@@ -151,7 +159,7 @@ const addEmployee = async (employeeData) => {
   const fetchExpenses = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('/manager/expenses');
+      const res = await axiosPrivate.get('/manager/expenses');
       setExpenses(res.data);
     } catch (err) {
       setError(err.message);
@@ -172,7 +180,7 @@ const addEmployee = async (employeeData) => {
       const queryString = params.toString();
       const url = `/employee/${employeeId}/payments${queryString ? '?' + queryString : ''}`;
       
-      const response = await axios.get(url);
+      const response = await axiosPrivate.get(url);
       return response.data;
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message;
@@ -193,7 +201,7 @@ const addEmployee = async (employeeData) => {
       setLoading(true);
       setError(null);
       
-      const response = await axios.post(`/employee/pay/${employeeId}`, paymentData);
+      const response = await axiosPrivate.post(`/employee/pay/${employeeId}`, paymentData);
       return response.data;
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message;
@@ -223,6 +231,7 @@ const addEmployee = async (employeeData) => {
     getEmployeePayments,
     addAccount,
     addEmployee,
+    updateEmployee,
     fetchSummary,
     fetchActiveRegisters,
     fetchEmployees,

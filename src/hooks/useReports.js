@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import axios from '@/api/axios';
+import axiosPublic,{axiosPrivate} from '@/api/axios';
 
 const useReports = () => {
   const [reports, setReports] = useState([]);
@@ -14,7 +14,7 @@ const useReports = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await axios.get('/reports');
+      const response = await axiosPrivate.get('/reports');
       console.log('Fetched reports:', response.data);
       setReports(response.data || []);
     } catch (err) {
@@ -35,7 +35,7 @@ const useReports = () => {
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
       
-      const response = await axios.get('/reports/create-report', { params });
+      const response = await axiosPrivate.get('/reports/create-report', { params });
       
       // Refresh reports list after generating
       await fetchReports();
@@ -55,7 +55,7 @@ const useReports = () => {
     try {
       setIsFetching(true);
       setError(null);
-      const response = await axios.get(`/reports/get-report/${reportId}`);
+      const response = await axiosPrivate.get(`/reports/get-report/${reportId}`);
       console.log('Fetched report:', response.data);
       setCurrentReport(response.data);
       return response.data;

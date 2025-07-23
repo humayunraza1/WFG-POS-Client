@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from '@/api/axios';
+import axiosPublic,{axiosPrivate} from '@/api/axios';
 
 const useExpenses = (sessionId, isRegisterOpen, onExpenseChange) => {
   const [expenses, setExpenses] = useState([]);
@@ -34,7 +34,7 @@ const useExpenses = (sessionId, isRegisterOpen, onExpenseChange) => {
 
     try {
       setIsLoading(true);
-      const { data } = await axios.get(`/expenses/session/${sessionId}`,{withCredentials:true});
+      const { data } = await axiosPrivate.get(`/expenses/session/${sessionId}`,{withCredentials:true});
       setExpenses(data);
     } catch (err) {
       // If it's a 404, just set empty array (new session)
@@ -50,7 +50,7 @@ const useExpenses = (sessionId, isRegisterOpen, onExpenseChange) => {
 
   const addExpense = async (expenseData,sessionId) => {
     try {
-      const { data } = await axios.post(`/manager/add-expense`, {
+      const { data } = await axiosPrivate.post(`/manager/add-expense`, {
         ...expenseData,
         registerSession: sessionId
       },{withCredentials:true});
@@ -71,7 +71,7 @@ const useExpenses = (sessionId, isRegisterOpen, onExpenseChange) => {
 
   const updateExpense = async (id, expenseData) => {
     try {
-      const { data } = await axios.put(`/manager/update-expense/${id}`, expenseData,{withCredentials:true});
+      const { data } = await axiosPrivate.put(`/manager/update-expense/${id}`, expenseData,{withCredentials:true});
       setExpenses(prev => prev.map(e => e._id === id ? data : e));
       
       // Call the callback to update dashboard stats
@@ -88,7 +88,7 @@ const useExpenses = (sessionId, isRegisterOpen, onExpenseChange) => {
 
   const deleteExpense = async (id) => {
     try {
-      await axios.delete(`/manager/delete-expense/${id}`,{withCredentials:true});
+      await axiosPrivate.delete(`/manager/delete-expense/${id}`,{withCredentials:true});
       setExpenses(prev => prev.filter(e => e._id !== id));
       
       // Call the callback to update dashboard stats

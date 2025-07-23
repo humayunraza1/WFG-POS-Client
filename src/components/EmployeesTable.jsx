@@ -26,22 +26,46 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, User, Phone, Mail, DollarSign, Loader2, ArrowRight } from 'lucide-react';
-import { useState } from 'react';
+import { Plus, User, Phone, Mail, DollarSign, Loader2, ArrowRight, Edit } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import useManager from '../hooks/userManager';
 import AddAccountDialog from './AddAccountDialog';
 import EmployeeDrawer from './EmployeeDrawer';
+import useBranch from '../hooks/useBranch';
 
-const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpdate }) => {
-  const { addEmployee, loading: managerLoading } = useManager();
+const EmployeesTable = ({user, onEmployeeUpdate }) => {
+  const { fetchEmployees,addEmployee, updateEmployee, loading: managerLoading } = useManager();
+  const {getBranch} = useBranch();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [employees, setEmployees] = useState([]); // Initialize as empty array
+  const [editingEmployeeId, setEditingEmployeeId] = useState(null);
   const [addAccountDialog, setAddAccountDialog] = useState({
     isOpen: false,
     employeeId: null,
     employeeName: ''
   });
-    const [employeeDrawer, setEmployeeDrawer] = useState({
+
+  useEffect(()=>{
+    getEmployees()
+  },[])
+
+  async function getEmployees(){
+    try{
+      const data = await fetchEmployees()
+      console.log("employees: ",data)
+      setEmployees(data || []); // Fallback to empty array if data is undefined
+    }catch(err){
+      toast.error(err)
+      console.log(err)
+      setEmployees([]); // Set to empty array on error
+    }
+  }
+
+
+
+  const [employeeDrawer, setEmployeeDrawer] = useState({
     isOpen: false,
     employee: null
   });
@@ -51,9 +75,12 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
     phone: '',
     salary: '',
     role: '',
-    salaryDate: ''
+    salaryDate: '',
+    branchCode: ''
   });
   const [formErrors, setFormErrors] = useState({});
+  const [branches, setBranches] = useState([]);
+  const [branchesLoading, setBranchesLoading] = useState(false);
 
   // Define available roles based on user access level
   const getAvailableRoles = () => {
@@ -63,8 +90,35 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
     }
     return baseRoles;
   };
-  let role = user.access.isAdmin ? 'admin' : 'manager'
+  
+  let role = user.access.isAdmin ? 'admin' : 'manager';
   const availableRoles = getAvailableRoles();
+
+  // Fetch branches for admin users
+  useEffect(() => {
+    if (user.access.isAdmin) {
+      fetchBranches();
+    }
+  }, [user.access.isAdmin]);
+
+  const fetchBranches = async () => {
+    setBranchesLoading(true);
+    try {
+      const data = await getBranch()
+      setBranches(data || []); // Fallback to empty array
+    } catch (error) {
+      toast.error(error)
+      console.log(error)
+      setBranches([]); // Set to empty array on error
+    } finally {
+      setBranchesLoading(false);
+    }
+  };
+
+  const getBranchDisplay = (branchCode) => {
+    const branch = branches.find(b => b.branchCode === branchCode);
+    return branch ? `${branch.branchCode} - ${branch.name}` : branchCode;
+  };
 
   const formatSalary = (salary) => {
     return new Intl.NumberFormat('en-US', {
@@ -101,16 +155,6 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
     
     if (!formData.name.trim()) {
       errors.name = 'Name is required';
-    }
-    
-    if (!formData.phone.trim()) {
-      errors.phone = 'Phone number is required';
-    }
-    
-    if (!formData.salary) {
-      errors.salary = 'Salary is required';
-    } else if (isNaN(formData.salary) || parseFloat(formData.salary) <= 0) {
-      errors.salary = 'Please enter a valid salary amount';
     }
     
     if (!formData.role) {
@@ -150,25 +194,24 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
         salaryDate: parseInt(formData.salaryDate)
       };
 
-      await addEmployee(employeeData);
-      
-      // Show success toast
-      toast.success("Employee Added Successfully");
+      if (editMode) {
+        // Update existing employee
+        await updateEmployee(editingEmployeeId, employeeData);
+        toast.success("Employee Updated Successfully");
+      } else {
+        // Add new employee
+        await addEmployee(employeeData);
+        toast.success("Employee Added Successfully");
+      }
 
       // Reset form and close modal
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        salary: '',
-        role: '',
-        salaryDate: ''
-      });
-      setFormErrors({});
+      resetForm();
       setIsModalOpen(false);
+      getEmployees()
 
     } catch (error) {
-      toast.error("Failed to Add Employee");
+      const message = editMode ? "Failed to Update Employee" : "Failed to Add Employee";
+      toast.error(message);
     }
   };
 
@@ -179,9 +222,33 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
       phone: '',
       salary: '',
       role: '',
-      salaryDate: ''
+      salaryDate: '',
+      branchCode: ''
     });
     setFormErrors({});
+    setEditMode(false);
+    setEditingEmployeeId(null);
+  };
+
+  const handleAddEmployee = () => {
+    resetForm();
+    setEditMode(false);
+    setIsModalOpen(true);
+  };
+
+  const handleEditEmployee = (employee) => {
+    setFormData({
+      name: employee.name || '',
+      email: employee.email || '',
+      phone: employee.phone || '',
+      salary: employee.salary?.toString() || '',
+      role: employee.role || '',
+      salaryDate: employee.salaryCycleStartDay?.toString() || '',
+      branchCode: employee.branchCode || ''
+    });
+    setEditMode(true);
+    setEditingEmployeeId(employee._id);
+    setIsModalOpen(true);
   };
 
   const handleAddAccount = (employee) => {
@@ -199,6 +266,7 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
       employeeName: ''
     });
   };
+
   const handleOpenEmployeeDrawer = (employee) => {
     setEmployeeDrawer({
       isOpen: true,
@@ -212,13 +280,12 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
       employee: null
     });
   };
+
   const handleAccountAdded = () => {
-    // The addAccount function in useManager already refreshes the employees list
-    // So we don't need to do anything here, but we can call onEmployeeUpdate if needed
     onEmployeeUpdate?.();
   };
 
-  if (isLoading) {
+  if (managerLoading) {
     return (
       <Card>
         <CardHeader>
@@ -252,16 +319,21 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
               if (!open) resetForm();
             }}>
               <DialogTrigger asChild>
-                <Button className="flex items-center gap-2">
+                <Button className="flex items-center gap-2" onClick={handleAddEmployee}>
                   <Plus className="h-4 w-4" />
                   Add Employee
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                  <DialogTitle>Add New Employee</DialogTitle>
+                  <DialogTitle>
+                    {editMode ? 'Edit Employee' : 'Add New Employee'}
+                  </DialogTitle>
                   <DialogDescription>
-                    Fill in the employee details below. All fields are required.
+                    {editMode 
+                      ? 'Update the employee details below.'
+                      : 'Fill in the employee details below. All fields are required.'
+                    }
                   </DialogDescription>
                 </DialogHeader>
                 
@@ -329,9 +401,9 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
                       )}
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
 
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
                       <Label htmlFor="salaryDate">Salary Date</Label>
                       <Select 
                         value={formData.salaryDate} 
@@ -352,28 +424,64 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
                         <p className="text-sm text-red-500">{formErrors.salaryDate}</p>
                       )}
                     </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="role">Role</Label>
-                    <Select 
-                      value={formData.role} 
-                      onValueChange={(value) => handleInputChange('role', value)}
+
+                    <div className="space-y-2">
+                      <Label htmlFor="role">Role</Label>
+                      <Select 
+                        value={formData.role} 
+                        onValueChange={(value) => handleInputChange('role', value)}
                       >
-                      <SelectTrigger className={formErrors.role ? 'border-red-500' : ''}>
-                        <SelectValue placeholder="Select employee role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableRoles.map((role) => (
-                          <SelectItem key={role} value={role}>
-                            {role.charAt(0).toUpperCase() + role.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {formErrors.role && (
-                      <p className="text-sm text-red-500">{formErrors.role}</p>
-                    )}
-                  </div>
+                        <SelectTrigger className={formErrors.role ? 'border-red-500' : ''}>
+                          <SelectValue placeholder="Select employee role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableRoles.map((role) => (
+                            <SelectItem key={role} value={role}>
+                              {role.charAt(0).toUpperCase() + role.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {formErrors.role && (
+                        <p className="text-sm text-red-500">{formErrors.role}</p>
+                      )}
                     </div>
+                  </div>
+
+                  {/* Branch Code - Only show for admin users */}
+                  {user.access.isAdmin && (
+                    <div className="space-y-2">
+                      <Label htmlFor="branchCode">Branch Code</Label>
+                      <Select 
+                        value={formData.branchCode} 
+                        onValueChange={(value) => handleInputChange('branchCode', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select branch code" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {branchesLoading ? (
+                            <SelectItem value="" disabled>
+                              <div className="flex items-center gap-2">
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                Loading branches...
+                              </div>
+                            </SelectItem>
+                          ) : branches.length === 0 ? (
+                            <SelectItem value="" disabled>
+                              No branches available
+                            </SelectItem>
+                          ) : (
+                            branches.map((branch) => (
+                              <SelectItem key={branch._id} value={branch.branchCode}>
+                                {branch.branchCode} - {branch.name}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                   <div className="flex justify-end gap-3 pt-4">
                     <Button
@@ -390,7 +498,7 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
                       className="flex items-center gap-2"
                     >
                       {managerLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                      Add Employee
+                      {editMode ? 'Update Employee' : 'Add Employee'}
                     </Button>
                   </div>
                 </div>
@@ -415,9 +523,12 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
                     <TableHead className="hidden sm:table-cell">Email</TableHead>
                     <TableHead className="hidden md:table-cell">Phone</TableHead>
                     <TableHead>Role</TableHead>
+                    {user.access.isAdmin && (
+                      <TableHead className="hidden lg:table-cell">Branch</TableHead>
+                    )}
                     <TableHead className="hidden lg:table-cell">Salary</TableHead>
                     <TableHead>Account</TableHead>
-                    <TableHead></TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -455,6 +566,14 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
                       <TableCell>
                         {getRoleBadge(employee.role)}
                       </TableCell>
+
+                      {user.access.isAdmin && (
+                        <TableCell className="hidden lg:table-cell">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            {employee.branchCode ? getBranchDisplay(employee.branchCode) : 'Not Assigned'}
+                          </Badge>
+                        </TableCell>
+                      )}
                       
                       <TableCell className="hidden lg:table-cell">
                         <div className="flex items-center gap-2">
@@ -481,17 +600,26 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
                         )}
                       </TableCell>
 
-                                            <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => handleOpenEmployeeDrawer(employee)}
-                        >
-                          <ArrowRight className="h-4 w-4" />
-                        </Button>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleEditEmployee(employee)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleOpenEmployeeDrawer(employee)}
+                          >
+                            <ArrowRight className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
-
                     </TableRow>
                   ))}
                 </TableBody>
@@ -507,10 +635,15 @@ const EmployeesTable = ({ employees = [], isLoading = false, user, onEmployeeUpd
         onClose={handleCloseAddAccount}
         employeeId={addAccountDialog.employeeId}
         employeeName={addAccountDialog.employeeName}
-      userRole={role}
+        userRole={role}
         onAccountAdded={handleAccountAdded}
       />
-      <EmployeeDrawer userRole={role} isOpen={employeeDrawer.isOpen} onClose={handleCloseEmployeeDrawer} employee={employeeDrawer.employee}/>
+      <EmployeeDrawer 
+        userRole={role} 
+        isOpen={employeeDrawer.isOpen} 
+        onClose={handleCloseEmployeeDrawer} 
+        employee={employeeDrawer.employee}
+      />
     </>
   );
 };

@@ -2,7 +2,9 @@ import {
   Package2, Receipt, History, FileText,
   BarChart3, Plus, Edit3,
   User,
-  DollarSign
+  DollarSign,
+  User2,
+  StoreIcon
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -38,6 +40,14 @@ const useSidebarMenu = (products) => {
     });
   }
 
+    if(access.isAdmin){
+    menuItems.push({
+      key:"branch",
+      icon: StoreIcon,
+      label: "Manage Branch"
+    })
+  }
+
   if (access.isManager || access.isAdmin) {
     menuItems.push({
       key: 'registers',
@@ -62,6 +72,13 @@ const useSidebarMenu = (products) => {
     });
   }
 
+  if(access.canAssignAccount){
+    menuItems.push({
+      key:'accounts',
+      icon: User2,
+      label: 'Manage Accounts'
+    })
+  }
   if (access.canViewReport || access.canGenReport || access.isManager) {
     menuItems.push({
       key: 'reports',

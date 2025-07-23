@@ -60,7 +60,7 @@ const ManagerDashboard = () => {
     const [activeSubView, setActiveSubView] = useState(null);
     const [cartItems, setCartItems] = useState([]);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const [selectedSessionId, setSelectedSessionId] = useState(null);
     const [showRegisters, setShowRegisters] = useState(true)
     const {
@@ -249,11 +249,6 @@ const ManagerDashboard = () => {
         console.error('Logout error:', error);
       }
     };
-
-    useEffect(() => {
-      fetchEmployees();
-      setIsLoading(false);
-    }, []);
 
     const renderMainContent = () => { 
       if (isLoading) {
