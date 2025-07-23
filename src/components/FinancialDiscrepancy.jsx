@@ -159,7 +159,6 @@ const FinancialDiscrepancyChart = ({ sessions }) => {
       </CardHeader>
       
       <CardContent>
-        <ScrollArea className="h-96">
           <div className="space-y-3">
             {sessionsWithDiscrepancies.map((session, index) => (
               <div key={session.sessionId || index} className="p-4 border rounded-lg bg-white hover:bg-gray-50 transition-colors">
@@ -231,7 +230,6 @@ const FinancialDiscrepancyChart = ({ sessions }) => {
               </div>
             ))}
           </div>
-        </ScrollArea>
       </CardContent>
     </Card>
   );
