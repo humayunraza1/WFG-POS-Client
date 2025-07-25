@@ -30,40 +30,32 @@ import { Plus, User, Phone, Mail, DollarSign, Loader2, ArrowRight, Edit } from '
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import useManager from '../hooks/userManager';
-import AddAccountDialog from './AddAccountDialog';
 import EmployeeDrawer from './EmployeeDrawer';
 import useBranch from '../hooks/useBranch';
 
-const EmployeesTable = ({user, onEmployeeUpdate }) => {
-  const { fetchEmployees,addEmployee, updateEmployee, loading: managerLoading } = useManager();
-  const {getBranch} = useBranch();
+const EmployeesTable = ({ user, onEmployeeUpdate }) => {
+  const { fetchEmployees, addEmployee, updateEmployee, loading: managerLoading } = useManager();
+  const { getBranch } = useBranch();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [employees, setEmployees] = useState([]); // Initialize as empty array
+  const [employees, setEmployees] = useState([]);
   const [editingEmployeeId, setEditingEmployeeId] = useState(null);
-  const [addAccountDialog, setAddAccountDialog] = useState({
-    isOpen: false,
-    employeeId: null,
-    employeeName: ''
-  });
 
-  useEffect(()=>{
-    getEmployees()
-  },[])
+  useEffect(() => {
+    getEmployees();
+  }, []);
 
-  async function getEmployees(){
-    try{
-      const data = await fetchEmployees()
-      console.log("employees: ",data)
-      setEmployees(data || []); // Fallback to empty array if data is undefined
-    }catch(err){
-      toast.error(err)
-      console.log(err)
-      setEmployees([]); // Set to empty array on error
+  async function getEmployees() {
+    try {
+      const data = await fetchEmployees();
+      console.log("employees: ", data);
+      setEmployees(data || []);
+    } catch (err) {
+      toast.error(err);
+      console.log(err);
+      setEmployees([]);
     }
   }
-
-
 
   const [employeeDrawer, setEmployeeDrawer] = useState({
     isOpen: false,
@@ -104,12 +96,12 @@ const EmployeesTable = ({user, onEmployeeUpdate }) => {
   const fetchBranches = async () => {
     setBranchesLoading(true);
     try {
-      const data = await getBranch()
-      setBranches(data || []); // Fallback to empty array
+      const data = await getBranch();
+      setBranches(data || []);
     } catch (error) {
-      toast.error(error)
-      console.log(error)
-      setBranches([]); // Set to empty array on error
+      toast.error(error);
+      console.log(error);
+      setBranches([]);
     } finally {
       setBranchesLoading(false);
     }
@@ -207,7 +199,7 @@ const EmployeesTable = ({user, onEmployeeUpdate }) => {
       // Reset form and close modal
       resetForm();
       setIsModalOpen(false);
-      getEmployees()
+      getEmployees();
 
     } catch (error) {
       const message = editMode ? "Failed to Update Employee" : "Failed to Add Employee";
@@ -251,22 +243,6 @@ const EmployeesTable = ({user, onEmployeeUpdate }) => {
     setIsModalOpen(true);
   };
 
-  const handleAddAccount = (employee) => {
-    setAddAccountDialog({
-      isOpen: true,
-      employeeId: employee._id,
-      employeeName: employee.name
-    });
-  };
-
-  const handleCloseAddAccount = () => {
-    setAddAccountDialog({
-      isOpen: false,
-      employeeId: null,
-      employeeName: ''
-    });
-  };
-
   const handleOpenEmployeeDrawer = (employee) => {
     setEmployeeDrawer({
       isOpen: true,
@@ -279,10 +255,6 @@ const EmployeesTable = ({user, onEmployeeUpdate }) => {
       isOpen: false,
       employee: null
     });
-  };
-
-  const handleAccountAdded = () => {
-    onEmployeeUpdate?.();
   };
 
   if (managerLoading) {
@@ -447,7 +419,7 @@ const EmployeesTable = ({user, onEmployeeUpdate }) => {
                       )}
                     </div>
                   </div>
-
+                 
                   {/* Branch Code - Only show for admin users */}
                   {user.access.isAdmin && (
                     <div className="space-y-2">
@@ -461,14 +433,14 @@ const EmployeesTable = ({user, onEmployeeUpdate }) => {
                         </SelectTrigger>
                         <SelectContent>
                           {branchesLoading ? (
-                            <SelectItem value="" disabled>
+                            <SelectItem value="loading" disabled>
                               <div className="flex items-center gap-2">
                                 <Loader2 className="h-3 w-3 animate-spin" />
                                 Loading branches...
                               </div>
                             </SelectItem>
                           ) : branches.length === 0 ? (
-                            <SelectItem value="" disabled>
+                            <SelectItem value="no-branches" disabled>
                               No branches available
                             </SelectItem>
                           ) : (
@@ -527,7 +499,6 @@ const EmployeesTable = ({user, onEmployeeUpdate }) => {
                       <TableHead className="hidden lg:table-cell">Branch</TableHead>
                     )}
                     <TableHead className="hidden lg:table-cell">Salary</TableHead>
-                    <TableHead>Account</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -581,24 +552,6 @@ const EmployeesTable = ({user, onEmployeeUpdate }) => {
                           <span className="font-semibold">{formatSalary(employee.salary)}</span>
                         </div>
                       </TableCell>
-                      
-                      <TableCell>
-                        {employee.accountRef ? (
-                          <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-                            {employee.accountRef.username}
-                          </Badge>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 text-xs"
-                            onClick={() => handleAddAccount(employee)}
-                          >
-                            <Plus className="h-3 w-3 mr-1" />
-                            Add
-                          </Button>
-                        )}
-                      </TableCell>
 
                       <TableCell>
                         <div className="flex items-center gap-1">
@@ -629,15 +582,6 @@ const EmployeesTable = ({user, onEmployeeUpdate }) => {
         </CardContent>
       </Card>
 
-      {/* Add Account Dialog */}
-      <AddAccountDialog
-        isOpen={addAccountDialog.isOpen}
-        onClose={handleCloseAddAccount}
-        employeeId={addAccountDialog.employeeId}
-        employeeName={addAccountDialog.employeeName}
-        userRole={role}
-        onAccountAdded={handleAccountAdded}
-      />
       <EmployeeDrawer 
         userRole={role} 
         isOpen={employeeDrawer.isOpen} 

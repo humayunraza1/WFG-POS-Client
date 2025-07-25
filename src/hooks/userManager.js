@@ -25,27 +25,37 @@ const useManager = () => {
     }
   };
 
-  async function updateAccount(id,payload){
+  async function fetchManagers(){
     try{
-      const res = await axiosPrivate.put(`/manager/edit-account/${id}`,{username:payload.username,password:payload.password,access:payload.access})
-      console.log(res.data)
+      const res = await axiosPrivate.get('/manager/')
+      return res.data
     }catch(err){
       console.log(err)
     }
   }
 
-  const addAccount = async (employeeId, accountData) => {
+  async function assignManagers(id,managers){
+    try{
+      const res = await axiosPrivate.put('/branch/assign-manager',{branchId:id,managerIds:managers})
+      console.log(res.data)
+      return res.data
+    }catch(err){
+      console.log(err)
+    }
+  }
+
+// Updated: Add Account (standalone account creation without employee linking)
+const addAccount = async (accountData) => {
   try {
     setLoading(true);
     setError(null);
     
     const response = await axiosPrivate.post('/manager/add-account', {
-      employeeId,
-      ...accountData
+      username: accountData.username,
+      password: accountData.password,
+      access: accountData.access,
+      branchCode:accountData.branchCode
     });
-    
-    // Refresh employees list after successful account creation
-    await fetchEmployees();
     
     return response.data;
   } catch (err) {
@@ -65,14 +75,147 @@ const useManager = () => {
   }
 };
 
-async function getAccountDetails(accountId){
-  try{
-    const res = await axiosPrivate.get(`/manager/account/${accountId}`)
-    return res.data
-  }catch(err){
-    console.log(err)
+// New: Assign Account to Employee
+const assignAccountToEmployee = async (accountId, employeeId) => {
+  try {
+    setError(null);
+    
+    const response = await axiosPrivate.put('/manager/assign-account', {
+      accId: accountId,
+      empId: employeeId
+    });
+    
+    return response.data;
+  } catch (err) {
+    const errorMessage = err.response?.data?.message || err.message || 'Failed to assign account';
+    setError(errorMessage);
+    
+    throw {
+      message: errorMessage,
+      status: err.response?.status
+    };
   }
-}
+};
+
+// Updated: Update Account (now handles username, password, and access)
+const updateAccount = async (accountId, payload) => {
+  try {
+    setLoading(true);
+    setError(null);
+    
+    const response = await axiosPrivate.put(`/manager/edit-account/${accountId}`, {
+      username: payload.username,
+      password: payload.password,
+      branchCode: payload.branchCode,
+      access: payload.access
+    });
+    
+    return response.data;
+  } catch (err) {
+    const errorMessage = err.response?.data?.message || err.message;
+    const deniedPermissions = err.response?.data?.denied || [];
+    
+    setError(errorMessage);
+    
+    throw {
+      message: errorMessage,
+      denied: deniedPermissions,
+      status: err.response?.status
+    };
+  } finally {
+    setLoading(false);
+  }
+};
+
+// New: Update Account Status (activate/deactivate)
+const updateAccountStatus = async (accountId, status) => {
+  try {
+    setLoading(true);
+    setError(null);
+    
+    const response = await axiosPrivate.put('/manager/account-status', {
+      accId: accountId,
+      status: status
+    });
+    
+    return response.data;
+  } catch (err) {
+    const errorMessage = err.response?.data?.message;
+    setError(errorMessage);
+    
+    throw {
+      message: errorMessage,
+      status: err.response?.status
+    };
+  } finally {
+    setLoading(false);
+  }
+};
+
+// New: Fetch All Accounts
+const fetchAccounts = async () => {
+  try {
+    setLoading(true);
+    setError(null);
+    
+    const response = await axiosPrivate.get('/manager/accounts');
+    
+    return response.data;
+  } catch (err) {
+    const errorMessage = err.response?.data?.error || err.message || 'Failed to fetch accounts';
+    setError(errorMessage);
+    
+    throw {
+      message: errorMessage,
+      status: err.response?.status
+    };
+  } finally {
+    setLoading(false);
+  }
+};
+
+// Updated: Get Account Details (already exists but keeping for completeness)
+const getAccountDetails = async (accountId) => {
+  try {
+    setLoading(true);
+    setError(null);
+    
+    const response = await axiosPrivate.get(`/manager/account/${accountId}`);
+    
+    return response.data;
+  } catch (err) {
+    const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch account details';
+    setError(errorMessage);
+    
+    throw {
+      message: errorMessage,
+      status: err.response?.status
+    };
+  } finally {
+    setLoading(false);
+  }
+};
+const fetchEmployeesWithoutAccounts = async () => {
+  try {
+    setLoading(true);
+    setError(null);
+    
+    const response = await axiosPrivate.get('/manager/employees-without-accounts');
+    
+    return response.data;
+  } catch (err) {
+    const errorMessage = err.response?.data?.error || err.message || 'Failed to fetch available employees';
+    setError(errorMessage);
+    
+    throw {
+      message: errorMessage,
+      status: err.response?.status
+    };
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 const addEmployee = async (employeeData) => {
   try {
@@ -225,6 +368,12 @@ async function updateEmployee(id, employeeData){
     expenses,
     loading,
     error,
+    fetchAccounts,
+    assignManagers,
+    fetchEmployeesWithoutAccounts,
+    updateAccountStatus,
+    assignAccountToEmployee,
+    fetchManagers,
     addEmployeePayment,
     getAccountDetails,
     updateAccount,

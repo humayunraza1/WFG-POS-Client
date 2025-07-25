@@ -52,6 +52,8 @@ import { useAuth } from '../hooks/useAuth';
 import OrdersHistory from '../components/Sidebar/OrderHistory';
 import useManager from '../hooks/userManager';
 import EmployeesTable from '../components/EmployeesTable';
+import BranchTable from '../components/BranchTable';
+import AccountsTable from '../components/AccountsTable';
 
 // Main Dashboard Component
 const ManagerDashboard = () => {
@@ -268,7 +270,12 @@ const ManagerDashboard = () => {
               selectedSessionId={selectedSessionId}
             />
           );
-         
+        
+        case 'branch':
+          return <BranchTable user = {user}/>
+
+        case 'accounts':
+          return <AccountsTable user={user}/>
         case 'employees':
           return (
             <EmployeesTable

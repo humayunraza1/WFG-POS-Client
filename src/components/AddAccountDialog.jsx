@@ -8,14 +8,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Select, SelectTrigger,SelectValue,SelectContent,SelectItem} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, UserPlus, Shield, Eye, EyeOff, Edit3 } from 'lucide-react';
+import { Loader2, UserPlus, Shield, Eye, EyeOff, Edit3, Building } from 'lucide-react';
 import { toast } from 'sonner';
 import useManager from '../hooks/userManager';
+import useBranch from '../hooks/useBranch';
 
 const AddAccountDialog = ({ 
   isOpen, 
@@ -26,11 +28,14 @@ const AddAccountDialog = ({
   userRole = 'manager',
   onAccountAdded,
   mode = 'create', // 'create' or 'edit'
-  defaultValues = {} // For edit mode
+  defaultValues = {}, // For edit mode
+  branches: propBranches = [] // Branches passed from parent
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { addAccount, loading: managerLoading ,updateAccount} = useManager();
+  const { addAccount, loading: managerLoading, updateAccount} = useManager();
+  const [branches, setBranches] = useState([]);
+  const { getBranch } = useBranch();
 
   const {
     register,
@@ -43,22 +48,35 @@ const AddAccountDialog = ({
     defaultValues: {
       username: '',
       password: '',
+      branchCode: '',
       // Permission defaults
       isAdmin: false,
       isManager: false,
       isCashier: false,
       canViewOrders: false,
-      canDeleteOrders: false,
-      canAssignAccount: false,
-      canViewEmployees: false,
-      canAddEmployee: false,
-      canDeleteEmployees: false,
-      canEditRoles: false,
       canGenReport: false,
-      canManageExpenses: false,
-      canManageProducts: false
     }
   });
+
+  // Fetch branches on component mount if admin and branches not provided
+  useEffect(() => {
+    if (userRole === 'admin') {
+      if (propBranches && propBranches.length > 0) {
+        setBranches(propBranches);
+      } else {
+        const fetchBranches = async () => {
+          try {
+            const data = await getBranch();
+            setBranches(data || []);
+          } catch (err) {
+            console.error('Failed to fetch branches:', err);
+            toast.error('Failed to fetch branches');
+          }
+        };
+        fetchBranches();
+      }
+    }
+  }, [userRole, propBranches, getBranch]);
 
   // Set form values when in edit mode
   useEffect(() => {
@@ -66,6 +84,11 @@ const AddAccountDialog = ({
       // Set username
       if (defaultValues.username) {
         setValue('username', defaultValues.username);
+      }
+ 
+      // Set branch code - find the matching branch and set it
+      if (defaultValues.branchCode) {
+        setValue('branchCode', defaultValues.branchCode);
       }
       
       // Set permissions from access object
@@ -79,67 +102,67 @@ const AddAccountDialog = ({
     }
   }, [mode, defaultValues, setValue]);
 
-  // Watch for admin/manager changes to disable other permissions
+  // Watch for admin/manager/cashier changes to disable other permissions
   const watchIsAdmin = watch('isAdmin');
   const watchIsManager = watch('isManager');
-  const isRoleSelected = watchIsAdmin || watchIsManager;
-
-  // Define locked permissions for Manager role
-  const managerLockedPermissions = {
-    isCashier: false,
-    canDeleteOrders: true,
-    canAssignAccount: true,
-    canViewEmployees: true,
-    canAddEmployee: true,
-    canDeleteEmployees: true,
-    canEditRoles: true,
-    canManageExpenses: true,
-  };
+  const watchIsCashier = watch('isCashier');
+  const isRoleSelected = watchIsAdmin || watchIsManager || watchIsCashier;
 
   // Check if a permission is locked for current role
   const isPermissionLocked = (permissionKey) => {
     if (watchIsAdmin) return true; // Admin locks all permissions
-    if (watchIsManager && managerLockedPermissions.hasOwnProperty(permissionKey)) {
-      return true; // Manager locks specific permissions
-    }
+    if (watchIsCashier) return true; // Cashier locks all other permissions
     return false;
   };
 
   // Get the locked value for a permission
   const getLockedPermissionValue = (permissionKey) => {
     if (watchIsAdmin) return true; // Admin gets all permissions
-    if (watchIsManager && managerLockedPermissions.hasOwnProperty(permissionKey)) {
-      return managerLockedPermissions[permissionKey];
-    }
+    if (watchIsCashier) return false; // Cashier gets no other permissions
     return watch(permissionKey);
+  };
+
+  // Get current branch name for display
+  const getCurrentBranchName = () => {
+    const currentBranchCode = watch('branchCode');
+    if (!currentBranchCode) return 'Not specified';
+    const branch = branches.find(b => b.branchCode === currentBranchCode);
+    return branch ? `${branch.name} (${branch.branchCode})` : currentBranchCode;
+  };
+
+  // Handle branch selection change
+  const handleBranchChange = (value) => {
+    const branchCode = value === 'none' ? '' : value;
+    setValue('branchCode', branchCode);
   };
 
   // Define available permissions based on user role
   const getAvailablePermissions = () => {
     const basePermissions = [
-      { key: 'isCashier', label: 'Cashier Access', description: 'Can process sales and transactions' },
-      { key: 'canDeleteOrders', label: 'Delete Orders', description: 'Can remove orders from system' },
       { key: 'canGenReport', label: 'Generate Reports', description: 'Can create business reports' },
-      { key: 'canManageExpenses', label: 'Manage Expenses', description: 'Can handle expense tracking' },
     ];
     
     if (userRole === 'admin') {
         return [
-            { key: 'isAdmin', label: 'Admin Access', description: 'Full system access and control', priority: true },
             { key: 'isManager', label: 'Manager Access', description: 'Management level permissions', priority: true },
+            { key: 'isCashier', label: 'Cashier Access', description: 'Can process sales and transactions only', priority: true },
             { key: 'canViewOrders', label: 'View Orders', description: 'Can view order history and details' },
-            { key: 'canAssignAccount', label: 'Assign Accounts', description: 'Can create accounts for employees' },
-            { key: 'canViewEmployees', label: 'View Employees', description: 'Can see employee information' },
-            { key: 'canAddEmployee', label: 'Add Employees', description: 'Can add new employees' },
-            { key: 'canDeleteEmployees', label: 'Delete Employees', description: 'Can remove employees' },
             { key: 'canViewAllRegisters', label: 'View All Registers', description: 'Can view registers of every manager.' },
-            { key: 'canEditRoles', label: 'Edit Roles', description: 'Can modify employee roles' },
-            { key: 'canManageProducts', label: 'Manage Products', description: 'Can add/edit products' },
         ...basePermissions
       ];
     }
 
-    return basePermissions;
+    // For manager role, only show cashier access
+    if (userRole === 'manager') {
+      return [
+        { key: 'isCashier', label: 'Cashier Access', description: 'Can process sales and transactions only', priority: true }
+      ];
+    }
+
+    return [
+      { key: 'isCashier', label: 'Cashier Access', description: 'Can process sales and transactions only', priority: true },
+      ...basePermissions
+    ];
   };
 
   const availablePermissions = getAvailablePermissions();
@@ -149,11 +172,12 @@ const AddAccountDialog = ({
   const handlePermissionChange = (permissionKey, checked) => {
     setValue(permissionKey, checked);
     
-    // If admin or manager is selected, disable other options and set locked values
-    if ((permissionKey === 'isAdmin' || permissionKey === 'isManager') && checked) {
+    // If admin, manager, or cashier is selected, handle other permissions accordingly
+    if ((permissionKey === 'isAdmin' || permissionKey === 'isManager' || permissionKey === 'isCashier') && checked) {
       // Clear other role selections
       if (permissionKey === 'isAdmin') {
         setValue('isManager', false);
+        setValue('isCashier', false);
         // Set all permissions to true for admin
         availablePermissions.forEach(permission => {
           if (permission.key !== 'isAdmin') {
@@ -162,15 +186,22 @@ const AddAccountDialog = ({
         });
       } else if (permissionKey === 'isManager') {
         setValue('isAdmin', false);
-        // Set locked permissions for manager
-        Object.keys(managerLockedPermissions).forEach(key => {
-          setValue(key, managerLockedPermissions[key]);
+        setValue('isCashier', false);
+        // No locked permissions for manager - just clear conflicting roles
+      } else if (permissionKey === 'isCashier') {
+        setValue('isAdmin', false);
+        setValue('isManager', false);
+        // Disable all other permissions for cashier
+        availablePermissions.forEach(permission => {
+          if (permission.key !== 'isCashier') {
+            setValue(permission.key, false);
+          }
         });
       }
     }
     
-    // If unchecking admin/manager, reset locked permissions
-    if ((permissionKey === 'isAdmin' || permissionKey === 'isManager') && !checked) {
+    // If unchecking admin/manager/cashier, reset locked permissions
+    if ((permissionKey === 'isAdmin' || permissionKey === 'isManager' || permissionKey === 'isCashier') && !checked) {
       if (permissionKey === 'isAdmin') {
         // Reset all permissions when unchecking admin
         availablePermissions.forEach(permission => {
@@ -178,12 +209,15 @@ const AddAccountDialog = ({
             setValue(permission.key, false);
           }
         });
-      } else if (permissionKey === 'isManager') {
-        // Reset locked permissions when unchecking manager
-        Object.keys(managerLockedPermissions).forEach(key => {
-          setValue(key, false);
+      } else if (permissionKey === 'isCashier') {
+        // Reset all permissions when unchecking cashier
+        availablePermissions.forEach(permission => {
+          if (permission.key !== 'isCashier') {
+            setValue(permission.key, false);
+          }
         });
       }
+      // No special handling needed for manager since there are no locked permissions
     }
   };
 
@@ -194,14 +228,15 @@ const AddAccountDialog = ({
       // Prepare the access object with only true values
       const access = {};
       Object.keys(data).forEach(key => {
-        if (key !== 'username' && key !== 'password' && data[key] === true) {
+        if (key !== 'username' && key !== 'password' && key !== 'branchCode' && data[key] === true) {
           access[key] = true;
         }
       });
 
       const payload = {
         username: data.username,
-        access
+        access,
+        branchCode: data.branchCode || null
       };
 
       // Only include password in create mode or if it's provided in edit mode
@@ -210,11 +245,13 @@ const AddAccountDialog = ({
       }
 
       if (mode === 'edit') {
-        await updateAccount(defaultValues.accountId,payload)
+        await updateAccount(defaultValues.accountId, payload);
+        console.log(payload)
         toast.success("Account updated successfully");
       } else {
         // Use the existing addAccount function for create mode
-        await addAccount(defaultValues.employeeId || employeeId, payload);
+        await addAccount(payload);
+        console.log(payload)
         toast.success('Account created successfully');
       }
 
@@ -318,6 +355,46 @@ const AddAccountDialog = ({
                   )}
                 </div>
               </div>
+              
+              {/* Branch Selection - Only show for admin */}
+              {userRole === 'admin' && (
+                <div className="space-y-2">
+                  <Label htmlFor="branchCode" className="flex items-center gap-2">
+                    <Building className="h-4 w-4" />
+                    Branch Assignment
+                  </Label>
+                  <Select
+                    value={watch('branchCode') || 'none'}
+                    onValueChange={handleBranchChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue>
+                        {watch('branchCode') ? (
+                          (() => {
+                            const branch = branches.find(b => b.branchCode === watch('branchCode'));
+                            return branch ? `${branch.name} (${branch.branchCode})` : watch('branchCode');
+                          })()
+                        ) : (
+                          <span className="text-muted-foreground italic">Not specified</span>
+                        )}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">
+                        <span className="text-muted-foreground italic">Not specified</span>
+                      </SelectItem>
+                      {branches.map((branch, idx) => (
+                        <SelectItem key={idx} value={branch.branchCode}>
+                          {branch.name} ({branch.branchCode})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Current: <span className="font-medium">{getCurrentBranchName()}</span>
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -331,14 +408,16 @@ const AddAccountDialog = ({
               <p className="text-sm text-muted-foreground">
                 {watchIsAdmin 
                   ? "Admin role automatically includes all permissions below" 
-                  : watchIsManager
-                  ? "Manager role has some locked permissions, others can be customized"
+                  : watchIsCashier
+                  ? "Cashier role has limited access - all other permissions are disabled"
+                  : userRole === 'manager'
+                  ? "As a manager, you can only assign cashier access to employees"
                   : "Select specific permissions for this account"
                 }
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Priority Permissions (Admin/Manager) */}
+              {/* Priority Permissions (Admin/Manager/Cashier) */}
               {priorityPermissions.length > 0 && (
                 <>
                   <div className="space-y-3">
@@ -366,46 +445,48 @@ const AddAccountDialog = ({
                       </div>
                     ))}
                   </div>
-                  <Separator />
+                  {regularPermissions.length > 0 && <Separator />}
                 </>
               )}
 
-              {/* Regular Permissions */}
-              <div className="space-y-3">
-                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
-                  Specific Permissions
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {regularPermissions.map((permission) => (
-                    <div key={permission.key} className="flex items-start space-x-3 p-3 border rounded-lg">
-                      <Checkbox
-                        id={permission.key}
-                        checked={getLockedPermissionValue(permission.key)}
-                        onCheckedChange={(checked) => handlePermissionChange(permission.key, checked)}
-                        disabled={isPermissionLocked(permission.key)}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <Label 
-                          htmlFor={permission.key}
-                          className={`text-sm font-medium cursor-pointer ${
-                            isPermissionLocked(permission.key) ? 'text-muted-foreground' : ''
-                          }`}
-                        >
-                          {permission.label}
-                          {isPermissionLocked(permission.key) && (
-                            <span className="ml-1 text-xs text-blue-500 font-normal">
-                              (locked by {watchIsAdmin ? 'admin' : 'manager'} role)
-                            </span>
-                          )}
-                        </Label>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {permission.description}
-                        </p>
+              {/* Regular Permissions - Only show if not manager role or if there are regular permissions available */}
+              {regularPermissions.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                    Specific Permissions
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {regularPermissions.map((permission) => (
+                      <div key={permission.key} className="flex items-start space-x-3 p-3 border rounded-lg">
+                        <Checkbox
+                          id={permission.key}
+                          checked={getLockedPermissionValue(permission.key)}
+                          onCheckedChange={(checked) => handlePermissionChange(permission.key, checked)}
+                          disabled={isPermissionLocked(permission.key)}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <Label 
+                            htmlFor={permission.key}
+                            className={`text-sm font-medium cursor-pointer ${
+                              isPermissionLocked(permission.key) ? 'text-muted-foreground' : ''
+                            }`}
+                          >
+                            {permission.label}
+                            {isPermissionLocked(permission.key) && (
+                              <span className="ml-1 text-xs text-blue-500 font-normal">
+                                (locked by {watchIsAdmin ? 'admin' : 'cashier'} role)
+                              </span>
+                            )}
+                          </Label>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {permission.description}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 

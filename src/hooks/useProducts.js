@@ -31,12 +31,14 @@ const useProducts = () => {
 
     const addCategory = async (categoryData) => {
     try {
-      const { data } = await axiosPrivate.post('/products/add-category', categoryData, { withCredentials: true });
+      console.log(categoryData)
+      const { data } = await axiosPrivate.post('/products/add-category', {name:categoryData.name,imageUrl:categoryData.imageUrl});
       setCategories(prev => [...prev, data.category]);
       return data.category;
     } catch (err) {
       setError(err.response?.data?.message || err.message);
-      throw err;
+      console.log(err)
+      throw new err;
     }
   };
 

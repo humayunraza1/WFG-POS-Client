@@ -31,15 +31,6 @@ const useSidebarMenu = (products) => {
       label: 'Orders'
     });
 
-
-  if (access.canManageExpenses) {
-    menuItems.push({
-      key: 'expenses',
-      icon: Receipt,
-      label: 'Expenses'
-    });
-  }
-
     if(access.isAdmin){
     menuItems.push({
       key:"branch",
@@ -49,6 +40,12 @@ const useSidebarMenu = (products) => {
   }
 
   if (access.isManager || access.isAdmin) {
+        menuItems.push({
+      key: 'expenses',
+      icon: Receipt,
+      label: 'Expenses'
+    });
+
     menuItems.push({
       key: 'registers',
       icon: DollarSign,
@@ -70,16 +67,15 @@ const useSidebarMenu = (products) => {
       icon: User,
       label: 'Employees'
     });
-  }
-
-  if(access.canAssignAccount){
-    menuItems.push({
+        menuItems.push({
       key:'accounts',
       icon: User2,
       label: 'Manage Accounts'
     })
+
   }
-  if (access.canViewReport || access.canGenReport || access.isManager) {
+  
+  if (access.canGenReport || access.isManager) {
     menuItems.push({
       key: 'reports',
       icon: BarChart3,

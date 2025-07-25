@@ -10,7 +10,7 @@ import SingleProductPopup from './SingleProductPopup';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const BulkProductUploader = ({ onBack }) => {
-  const { categories, fetchCategories, bulkAddProducts } = useProducts();
+  const { categories, fetchCategories, bulkAddProducts,addCategory  } = useProducts();
   const [newCategory, setNewCategory] = useState({ name: '', imageUrl: '' });
   const [selectedCategory, setSelectedCategory] = useState('');
   const [productsToAdd, setProductsToAdd] = useState([]);
@@ -28,15 +28,16 @@ const [showDialog, setShowDialog] = useState(false);
     const handleCreateCategory = async () => {
     try {
       const { name, imageUrl } = newCategory;
+      console.log(newCategory)
       if (!name || !imageUrl) return toast.error('Both fields required');
 
-      const res = await addCategory({ name, imageUrl });
+      await addCategory({ name, imageUrl });
       await fetchCategories();
-      setForm(prev => ({ ...prev, categoryId: res._id }));
       setShowDialog(false);
       setNewCategory({ name: '', imageUrl: '' });
       toast.success('Category added');
     } catch (err) {
+      console.log(err)
       toast.error('Error creating category');
     }
   };

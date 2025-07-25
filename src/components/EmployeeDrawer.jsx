@@ -303,7 +303,7 @@ const [editData, setEditData] = useState(null);
 
         <div className="space-y-6 py-6 px-2">
           {/* Account details */}
-<Card className="shadow-md rounded-2xl border">
+{/* <Card className="shadow-md rounded-2xl border">
   <CardHeader className="pb-2">
     <CardTitle className="text-lg">Account Information</CardTitle>
   </CardHeader>
@@ -333,7 +333,7 @@ const [editData, setEditData] = useState(null);
       </Button>
     </div>
   </CardContent>
-</Card>
+</Card> */}
           {/* Employee Information */}
           <Card>
             <CardHeader>

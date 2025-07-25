@@ -12,7 +12,29 @@ export default function useBranch() {
         }
     }
 
+
+    async function addBranch(branchData){
+        try{
+            const res  = await axiosPrivate.post('/branch/add-branch',{name:branchData.name,address:branchData.address,phone:branchData.phone,code:branchData.code})
+            return res.data
+        }catch(err){
+            console.log(err)
+        }
+    }
+    async function updateBranch(id,branchData){
+        try{
+            const res  = await axiosPrivate.put('/branch/edit',{id,name:branchData.name,address:branchData.address,phone:branchData.phone,isActive:branchData.isActive})
+            return res.data
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+
     return {
+
+        addBranch,
+        updateBranch,
         getBranch
   }
 }

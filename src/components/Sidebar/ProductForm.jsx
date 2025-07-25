@@ -39,6 +39,7 @@ const ProductForm = ({ mode, product = null, onBack, onSuccess }) => {
       setNewCategory({ name: '', imageUrl: '' });
       toast.success('Category added');
     } catch (err) {
+      console.log(err)
       toast.error('Error creating category');
     }
   };
