@@ -37,6 +37,11 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SidebarMenuItem from '../SidebarMenuItem';
 import useSidebarMenu from '../../hooks/userSidebarMenu';
+import { 
+  getManagerBadgeStyle, 
+  getManagerInitials, 
+  getAvatarBackgroundColor 
+} from '@/utils/managerColors';
 
 // Mobile Sidebar Component
 const MobileSidebar = ({ activeView, onViewChange,user, categories, onCloseRegister, onOpenRegister, registerData, isRegisterOpen,onLogout,isOpen,onClose }) => {
@@ -45,30 +50,30 @@ const MobileSidebar = ({ activeView, onViewChange,user, categories, onCloseRegis
   });
   
   // Function to get manager badge style (same as in desktop Sidebar)
-  const getManagerBadgeStyle = (manager) => {
-    const styles = {
-      'Hamza': { backgroundColor: '#ef4444', color: 'white', borderColor: '#ef4444' }, // Red
-      'Wajeeh': { backgroundColor: '#22c55e', color: 'white', borderColor: '#22c55e' }, // Green
-      'Talal': { backgroundColor: '#3b82f6', color: 'white', borderColor: '#3b82f6' } // Blue
-    };
-    return styles[manager] || {};
-  };
+  // const getManagerBadgeStyle = (manager) => {
+  //   const styles = {
+  //     'Hamza': { backgroundColor: '#ef4444', color: 'white', borderColor: '#ef4444' }, // Red
+  //     'Wajeeh': { backgroundColor: '#22c55e', color: 'white', borderColor: '#22c55e' }, // Green
+  //     'Talal': { backgroundColor: '#3b82f6', color: 'white', borderColor: '#3b82f6' } // Blue
+  //   };
+  //   return styles[manager] || {};
+  // };
 
   // Function to get manager initials for avatar
-  const getManagerInitials = (manager) => {
-    if (!manager) return 'M';
-    return manager.charAt(0).toUpperCase();
-  };
+  // const getManagerInitials = (manager) => {
+  //   if (!manager) return 'M';
+  //   return manager.charAt(0).toUpperCase();
+  // };
 
-  // Function to get lighter avatar background color
-  const getAvatarBackgroundColor = (manager) => {
-    const baseColors = {
-      'Hamza': '#f87171', // Lighter red
-      'Wajeeh': '#4ade80', // Lighter green
-      'Talal': '#60a5fa' // Lighter blue
-    };
-    return baseColors[manager] || '#94a3b8'; // Default lighter gray
-  };
+  // // Function to get lighter avatar background color
+  // const getAvatarBackgroundColor = (manager) => {
+  //   const baseColors = {
+  //     'Hamza': '#f87171', // Lighter red
+  //     'Wajeeh': '#4ade80', // Lighter green
+  //     'Talal': '#60a5fa' // Lighter blue
+  //   };
+  //   return baseColors[manager] || '#94a3b8'; // Default lighter gray
+  // };
   
   const toggleExpanded = (key) => {
     // Don't allow collapsing the products menu

@@ -214,6 +214,7 @@ const POSDashboard = () => {
     };
 
     const handleStartCashSubmit = async (registerData) => {
+      console.log(registerData)
       try {
         setIsOpeningRegister(true);
         await openRegister(registerData);
@@ -531,17 +532,6 @@ const POSDashboard = () => {
                     <History className="mx-auto h-12 w-12 text-primary mb-4" />
                     <h3 className="font-semibold">View History</h3>
                     <p className="text-sm text-muted-foreground">Check Register History</p>
-                  </CardContent>
-                </Card>
-                <Card 
-                  className={`cursor-pointer hover:shadow-md transition-shadow ${!isRegisterOpen ? 'opacity-50 cursor-not-allowed' : ''}`} 
-                  onClick={() => handleViewChange('expenses')}
-                >
-                  <CardContent className="p-6 text-center">
-                    <Receipt className="mx-auto h-12 w-12 text-primary mb-4" />
-                    <h3 className="font-semibold">Manage Expenses</h3>
-                    <p className="text-sm text-muted-foreground">Track business expenses</p>
-                    {!isRegisterOpen && <p className="text-xs text-red-500 mt-1">Session required</p>}
                   </CardContent>
                 </Card>
               </div>

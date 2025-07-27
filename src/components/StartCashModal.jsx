@@ -44,6 +44,7 @@ const StartCashModal = ({ isOpen, onClose, onSubmit, isLoading, managers = [] })
     console.log('Submitting start cash:', { startCash, manager: selectedManagerId });
     onSubmit({
       startCash: cashAmount,
+      manager:selectedManager,
       managerId: selectedManagerId
     });
   };

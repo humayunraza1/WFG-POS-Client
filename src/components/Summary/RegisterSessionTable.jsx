@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Eye, Calendar, Clock, User, DollarSign } from 'lucide-react';
 import { format, isSameDay } from 'date-fns';
+import { getManagerBadgeStyle } from '@/utils/managerColors'; // Import the utility
 
 const RegisterSessionsTable = ({ sessions, onViewSession }) => {
   const formatDateRange = (openedAt, closedAt) => {
@@ -24,12 +25,10 @@ const RegisterSessionsTable = ({ sessions, onViewSession }) => {
       return format(openDate, 'dd MMM yyyy');
     }
     
-    // If same day, show only one date
     if (isSameDay(openDate, closeDate)) {
       return format(openDate, 'dd MMM yyyy');
     }
     
-    // If different days, show range
     return `${format(openDate, 'dd MMM')} - ${format(closeDate, 'dd MMM yyyy')}`;
   };
 
@@ -44,16 +43,6 @@ const RegisterSessionsTable = ({ sessions, onViewSession }) => {
 
   const formatCurrency = (amount) => {
     return `PKR ${(amount || 0).toLocaleString()}`;
-  };
-
-  // Function to get manager badge style
-  const getManagerBadgeStyle = (manager) => {
-    const styles = {
-      'Hamza': { backgroundColor: '#ef4444', color: 'white', borderColor: '#ef4444' }, // Red
-      'Wajeeh': { backgroundColor: '#22c55e', color: 'white', borderColor: '#22c55e' }, // Green
-      'Talal': { backgroundColor: '#3b82f6', color: 'white', borderColor: '#3b82f6' } // Blue
-    };
-    return styles[manager] || {};
   };
 
   if (!sessions || sessions.length === 0) {
