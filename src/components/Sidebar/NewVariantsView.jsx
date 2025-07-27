@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ArrowLeft, Plus, Search, ShoppingCart } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
-const VariantsView = ({ selectedCategory, products, onAddToCart, onViewChange }) => {
+const NewVariantsView = ({ selectedCategory, products, onAddToCart, onViewChange }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -61,61 +61,60 @@ const VariantsView = ({ selectedCategory, products, onAddToCart, onViewChange })
     }
   };
 
-  const ProductCard = ({ product }) => (
-    <Card 
-      className="cursor-pointer hover:shadow-lg transition-all duration-200 overflow-hidden group hover:scale-105 w-[150px] flex-shrink-0 flex flex-col"
+  const ProductBox = ({ product }) => (
+    <div 
+      className="border border-gray-200 rounded-lg p-3 cursor-pointer hover:border-gray-300 hover:shadow-sm transition-all duration-200 bg-white hover:bg-gray-50 active:scale-95 flex flex-col h-full"
       onClick={() => handleProductClick(product)}
     >
-      <div className="w-full h-[100px] overflow-hidden flex-shrink-0">
+      <div className="w-full aspect-square mb-3 overflow-hidden rounded-md bg-gray-100 flex-shrink-0">
         <img
           src={product.imageUrl}
           alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
         />
       </div>
-      <CardContent className="p-2 flex flex-col justify-between flex-grow">
-        <div>
-          <h3 className="font-semibold text-[13px] leading-tight mb-1 break-words">
-            {product.name}
-          </h3>
-          
+      
+      <div className="flex flex-col flex-grow">
+        <h3 className="font-medium text-sm leading-tight mb-2 text-gray-900 line-clamp-2">
+          {product.name}
+        </h3>
+        
+        <div className="mt-auto">
           {/* Show option info based on number of options */}
           {product.options && product.options.length > 0 ? (
             product.options.length === 1 ? (
               <div className="space-y-1">
-                <p className="text-[10px] text-muted-foreground">{product.options[0].name}</p>
-                <Badge variant="outline" className="text-[10px] px-1 py-0.5">
-                  PKR {product.options[0].price.toLocaleString()}
-                </Badge>
+                <p className="text-xs text-gray-500 truncate">{product.options[0].name}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-900">
+                    PKR {product.options[0].price.toLocaleString()}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 w-7 p-0 hover:bg-primary hover:text-primary-foreground rounded-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCart(product, product.options[0]);
+                    }}
+                  >
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
             ) : (
-              <Badge variant="secondary" className="text-[10px] px-1 py-0.5">
-                {product.options.length} options
-              </Badge>
+              <div className="text-center">
+                <Badge variant="secondary" className="text-xs px-2 py-1">
+                  {product.options.length} options
+                </Badge>
+              </div>
             )
           ) : (
-            <p className="text-[10px] text-muted-foreground">No options available</p>
+            <p className="text-xs text-gray-400 text-center">No options available</p>
           )}
         </div>
-        
-        {/* Add to cart button for single option products */}
-        {product.options && product.options.length === 1 && (
-          <div className="mt-auto pt-2 flex justify-end">
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-6 w-6 p-0 hover:bg-primary hover:text-primary-foreground"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAddToCart(product, product.options[0]);
-              }}
-            >
-              <Plus className="h-3 w-3" />
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 
   return (
@@ -158,18 +157,18 @@ const VariantsView = ({ selectedCategory, products, onAddToCart, onViewChange })
         </CardHeader>
 
         <CardContent className="flex-1 px-4 overflow-y-auto">
-          <div className="flex flex-wrap gap-3 pr-4">
-            {filteredProducts.length > 0 ? (
-              filteredProducts.map((product) => (
-                <ProductCard key={product._id} product={product} />
-              ))
-            ) : (
-              <div className="w-full text-center text-muted-foreground py-8">
-                <ShoppingCart className="mx-auto h-12 w-12 mb-4 opacity-50" />
-                <p>No products found</p>
-              </div>
-            )}
-          </div>
+          {filteredProducts.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 pb-4">
+              {filteredProducts.map((product) => (
+                <ProductBox key={product._id} product={product} />
+              ))}
+            </div>
+          ) : (
+            <div className="w-full text-center text-muted-foreground py-8">
+              <ShoppingCart className="mx-auto h-12 w-12 mb-4 opacity-50" />
+              <p>No products found</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -214,4 +213,4 @@ const VariantsView = ({ selectedCategory, products, onAddToCart, onViewChange })
   );
 };
 
-export default VariantsView;
+export default NewVariantsView;

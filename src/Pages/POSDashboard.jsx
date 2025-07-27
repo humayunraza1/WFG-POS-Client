@@ -26,7 +26,6 @@ import {
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import VariantsView from '../components/Sidebar/VariantsView';
 import SummaryView from '../components/Sidebar/SummaryView';
 import ExpensesView from '../components/Sidebar/ExpensesView';
 import AllReports from '../components/Sidebar/AllReport';
@@ -45,6 +44,7 @@ import StartCashModal from '../components/StartCashModal';
 import FinalCashModal from '../components/FinalCashModal';
 import { useAuth } from '../hooks/useAuth';
 import OrdersHistory from '../components/Sidebar/OrderHistory';
+import NewVariantsView from '../components/Sidebar/NewVariantsView';
 
 // Main Dashboard Component
 const POSDashboard = () => {
@@ -425,7 +425,7 @@ const POSDashboard = () => {
       switch(activeView) {
         case 'variants':
           return activeSubView ? 
-        <VariantsView 
+        <NewVariantsView 
           selectedCategory={activeSubView}
           products={products} // This should be the products array from fetchProductsByCategory
           onAddToCart={handleAddToCart}
