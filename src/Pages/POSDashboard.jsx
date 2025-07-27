@@ -45,6 +45,8 @@ import FinalCashModal from '../components/FinalCashModal';
 import { useAuth } from '../hooks/useAuth';
 import OrdersHistory from '../components/Sidebar/OrderHistory';
 import NewVariantsView from '../components/Sidebar/NewVariantsView';
+import MobileCategoryDrawer from '../components/Mobile/MobileCategoryDrawer';
+import CategoryHintPopover from '../components/Mobile/CategoryHintPopover';
 
 // Main Dashboard Component
 const POSDashboard = () => {
@@ -689,7 +691,18 @@ const POSDashboard = () => {
             isProcessingOrder={isProcessingOrder}
           />
           
-          {/* Mobile Sidebar */}
+          {/* Mobile Category Drawer */}
+          <MobileCategoryDrawer
+            categories={categories}
+            onViewChange={handleViewChange}
+          />
+          {/* Category Hint Popover - show when on variants view */}
+          <CategoryHintPopover
+            isVisible={true}
+            showOnce={true}
+          />
+
+            {/* Mobile Sidebar */}
           <MobileSidebar
             isOpen={isMobileSidebarOpen}
             onClose={() => setIsMobileSidebarOpen(false)}
