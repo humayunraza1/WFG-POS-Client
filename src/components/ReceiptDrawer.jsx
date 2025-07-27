@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { format } from 'date-fns';
 import receiptPrinter from '@/services/receiptPrinter';
 import { DollarSign, AlertCircle } from 'lucide-react';
+import { getManagerBadgeStyle } from '../utils/managerColors';
 
 const ReceiptDrawer = ({ order, onClose, onUpdatePayment }) => {
   const [paymentAmount, setPaymentAmount] = useState('');
@@ -26,15 +27,7 @@ const ReceiptDrawer = ({ order, onClose, onUpdatePayment }) => {
   const discountRate = order.discount || 0;
   const discountedTotal = order.finalPrice;
   const totalAmount = order.actualPrice || 0;
-  // Function to get manager badge style
-  const getManagerBadgeStyle = (manager) => {
-    const styles = {
-      'Hamza': { backgroundColor: '#ef4444', color: 'white', borderColor: '#ef4444' }, // Red
-      'Wajeeh': { backgroundColor: '#22c55e', color: 'white', borderColor: '#22c55e' }, // Green
-      'Talal': { backgroundColor: '#3b82f6', color: 'white', borderColor: '#3b82f6' } // Blue
-    };
-    return styles[manager] || { backgroundColor: '#6b7280', color: 'white', borderColor: '#6b7280' }; // Default gray
-  };
+
   
   const handlePaymentUpdate = async () => {
     if (!paymentAmount || parseFloat(paymentAmount) <= 0) {
