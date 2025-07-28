@@ -6,10 +6,12 @@ import LoginPage from './Pages/Login';
 import Report from './Pages/Report';
 import DashboardRouter from './Pages/DashboardRouter';
 import AxiosInterceptorProvider from './contexts/AxiosInterceptorProvider';
+import { PreferencesProvider } from './hooks/usePreferences.jsx';
 
 function App() {
   return (
     <AuthProvider>
+      <PreferencesProvider>
       <AxiosInterceptorProvider />
       <Toaster richColors position="top-right" />
       <Routes>
@@ -27,7 +29,7 @@ function App() {
               <Report />
             </ProtectedRoute>
           } 
-        />
+          />
         
         {/* Protected dashboard route */}
         <Route 
@@ -37,11 +39,12 @@ function App() {
               <DashboardRouter/>
             </ProtectedRoute>
           } 
-        />
+          />
         
         {/* Catch all route - redirect to login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+    </PreferencesProvider>
     </AuthProvider>
   );
 }

@@ -55,6 +55,8 @@ const AddAccountDialog = ({
       isCashier: false,
       canViewOrders: false,
       canGenReport: false,
+      canDeleteOrder: false,
+      canAddExpense: false,
     }
   });
 
@@ -111,14 +113,29 @@ const AddAccountDialog = ({
   // Check if a permission is locked for current role
   const isPermissionLocked = (permissionKey) => {
     if (watchIsAdmin) return true; // Admin locks all permissions
-    if (watchIsCashier) return true; // Cashier locks all other permissions
+    
+    // For cashier role, only lock non-cashier-specific permissions
+    if (watchIsCashier) {
+      const cashierOptionalPermissions = ['canDeleteOrder', 'canAddExpense'];
+      return !cashierOptionalPermissions.includes(permissionKey);
+    }
+    
     return false;
   };
 
   // Get the locked value for a permission
   const getLockedPermissionValue = (permissionKey) => {
     if (watchIsAdmin) return true; // Admin gets all permissions
-    if (watchIsCashier) return false; // Cashier gets no other permissions
+    
+    // For cashier role, allow optional permissions to be toggled
+    if (watchIsCashier) {
+      const cashierOptionalPermissions = ['canDeleteOrder', 'canAddExpense'];
+      if (cashierOptionalPermissions.includes(permissionKey)) {
+        return watch(permissionKey); // Allow manual control
+      }
+      return false; // Other permissions are disabled for cashiers
+    }
+    
     return watch(permissionKey);
   };
 
@@ -141,6 +158,11 @@ const AddAccountDialog = ({
     const basePermissions = [
       { key: 'canGenReport', label: 'Generate Reports', description: 'Can create business reports' },
     ];
+
+    const cashierOptionalPermissions = [
+      { key: 'canDeleteOrder', label: 'Delete Orders', description: 'Allow cashier to delete orders' },
+      { key: 'canAddExpense', label: 'Add Expenses', description: 'Allow cashier to add expenses (edit/delete by manager only)' },
+    ];
     
     if (userRole === 'admin') {
         return [
@@ -148,19 +170,22 @@ const AddAccountDialog = ({
             { key: 'isCashier', label: 'Cashier Access', description: 'Can process sales and transactions only', priority: true },
             { key: 'canViewOrders', label: 'View Orders', description: 'Can view order history and details' },
             { key: 'canViewAllRegisters', label: 'View All Registers', description: 'Can view registers of every manager.' },
-        ...basePermissions
+            ...cashierOptionalPermissions,
+            ...basePermissions
       ];
     }
 
-    // For manager role, only show cashier access
+    // For manager role, show cashier access and cashier-specific permissions
     if (userRole === 'manager') {
       return [
-        { key: 'isCashier', label: 'Cashier Access', description: 'Can process sales and transactions only', priority: true }
+        { key: 'isCashier', label: 'Cashier Access', description: 'Can process sales and transactions only', priority: true },
+        ...cashierOptionalPermissions
       ];
     }
 
-    return [
+ return [
       { key: 'isCashier', label: 'Cashier Access', description: 'Can process sales and transactions only', priority: true },
+      ...cashierOptionalPermissions,
       ...basePermissions
     ];
   };
@@ -191,11 +216,13 @@ const AddAccountDialog = ({
       } else if (permissionKey === 'isCashier') {
         setValue('isAdmin', false);
         setValue('isManager', false);
-        // Disable all other permissions for cashier
+        // For cashier, disable non-optional permissions but keep optional ones as they are
+        const cashierOptionalPermissions = ['canDeleteOrder', 'canAddExpense'];
         availablePermissions.forEach(permission => {
-          if (permission.key !== 'isCashier') {
+          if (permission.key !== 'isCashier' && !cashierOptionalPermissions.includes(permission.key)) {
             setValue(permission.key, false);
           }
+          // Keep canDeleteOrder and canAddExpense at their current values (defaulting to false)
         });
       }
     }
@@ -210,7 +237,7 @@ const AddAccountDialog = ({
           }
         });
       } else if (permissionKey === 'isCashier') {
-        // Reset all permissions when unchecking cashier
+        // Reset all permissions when unchecking cashier, including optional ones
         availablePermissions.forEach(permission => {
           if (permission.key !== 'isCashier') {
             setValue(permission.key, false);
@@ -409,9 +436,9 @@ const AddAccountDialog = ({
                 {watchIsAdmin 
                   ? "Admin role automatically includes all permissions below" 
                   : watchIsCashier
-                  ? "Cashier role has limited access - all other permissions are disabled"
+                  ? "Cashier role has limited access - additional permissions can be granted optionally"
                   : userRole === 'manager'
-                  ? "As a manager, you can only assign cashier access to employees"
+                  ? "As a manager, you can assign cashier access and optional cashier permissions"
                   : "Select specific permissions for this account"
                 }
               </p>
@@ -453,37 +480,47 @@ const AddAccountDialog = ({
               {regularPermissions.length > 0 && (
                 <div className="space-y-3">
                   <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
-                    Specific Permissions
+                    {watchIsCashier ? 'Optional Cashier Permissions' : 'Specific Permissions'}
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {regularPermissions.map((permission) => (
-                      <div key={permission.key} className="flex items-start space-x-3 p-3 border rounded-lg">
-                        <Checkbox
-                          id={permission.key}
-                          checked={getLockedPermissionValue(permission.key)}
-                          onCheckedChange={(checked) => handlePermissionChange(permission.key, checked)}
-                          disabled={isPermissionLocked(permission.key)}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <Label 
-                            htmlFor={permission.key}
-                            className={`text-sm font-medium cursor-pointer ${
-                              isPermissionLocked(permission.key) ? 'text-muted-foreground' : ''
-                            }`}
-                          >
-                            {permission.label}
-                            {isPermissionLocked(permission.key) && (
-                              <span className="ml-1 text-xs text-blue-500 font-normal">
-                                (locked by {watchIsAdmin ? 'admin' : 'cashier'} role)
-                              </span>
-                            )}
-                          </Label>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {permission.description}
-                          </p>
+                    {regularPermissions.map((permission) => {
+                      const isLocked = isPermissionLocked(permission.key);
+                      const isCashierOptional = watchIsCashier && ['canDeleteOrder', 'canAddExpense'].includes(permission.key);
+                      
+                      return (
+                        <div key={permission.key} className="flex items-start space-x-3 p-3 border rounded-lg">
+                          <Checkbox
+                            id={permission.key}
+                            checked={getLockedPermissionValue(permission.key)}
+                            onCheckedChange={(checked) => handlePermissionChange(permission.key, checked)}
+                            disabled={isLocked}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <Label 
+                              htmlFor={permission.key}
+                              className={`text-sm font-medium cursor-pointer ${
+                                isLocked ? 'text-muted-foreground' : ''
+                              }`}
+                            >
+                              {permission.label}
+                              {isLocked && (
+                                <span className="ml-1 text-xs text-blue-500 font-normal">
+                                  (locked by {watchIsAdmin ? 'admin' : 'cashier'} role)
+                                </span>
+                              )}
+                              {isCashierOptional && (
+                                <span className="ml-1 text-xs text-green-600 font-normal">
+                                  (optional for cashier)
+                                </span>
+                              )}
+                            </Label>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {permission.description}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}

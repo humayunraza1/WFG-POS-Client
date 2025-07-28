@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axiosPublic,{axiosPrivate} from '@/api/axios';
 import useReceiptPrinter from './useReceiptPrinter';
 import { toast } from 'sonner';
+import { usePreferences } from './usePreferences';
 
 const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
   const [orders, setOrders] = useState([]);
@@ -19,8 +20,8 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
     totalPendingPayment: 0, 
     orderCount: 0 
   });
+  const {accountPrefs} = usePreferences();
   const [statsLoading, setStatsLoading] = useState(false);
-  const [autoPrintEnabled, setAutoPrintEnabled] = useState(true);
   
   const { printReceipt, isPrinting } = useReceiptPrinter();
 
@@ -175,7 +176,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
       fetchDailyStats();
 
       // Auto-print receipt if enabled and not explicitly disabled
-      if (autoPrintEnabled && options.print !== false) {
+      if (accountPrefs.printReceipt) {
         try {
           await printReceipt(data);
           console.log('Receipt printed successfully');
@@ -269,8 +270,6 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
     dailyStats,
     statsLoading,
     isPrinting,
-    autoPrintEnabled,
-    setAutoPrintEnabled,
     fetchOrders,
     fetchAllOrders,
     fetchDailyStats,

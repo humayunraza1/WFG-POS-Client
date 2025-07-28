@@ -76,7 +76,7 @@ const EmployeesTable = ({ user, onEmployeeUpdate }) => {
 
   // Define available roles based on user access level
   const getAvailableRoles = () => {
-    const baseRoles = ['cashier', 'chef', 'employee', 'cleaner', 'waiter'];
+    const baseRoles = ['cashier', 'chef', 'server', 'cleaner'];
     if (user.access.isAdmin) {
       return [...baseRoles, 'manager'];
     }

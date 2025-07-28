@@ -4,7 +4,8 @@ import {
   User,
   DollarSign,
   User2,
-  StoreIcon
+  StoreIcon,
+  Settings
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -39,12 +40,15 @@ const useSidebarMenu = (products) => {
     })
   }
 
-  if (access.isManager || access.isAdmin) {
-        menuItems.push({
+  if(access.canAddExpense){
+            menuItems.push({
       key: 'expenses',
       icon: Receipt,
       label: 'Expenses'
     });
+  }
+
+  if (access.isManager || access.isAdmin) {
 
     menuItems.push({
       key: 'registers',
@@ -83,6 +87,13 @@ const useSidebarMenu = (products) => {
     });
 
   }
+
+  // Settings - Available to all users
+  menuItems.push({
+    key: 'settings',
+    icon: Settings,
+    label: 'Settings'
+  });
 
   return menuItems;
 };
