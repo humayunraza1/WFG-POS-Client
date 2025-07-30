@@ -165,6 +165,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
         actualPrice: orderData.actualPrice,     // Price before discount
         finalPrice: orderData.finalPrice,       // Price after discount
         amountPaid: orderData.amountPaid || 0,
+        serverRef: orderData.serverId,
         outstandingPayment: orderData.outstandingPayment,
         paymentStatus: orderData.outstandingPayment > 0 ? 'pending':'paid'
       };

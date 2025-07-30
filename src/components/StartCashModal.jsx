@@ -18,12 +18,23 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { DollarSign, Loader2, User } from 'lucide-react';
+import useManager from '../hooks/userManager';
 
-const StartCashModal = ({ isOpen, onClose, onSubmit, isLoading, managers = [] }) => {
+const StartCashModal = ({ isOpen, onClose, onSubmit, isLoading }) => {
   const [startCash, setStartCash] = useState('');
   const [selectedManager, setSelectedManager] = useState('');
   const [selectedManagerId, setSelectedManagerId] = useState('');
   const [error, setError] = useState('');
+  const {fetchEmployeesByRole} = useManager();
+  const [managers,setManagers] = useState([])
+  
+  useEffect(()=>{
+    const fetchManagers = async() =>{
+      const data = await fetchEmployeesByRole('manager');
+      setManagers(data)
+    }
+    fetchManagers()
+  },[])
 
   const handleSubmit = (e) => {
     e.preventDefault();

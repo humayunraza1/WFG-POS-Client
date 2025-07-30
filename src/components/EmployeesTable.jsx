@@ -32,6 +32,8 @@ import { toast } from 'sonner';
 import useManager from '../hooks/userManager';
 import EmployeeDrawer from './EmployeeDrawer';
 import useBranch from '../hooks/useBranch';
+import getRoles from '../utils/getRoles';
+import RolesManagementDialog from './RolesManagementDialog';
 
 const EmployeesTable = ({ user, onEmployeeUpdate }) => {
   const { fetchEmployees, addEmployee, updateEmployee, loading: managerLoading } = useManager();
@@ -40,6 +42,7 @@ const EmployeesTable = ({ user, onEmployeeUpdate }) => {
   const [editMode, setEditMode] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [editingEmployeeId, setEditingEmployeeId] = useState(null);
+  const [availableRoles, setAvailableRoles] = useState([]);
 
   useEffect(() => {
     getEmployees();
@@ -74,17 +77,42 @@ const EmployeesTable = ({ user, onEmployeeUpdate }) => {
   const [branches, setBranches] = useState([]);
   const [branchesLoading, setBranchesLoading] = useState(false);
 
-  // Define available roles based on user access level
-  const getAvailableRoles = () => {
-    const baseRoles = ['cashier', 'chef', 'server', 'cleaner'];
-    if (user.access.isAdmin) {
-      return [...baseRoles, 'manager'];
-    }
-    return baseRoles;
+  useEffect(() => {
+    const fetchRoles = async () => {
+      const baseRoles = await getRoles(); // always includes 'manager'
+      let filtered;
+
+      if (user.access.isAdmin) {
+        filtered = baseRoles;
+      } else {
+        filtered = baseRoles.filter(role => role.name !== 'manager');
+      }
+
+      setAvailableRoles(filtered);
+    };
+
+    fetchRoles();
+  }, [user.access]);
+
+  // Function to refresh roles when they are updated
+  const handleRolesUpdated = async () => {
+    const fetchRoles = async () => {
+      const baseRoles = await getRoles();
+      let filtered;
+
+      if (user.access.isAdmin) {
+        filtered = baseRoles;
+      } else {
+        filtered = baseRoles.filter(role => role.name !== 'manager');
+      }
+
+      setAvailableRoles(filtered);
+    };
+
+    await fetchRoles();
   };
-  
+
   let role = user.access.isAdmin ? 'admin' : 'manager';
-  const availableRoles = getAvailableRoles();
 
   // Fetch branches for admin users
   useEffect(() => {
@@ -129,7 +157,7 @@ const EmployeesTable = ({ user, onEmployeeUpdate }) => {
       chef: 'bg-orange-100 text-orange-800 border-orange-200',
       employee: 'bg-gray-100 text-gray-800 border-gray-200',
       cleaner: 'bg-green-100 text-green-800 border-green-200',
-      waiter: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      server: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     };
 
     return (
@@ -286,196 +314,203 @@ const EmployeesTable = ({ user, onEmployeeUpdate }) => {
               Employees ({employees.length})
             </CardTitle>
             
-            <Dialog open={isModalOpen} onOpenChange={(open) => {
-              setIsModalOpen(open);
-              if (!open) resetForm();
-            }}>
-              <DialogTrigger asChild>
-                <Button className="flex items-center gap-2" onClick={handleAddEmployee}>
-                  <Plus className="h-4 w-4" />
-                  Add Employee
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editMode ? 'Edit Employee' : 'Add New Employee'}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {editMode 
-                      ? 'Update the employee details below.'
-                      : 'Fill in the employee details below. All fields are required.'
-                    }
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Full Name</Label>
-                      <Input
-                        id="name"
-                        placeholder="Enter employee name"
-                        value={formData.name}
-                        onChange={(e) => handleInputChange('name', e.target.value)}
-                        className={formErrors.name ? 'border-red-500' : ''}
-                      />
-                      {formErrors.name && (
-                        <p className="text-sm text-red-500">{formErrors.name}</p>
-                      )}
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="employee@example.com"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        className={formErrors.email ? 'border-red-500' : ''}
-                      />
-                      {formErrors.email && (
-                        <p className="text-sm text-red-500">{formErrors.email}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        placeholder="(555) 123-4567"
-                        value={formData.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                        className={formErrors.phone ? 'border-red-500' : ''}
-                      />
-                      {formErrors.phone && (
-                        <p className="text-sm text-red-500">{formErrors.phone}</p>
-                      )}
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="salary">Salary (USD)</Label>
-                      <Input
-                        id="salary"
-                        type="number"
-                        placeholder="50000"
-                        min="0"
-                        step="0.01"
-                        value={formData.salary}
-                        onChange={(e) => handleInputChange('salary', e.target.value)}
-                        className={formErrors.salary ? 'border-red-500' : ''}
-                      />
-                      {formErrors.salary && (
-                        <p className="text-sm text-red-500">{formErrors.salary}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="salaryDate">Salary Date</Label>
-                      <Select 
-                        value={formData.salaryDate} 
-                        onValueChange={(value) => handleInputChange('salaryDate', value)}
-                      >
-                        <SelectTrigger className={formErrors.salaryDate ? 'border-red-500' : ''}>
-                          <SelectValue placeholder="Select salary date" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
-                            <SelectItem key={day} value={day.toString()}>
-                              {day}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {formErrors.salaryDate && (
-                        <p className="text-sm text-red-500">{formErrors.salaryDate}</p>
-                      )}
+            <div className="flex items-center gap-2">
+              {/* Roles Management Button */}
+              {user.access.isAdmin &&
+              <RolesManagementDialog onRolesUpdated={handleRolesUpdated} />
+              }
+              {/* Add Employee Button */}
+              <Dialog open={isModalOpen} onOpenChange={(open) => {
+                setIsModalOpen(open);
+                if (!open) resetForm();
+              }}>
+                <DialogTrigger asChild>
+                  <Button className="flex items-center gap-2" onClick={handleAddEmployee}>
+                    <Plus className="h-4 w-4" />
+                    Add Employee
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editMode ? 'Edit Employee' : 'Add New Employee'}
+                    </DialogTitle>
+                    <DialogDescription>
+                      {editMode 
+                        ? 'Update the employee details below.'
+                        : 'Fill in the employee details below. All fields are required.'
+                      }
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Full Name</Label>
+                        <Input
+                          id="name"
+                          placeholder="Enter employee name"
+                          value={formData.name}
+                          onChange={(e) => handleInputChange('name', e.target.value)}
+                          className={formErrors.name ? 'border-red-500' : ''}
+                        />
+                        {formErrors.name && (
+                          <p className="text-sm text-red-500">{formErrors.name}</p>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="employee@example.com"
+                          value={formData.email}
+                          onChange={(e) => handleInputChange('email', e.target.value)}
+                          className={formErrors.email ? 'border-red-500' : ''}
+                        />
+                        {formErrors.email && (
+                          <p className="text-sm text-red-500">{formErrors.email}</p>
+                        )}
+                      </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="role">Role</Label>
-                      <Select 
-                        value={formData.role} 
-                        onValueChange={(value) => handleInputChange('role', value)}
-                      >
-                        <SelectTrigger className={formErrors.role ? 'border-red-500' : ''}>
-                          <SelectValue placeholder="Select employee role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {availableRoles.map((role) => (
-                            <SelectItem key={role} value={role}>
-                              {role.charAt(0).toUpperCase() + role.slice(1)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {formErrors.role && (
-                        <p className="text-sm text-red-500">{formErrors.role}</p>
-                      )}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input
+                          id="phone"
+                          placeholder="(555) 123-4567"
+                          value={formData.phone}
+                          onChange={(e) => handleInputChange('phone', e.target.value)}
+                          className={formErrors.phone ? 'border-red-500' : ''}
+                        />
+                        {formErrors.phone && (
+                          <p className="text-sm text-red-500">{formErrors.phone}</p>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="salary">Salary (USD)</Label>
+                        <Input
+                          id="salary"
+                          type="number"
+                          placeholder="50000"
+                          min="0"
+                          step="0.01"
+                          value={formData.salary}
+                          onChange={(e) => handleInputChange('salary', e.target.value)}
+                          className={formErrors.salary ? 'border-red-500' : ''}
+                        />
+                        {formErrors.salary && (
+                          <p className="text-sm text-red-500">{formErrors.salary}</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                 
-                  {/* Branch Code - Only show for admin users */}
-                  {user.access.isAdmin && (
-                    <div className="space-y-2">
-                      <Label htmlFor="branchCode">Branch Code</Label>
-                      <Select 
-                        value={formData.branchCode} 
-                        onValueChange={(value) => handleInputChange('branchCode', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select branch code" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {branchesLoading ? (
-                            <SelectItem value="loading" disabled>
-                              <div className="flex items-center gap-2">
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                                Loading branches...
-                              </div>
-                            </SelectItem>
-                          ) : branches.length === 0 ? (
-                            <SelectItem value="no-branches" disabled>
-                              No branches available
-                            </SelectItem>
-                          ) : (
-                            branches.map((branch) => (
-                              <SelectItem key={branch._id} value={branch.branchCode}>
-                                {branch.branchCode} - {branch.name}
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="salaryDate">Salary Date</Label>
+                        <Select 
+                          value={formData.salaryDate} 
+                          onValueChange={(value) => handleInputChange('salaryDate', value)}
+                        >
+                          <SelectTrigger className={formErrors.salaryDate ? 'border-red-500' : ''}>
+                            <SelectValue placeholder="Select salary date" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
+                              <SelectItem key={day} value={day.toString()}>
+                                {day}
                               </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {formErrors.salaryDate && (
+                          <p className="text-sm text-red-500">{formErrors.salaryDate}</p>
+                        )}
+                      </div>
 
-                  <div className="flex justify-end gap-3 pt-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsModalOpen(false)}
-                      disabled={managerLoading}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      onClick={handleSubmit}
-                      disabled={managerLoading}
-                      className="flex items-center gap-2"
-                    >
-                      {managerLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                      {editMode ? 'Update Employee' : 'Add Employee'}
-                    </Button>
+                      <div className="space-y-2">
+                        <Label htmlFor="role">Role</Label>
+                        <Select 
+                          value={formData.role} 
+                          onValueChange={(value) => handleInputChange('role', value)}
+                        >
+                          <SelectTrigger className={formErrors.role ? 'border-red-500' : ''}>
+                            <SelectValue placeholder="Select employee role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableRoles?.map((role) => (
+                              <SelectItem key={role.name} value={role.name}>
+                                {role.name.charAt(0).toUpperCase() + role.name.slice(1)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {formErrors.role && (
+                          <p className="text-sm text-red-500">{formErrors.role}</p>
+                        )}
+                      </div>
+                    </div>
+                   
+                    {/* Branch Code - Only show for admin users */}
+                    {user.access.isAdmin && (
+                      <div className="space-y-2">
+                        <Label htmlFor="branchCode">Branch Code</Label>
+                        <Select 
+                          value={formData.branchCode} 
+                          onValueChange={(value) => handleInputChange('branchCode', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select branch code" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {branchesLoading ? (
+                              <SelectItem value="loading" disabled>
+                                <div className="flex items-center gap-2">
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                  Loading branches...
+                                </div>
+                              </SelectItem>
+                            ) : branches.length === 0 ? (
+                              <SelectItem value="no-branches" disabled>
+                                No branches available
+                              </SelectItem>
+                            ) : (
+                              branches.map((branch) => (
+                                <SelectItem key={branch._id} value={branch.branchCode}>
+                                  {branch.branchCode} - {branch.name}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
+                    <div className="flex justify-end gap-3 pt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsModalOpen(false)}
+                        disabled={managerLoading}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={handleSubmit}
+                        disabled={managerLoading}
+                        className="flex items-center gap-2"
+                      >
+                        {managerLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                        {editMode ? 'Update Employee' : 'Add Employee'}
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </CardHeader>
         
@@ -489,7 +524,7 @@ const EmployeesTable = ({ user, onEmployeeUpdate }) => {
           ) : (
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader>
+              <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead className="hidden sm:table-cell">Email</TableHead>

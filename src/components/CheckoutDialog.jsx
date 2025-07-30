@@ -6,7 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { AlertCircle, DollarSign, Receipt } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertCircle, DollarSign, Receipt, User } from 'lucide-react';
+import useManager from '../hooks/userManager';
+import { usePreferences } from '../hooks/usePreferences';
+import { toast } from 'sonner';
 
 const CheckoutDialog = ({ 
   isOpen, 
@@ -16,12 +20,33 @@ const CheckoutDialog = ({
   isProcessing = false 
 }) => {
   const [amountReceived, setAmountReceived] = useState('');
+  const [selectedServerId, setSelectedServerId] = useState('');
   const [error, setError] = useState('');
+  const {fetchEmployeesByRole} = useManager();
+  const [server, setServer] = useState([]);
+  const {businessPrefs} = usePreferences();
+
+  useEffect(() => {
+    console.log(businessPrefs)
+    const fetchWaiters = async () => {
+      try {
+        const data = await fetchEmployeesByRole('server');
+        console.log("servers fetched: ",data)
+        setServer(data)
+      } catch(err) {
+        setServer([])
+        toast.error("Unable to fetch servers list")
+        console.log(err)
+      }
+    } 
+      fetchWaiters()
+  }, [])
 
   // Reset state when dialog opens with new order data
   useEffect(() => {
     if (isOpen && orderData) {
       setAmountReceived('');
+      setSelectedServerId('');
       setError('');
     }
   }, [isOpen, orderData]);
@@ -48,10 +73,18 @@ const CheckoutDialog = ({
       return;
     }
 
+    // Check if server selection is required but not provided
+    if (businessPrefs?.trackServers && !selectedServerId) {
+      setError('Please select a server/waiter');
+      return;
+    }
+    let name = server.find(s => s._id === selectedServerId)?.name
     const finalOrderData = {
       ...orderData,
       amountPaid: amountReceivedNum,
-      outstandingPayment: outstandingPayment
+      outstandingPayment: outstandingPayment,
+      serverId: businessPrefs?.trackServers ? selectedServerId : null,
+      serverName: name
     };
     console.log('order data p1: ', finalOrderData)
     onConfirmOrder(finalOrderData);
@@ -59,6 +92,7 @@ const CheckoutDialog = ({
 
   const handleClose = () => {
     setAmountReceived('');
+    setSelectedServerId('');
     setError('');
     onClose();
   };
@@ -110,6 +144,38 @@ const CheckoutDialog = ({
               </div>
             </CardContent>
           </Card>
+
+          {/* Server Selection - Only show if trackServers is enabled */}
+         {businessPrefs?.trackServers && (
+  <div className="space-y-3">
+    <Label htmlFor="serverSelect" className="text-sm font-medium">
+      Select Server/Waiter
+    </Label>
+    <div className="relative">
+      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+      <Select value={selectedServerId} onValueChange={setSelectedServerId}>
+        <SelectTrigger className="pl-10">
+          <SelectValue placeholder="Choose server/waiter">
+            {selectedServerId ? server.find(s => s._id === selectedServerId)?.name || `Server ${selectedServerId}` : "Choose server/waiter"}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {server.length === 0 ? (
+            <SelectItem value="no-servers" disabled>
+              No servers found
+            </SelectItem>
+          ) : (
+            server.map((serverItem) => (
+              <SelectItem key={serverItem._id} value={serverItem._id}>
+                {serverItem.name || `Server ${serverItem.id}`}
+              </SelectItem>
+            ))
+          )}
+        </SelectContent>
+      </Select>
+    </div>
+  </div>
+)}
 
           {/* Payment Input */}
           <div className="space-y-3">
@@ -225,7 +291,7 @@ const CheckoutDialog = ({
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={!isValidAmount || isProcessing || error}
+            disabled={!isValidAmount || isProcessing || error || (businessPrefs?.trackServers && !selectedServerId)}
             className="min-w-[120px]"
           >
             {isProcessing ? (

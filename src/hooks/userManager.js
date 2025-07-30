@@ -25,9 +25,9 @@ const useManager = () => {
     }
   };
 
-  async function fetchManagers(){
+  async function fetchEmployeesByRole(role){
     try{
-      const res = await axiosPrivate.get('/manager/')
+      const res = await axiosPrivate.get(`/manager?role=${role}`)
       return res.data
     }catch(err){
       console.log(err)
@@ -373,7 +373,7 @@ async function updateEmployee(id, employeeData){
     fetchEmployeesWithoutAccounts,
     updateAccountStatus,
     assignAccountToEmployee,
-    fetchManagers,
+    fetchEmployeesByRole,
     addEmployeePayment,
     getAccountDetails,
     updateAccount,

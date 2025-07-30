@@ -5,13 +5,16 @@ import {
   DollarSign,
   User2,
   StoreIcon,
-  Settings
+  Settings,
+  ChartNoAxesColumn
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { usePreferences } from '@/hooks/usePreferences';
 
 const useSidebarMenu = (products) => {
   const { user } = useAuth();
   const access = user?.access || {};
+  const {businessPrefs} = usePreferences();
     console.log('Access:', access);
   const menuItems = [];
   // Products with variants (Always shown if products exist)
@@ -94,6 +97,16 @@ const useSidebarMenu = (products) => {
     icon: Settings,
     label: 'Settings'
   });
+  
+  if(businessPrefs?.trackServers){
+    // Settings - Available to all users
+    menuItems.push({
+      key: 'stats',
+      icon: ChartNoAxesColumn,
+      label: 'Server Stats'
+    });
+    
+  }
 
   return menuItems;
 };

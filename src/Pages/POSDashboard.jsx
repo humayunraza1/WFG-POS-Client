@@ -47,6 +47,7 @@ import OrdersHistory from '../components/Sidebar/OrderHistory';
 import NewVariantsView from '../components/Sidebar/NewVariantsView';
 import MobileCategoryDrawer from '../components/Mobile/MobileCategoryDrawer';
 import CategoryHintPopover from '../components/Mobile/CategoryHintPopover';
+import EmployeeStatsTable from '@/components/stats/EmployeeStatsTable'
 
 // Main Dashboard Component
 const POSDashboard = () => {
@@ -443,7 +444,8 @@ const POSDashboard = () => {
           categories={categories} // Pass categories, not products
           onViewChange={handleViewChange}
         />;
-        
+        case 'stats':
+          return <EmployeeStatsTable/>
         case 'summary':
           return <SummaryView period={activeSubView || 'All Orders'} orders={orders} />;
         

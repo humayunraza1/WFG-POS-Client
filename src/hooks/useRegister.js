@@ -21,7 +21,7 @@ const useRegister = () => {
   // Check register status on mount and restore state if needed
   useEffect(() => {
     checkRegisterStatus();
-    fetchManagers();
+    // fetchManagers();
   }, []);
 
   // Update activity every 5 minutes
@@ -32,20 +32,20 @@ const useRegister = () => {
     }
   }, [isOpen]);
 
-  const fetchManagers = async () => {
-    try {
-      setManagersLoading(true);
-      const { data } = await axiosPrivate.get('/register/managers');
-      setManagers(data.managers);
-      setManagersError(null);
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message;
-      setManagersError(errorMessage);
-      console.error('Error fetching managers:', errorMessage);
-    } finally {
-      setManagersLoading(false);
-    }
-  };
+  // const fetchManagers = async () => {
+  //   try {
+  //     setManagersLoading(true);
+  //     const { data } = await axiosPrivate.get('/register/managers');
+  //     setManagers(data.managers);
+  //     setManagersError(null);
+  //   } catch (err) {
+  //     const errorMessage = err.response?.data?.message || err.message;
+  //     setManagersError(errorMessage);
+  //     console.error('Error fetching managers:', errorMessage);
+  //   } finally {
+  //     setManagersLoading(false);
+  //   }
+  // };
 
   const checkRegisterStatus = async () => {
     try {
@@ -192,8 +192,7 @@ const useRegister = () => {
     // Managers functionality
     managers,
     managersLoading,
-    managersError,
-    fetchManagers
+    managersError
   };
 };
 
