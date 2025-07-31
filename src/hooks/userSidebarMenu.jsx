@@ -82,22 +82,15 @@ const useSidebarMenu = (products) => {
 
   }
   
-  if (access.canGenReport || access.isManager) {
-    menuItems.push({
-      key: 'reports',
-      icon: BarChart3,
-      label: 'Reports'
-    });
+  // if (access.canGenReport || access.isManager) {
+  //   menuItems.push({
+  //     key: 'reports',
+  //     icon: BarChart3,
+  //     label: 'Reports'
+  //   });
 
-  }
+  // }
 
-  // Settings - Available to all users
-  menuItems.push({
-    key: 'settings',
-    icon: Settings,
-    label: 'Settings'
-  });
-  
   if(businessPrefs?.trackServers){
     // Settings - Available to all users
     menuItems.push({
