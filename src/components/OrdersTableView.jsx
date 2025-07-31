@@ -11,6 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Trash2, Eye, RefreshCw, Filter, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import ReceiptDrawer from './ReceiptDrawer';
+import { useAuth } from '../hooks/useAuth';
 
 const ORDERS_PER_PAGE = 10;
 
@@ -20,7 +21,7 @@ const OrdersTableView = ({ orders, onDeleteOrder, onRefresh, isLoading, onUpdate
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [searchId, setSearchId] = useState('');
   const [deleteConfirmation, setDeleteConfirmation] = useState({ open: false, order: null });
-
+  const {user} = useAuth();
   const filteredOrders = useMemo(() => {
     let filtered = orders;
     
@@ -173,7 +174,9 @@ const OrdersTableView = ({ orders, onDeleteOrder, onRefresh, isLoading, onUpdate
                         <TableHead className="w-[130px]">Payment Status</TableHead>
                         <TableHead className="w-[120px]">Outstanding</TableHead>
                         <TableHead className="w-[180px]">Time</TableHead>
+                        { user.access.canDeleteOrder &&
                         <TableHead className="w-[80px]">Action</TableHead>
+                        }
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -211,7 +214,7 @@ const OrdersTableView = ({ orders, onDeleteOrder, onRefresh, isLoading, onUpdate
                           <TableCell className="text-sm">
                             {format(new Date(order.createdAt), 'MMM dd, h:mm a')}
                           </TableCell>
-                          <TableCell>
+   {                user.access.canDeleteOrder &&       <TableCell>
                             <Button 
                               variant="ghost" 
                               size="icon" 
@@ -220,7 +223,7 @@ const OrdersTableView = ({ orders, onDeleteOrder, onRefresh, isLoading, onUpdate
                             >
                               <Trash2 className="w-4 h-4 text-destructive" />
                             </Button>
-                          </TableCell>
+                          </TableCell>}
                         </TableRow>
                       ))}
                     </TableBody>

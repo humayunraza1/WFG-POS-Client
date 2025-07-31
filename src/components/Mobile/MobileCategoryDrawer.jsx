@@ -7,8 +7,8 @@ import {
   Package2
 } from 'lucide-react';
 
-const MobileCategoryDrawer = ({ categories, onViewChange }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const MobileCategoryDrawer = ({ categories, onViewChange,isOpen, setIsOpen  }) => {
+  // const [isOpen, setIsOpen] = useState(false);
 
   const handleCategoryClick = (category) => {
     onViewChange('variants', category);
@@ -18,7 +18,7 @@ const MobileCategoryDrawer = ({ categories, onViewChange }) => {
   return (
     <>
       {/* Floating Action Button - matches your theme */}
-      <div className="fixed bottom-6 left-6 z-40 lg:hidden">
+      {/* <div className="z-40 lg:hidden">
         <Button
           onClick={() => setIsOpen(true)}
           size="lg"
@@ -27,7 +27,7 @@ const MobileCategoryDrawer = ({ categories, onViewChange }) => {
         >
           <Package2 className="h-6 w-6" />
         </Button>
-      </div>
+      </div> */}
 
       {/* Backdrop */}
       {isOpen && (

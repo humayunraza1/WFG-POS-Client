@@ -16,6 +16,7 @@ import { ShoppingCart, CreditCard, Banknote, X } from 'lucide-react';
 import CartItem from './CartItem';
 import CheckoutDialog from './CheckoutDialog';
 import { useState } from 'react';
+import { usePreferences } from '../hooks/usePreferences';
 
 const Cart = ({ 
   isOpen,
@@ -29,11 +30,13 @@ const Cart = ({
   discount = 0,
   setDiscount
 }) => {
+    
     const [paymentType, setPaymentType] = useState('cash');
     const [showCheckoutDialog, setShowCheckoutDialog] = useState(false);
     const [pendingOrderData, setPendingOrderData] = useState(null);
-
+    const [serverData,setServerData] = useState([])
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const {businessPrefs} = usePreferences();
     const discountAmount = discount;
     const afterDiscount = subtotal - discountAmount;
     const total = afterDiscount;
@@ -56,7 +59,17 @@ const Cart = ({
             quantity: item.quantity,             // Quantity
             totalPrice: item.price * item.quantity // Calculate total price
         }));
-
+        let serverInfo;
+        if (businessPrefs?.trackServers){
+            serverInfo = cartItems.map(item=>({
+                category: item.category,
+                product: item.name,
+                variant: item.option.name,
+                qty: item.quantity
+            }))
+        }
+        
+        setServerData(serverInfo)
         // Calculate actual price (subtotal)
         const actualPrice = transformedItems.reduce((sum, item) => sum + item.totalPrice, 0);
 
@@ -252,6 +265,7 @@ const Cart = ({
                 orderData={pendingOrderData}
                 onConfirmOrder={handleConfirmOrder}
                 isProcessing={isProcessingOrder}
+                serverData={serverData}
             />
         </>
     );

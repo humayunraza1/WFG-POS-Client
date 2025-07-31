@@ -21,7 +21,8 @@ import {
   Menu,
   X,
   Loader2,
-  History
+  History,
+  ClipboardList
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,6 +49,9 @@ import NewVariantsView from '../components/Sidebar/NewVariantsView';
 import MobileCategoryDrawer from '../components/Mobile/MobileCategoryDrawer';
 import CategoryHintPopover from '../components/Mobile/CategoryHintPopover';
 import EmployeeStatsTable from '@/components/stats/EmployeeStatsTable'
+import TempOrdersDrawer from '../components/Mobile/TempOrdersDrawer';
+import { usePreferences } from '../hooks/usePreferences';
+import { useTempOrders } from '../hooks/useTempOrders';
 
 // Main Dashboard Component
 const POSDashboard = () => {
@@ -61,9 +65,10 @@ const POSDashboard = () => {
     const [showFinalCashModal, setShowFinalCashModal] = useState(false);
     const [isOpeningRegister, setIsOpeningRegister] = useState(false);
     const [isClosingRegister, setIsClosingRegister] = useState(false);
+    const [isCategoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
+const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
     const [isProcessingOrder, setIsProcessingOrder] = useState(false);
     const [discount, setDiscount] = useState(null);
-    
     const {
       isOpen: isRegisterOpen,
       sessionId,
@@ -77,6 +82,8 @@ const POSDashboard = () => {
       managersLoading,
       managersError
     } = useRegister();
+
+    const {tempOrders} = useTempOrders();
 
     const {
       products,
@@ -664,7 +671,7 @@ const POSDashboard = () => {
           
           {/* Floating Checkout Button */}
           {shouldShowCheckoutButton && (
-            <div className="fixed bottom-6 right-6 z-50">
+            <div className="fixed bottom-6 right-6 z-50 hidden lg:block">
               <Button
                 size="lg"
                 onClick={() => setIsCartSheetOpen(true)}
@@ -697,12 +704,64 @@ const POSDashboard = () => {
           <MobileCategoryDrawer
             categories={categories}
             onViewChange={handleViewChange}
+            isOpen={isCategoryDrawerOpen}
+            setIsOpen={setCategoryDrawerOpen}
           />
           {/* Category Hint Popover - show when on variants view */}
           <CategoryHintPopover
             isVisible={true}
             showOnce={true}
           />
+          <TempOrdersDrawer   isOpen={isTempOrdersOpen}
+  setIsOpen={setTempOrdersOpen}/>
+
+          {/* Unified Floating Button Bar (Mobile Only) */}
+<div className="fixed bottom-4 inset-x-0 z-50 flex justify-around px-4 gap-2 sm:gap-4 md:gap-6 lg:hidden">
+  {/* Category Button */}
+  <Button
+    onClick={() => setCategoryDrawerOpen(true)}
+    size="icon"
+    className="h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-lg hover:shadow-xl transition-all bg-primary hover:bg-primary/90"
+    aria-label="Browse Categories"
+  >
+    <Package2 className="h-5 w-5" />
+  </Button>
+
+  {/* Checkout Button */}
+  {shouldShowCheckoutButton && (
+    <Button
+      onClick={() => setIsCartSheetOpen(true)}
+      className="flex-1 min-w-0 px-2 py-3 sm:px-4 sm:py-3 shadow-lg hover:shadow-xl transition-shadow bg-primary hover:bg-primary/90 text-sm sm:text-base gap-2 rounded-full whitespace-nowrap overflow-hidden text-ellipsis"
+    >
+      <ShoppingCart className="h-5 w-5 flex-shrink-0" />
+      <span className="truncate">Checkout ({totalItems})</span>
+      <Badge variant="secondary" className="ml-1 truncate max-w-[5rem]">
+        PKR {cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0).toLocaleString()}
+      </Badge>
+    </Button>
+  )}
+
+  {/* Temp Orders Button */}
+  <div className="relative">
+    {tempOrders?.length > 0 && (
+      <Badge 
+        variant="destructive" 
+        className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px] z-10"
+      >
+        {tempOrders.length}
+      </Badge>
+    )}
+    <Button
+      onClick={() => setTempOrdersOpen(true)}
+      size="icon"
+      className="h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-lg hover:shadow-xl transition-all bg-orange-500 hover:bg-orange-600"
+      aria-label="View Temp Orders"
+    >
+      <ClipboardList className="h-5 w-5" />
+    </Button>
+  </div>
+</div>
+
 
             {/* Mobile Sidebar */}
           <MobileSidebar

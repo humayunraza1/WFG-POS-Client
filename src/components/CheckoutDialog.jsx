@@ -11,10 +11,12 @@ import { AlertCircle, DollarSign, Receipt, User } from 'lucide-react';
 import useManager from '../hooks/userManager';
 import { usePreferences } from '../hooks/usePreferences';
 import { toast } from 'sonner';
+import {useTempOrders} from '../hooks/useTempOrders';
 
 const CheckoutDialog = ({ 
   isOpen, 
-  onClose, 
+  onClose,
+  serverData,
   orderData, 
   onConfirmOrder, 
   isProcessing = false 
@@ -25,7 +27,7 @@ const CheckoutDialog = ({
   const {fetchEmployeesByRole} = useManager();
   const [server, setServer] = useState([]);
   const {businessPrefs} = usePreferences();
-
+  const {addTempOrder} = useTempOrders()
   useEffect(() => {
     console.log(businessPrefs)
     const fetchWaiters = async () => {
@@ -84,9 +86,9 @@ const CheckoutDialog = ({
       amountPaid: amountReceivedNum,
       outstandingPayment: outstandingPayment,
       serverId: businessPrefs?.trackServers ? selectedServerId : null,
-      serverName: name
     };
-    console.log('order data p1: ', finalOrderData)
+    const finalTempOrder = {items:serverData,serverName:name}
+    addTempOrder(finalTempOrder)
     onConfirmOrder(finalOrderData);
   };
 

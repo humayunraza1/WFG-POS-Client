@@ -7,11 +7,13 @@ import Report from './Pages/Report';
 import DashboardRouter from './Pages/DashboardRouter';
 import AxiosInterceptorProvider from './contexts/AxiosInterceptorProvider';
 import { PreferencesProvider } from './hooks/usePreferences.jsx';
+import TempOrdersProvider from './hooks/useTempOrders.jsx';
 
 function App() {
   return (
     <AuthProvider>
       <PreferencesProvider>
+      <TempOrdersProvider>
       <AxiosInterceptorProvider />
       <Toaster richColors position="top-right" />
       <Routes>
@@ -44,6 +46,7 @@ function App() {
         {/* Catch all route - redirect to login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+        </TempOrdersProvider>
     </PreferencesProvider>
     </AuthProvider>
   );
