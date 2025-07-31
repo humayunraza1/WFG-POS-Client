@@ -14,7 +14,7 @@ const AxiosInterceptorProvider = () => {
       error => {
         const status = error?.response?.status;
 
-        if ((status === 401 || status === 403)) {
+        if ((status === 401)) {
             toast.error('Session expired. Please login again.');
             setIsAuthenticated(false);
             setUser(null); 
