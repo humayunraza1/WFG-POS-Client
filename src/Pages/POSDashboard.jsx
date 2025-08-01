@@ -387,7 +387,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
       if (!requiresActiveSession('add expenses')) {
         return;
       }
-      return await addExpense(expenseData);
+      return await addExpense(expenseData,sessionId);
     };
 
     const handleUpdateExpense = async (id, expenseData) => {
