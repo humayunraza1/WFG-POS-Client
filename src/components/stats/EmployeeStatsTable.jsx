@@ -51,64 +51,6 @@ const getPeriodTitle = (period) => {
   }
 };
 
-// Mock data based on your API response
-const mockData = {
-  "success": true,
-  "data": {
-    "summary": {
-      "period": "daily",
-      "dateRange": {
-        "startDate": "2025-07-28T19:00:00.000Z",
-        "endDate": "2025-07-29T18:59:59.999Z"
-      },
-      "totalEmployees": 2,
-      "totalDeliveries": 2
-    },
-    "employees": [
-      {
-        "employeeName": "Zuhair",
-        "sessions": [
-          {
-            "sessionId": "3dc9d4dd-1edf-45b5-a85e-c88b575e9809",
-            "openedAt": "2025-07-29T16:02:36.618Z",
-            "closedAt": null,
-            "deliveries": 1,
-            "orders": [
-              {
-                "orderId": "6888f0a42f210a0c7e540042",
-                "createdAt": "2025-07-29T16:02:44.427Z",
-                "sessionId": "3dc9d4dd-1edf-45b5-a85e-c88b575e9809"
-              }
-            ]
-          }
-        ],
-        "totalDeliveries": 1,
-        "employeeId": "6888edbc3ce7f094b448e347"
-      },
-      {
-        "employeeName": "Khan",
-        "sessions": [
-          {
-            "sessionId": "3dc9d4dd-1edf-45b5-a85e-c88b575e9809",
-            "openedAt": "2025-07-29T16:02:36.618Z",
-            "closedAt": "2025-07-29T18:30:15.123Z",
-            "deliveries": 1,
-            "orders": [
-              {
-                "orderId": "6888f0b12f210a0c7e540076",
-                "createdAt": "2025-07-29T16:02:57.419Z",
-                "sessionId": "3dc9d4dd-1edf-45b5-a85e-c88b575e9809"
-              }
-            ]
-          }
-        ],
-        "totalDeliveries": 1,
-        "employeeId": "6887b1b2819b1b6f3d3f4c92"
-      }
-    ]
-  }
-};
-
 const EmployeeStatsTable = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -119,12 +61,12 @@ const EmployeeStatsTable = () => {
 const [filterPeriod, setFilterPeriod] = useState('daily');
 const [filterStartDate, setFilterStartDate] = useState('');
 const [filterEndDate, setFilterEndDate] = useState('');
-const [filterIsActive, setFilterIsActive] = useState(false);
+const [filterIsActive, setFilterIsActive] = useState(true);
 
 const [period, setPeriod] = useState('daily');
 const [startDate, setStartDate] = useState('');
 const [endDate, setEndDate] = useState('');
-const [isActiveSessionOnly, setIsActiveSessionOnly] = useState(false);
+const [isActiveSessionOnly, setIsActiveSessionOnly] = useState(true);
 const getEmployeeStats = useStats();
   const fetchData = async () => {
     setLoading(true);

@@ -716,7 +716,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
   setIsOpen={setTempOrdersOpen}/>
 
           {/* Unified Floating Button Bar (Mobile Only) */}
-<div className="fixed bottom-4 inset-x-0 z-50 flex justify-around px-4 gap-2 sm:gap-4 md:gap-6 lg:hidden">
+{activeView != 'stats' && <div className="fixed bottom-4 inset-x-0 z-50 flex justify-around px-4 gap-2 sm:gap-4 md:gap-6 lg:hidden">
   {/* Category Button */}
   <Button
     onClick={() => setCategoryDrawerOpen(true)}
@@ -760,7 +760,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
       <ClipboardList className="h-5 w-5" />
     </Button>
   </div>
-</div>
+</div>}
 
 
             {/* Mobile Sidebar */}
