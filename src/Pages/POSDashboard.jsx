@@ -50,7 +50,6 @@ import MobileCategoryDrawer from '../components/Mobile/MobileCategoryDrawer';
 import CategoryHintPopover from '../components/Mobile/CategoryHintPopover';
 import EmployeeStatsTable from '@/components/stats/EmployeeStatsTable'
 import TempOrdersDrawer from '../components/Mobile/TempOrdersDrawer';
-import { usePreferences } from '../hooks/usePreferences';
 import { useTempOrders } from '../hooks/useTempOrders';
 
 // Main Dashboard Component

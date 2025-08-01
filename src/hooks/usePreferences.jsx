@@ -1,6 +1,7 @@
 // src/context/PreferencesContext.js
 import { createContext, useContext, useEffect, useState } from 'react';
 import {axiosPrivate} from '@/api/axios'; // or wherever your axios instance lives
+import { useAuth } from './useAuth';
 
 const PreferencesContext = createContext();
 
@@ -8,9 +9,10 @@ export const PreferencesProvider = ({ children }) => {
   const [accountPrefs, setAccountPrefs] = useState(null);
   const [businessPrefs, setBusinessPrefs] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const {user} = useAuth()
   // Fetch preferences on mount
   useEffect(() => {
+    if(!user) return 
     const fetchPreferences = async () => {
       try {
         const [accountRes, businessRes] = await Promise.all([
@@ -30,7 +32,7 @@ export const PreferencesProvider = ({ children }) => {
     };
 
     fetchPreferences();
-  }, []);
+  }, [user]);
 
   // Utility to update a specific preference
   const updatePreference = async (type, key, value) => {
