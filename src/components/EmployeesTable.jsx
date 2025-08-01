@@ -143,7 +143,7 @@ const EmployeesTable = ({ user, onEmployeeUpdate }) => {
   const formatSalary = (salary) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'PKR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(salary);
@@ -391,7 +391,7 @@ const EmployeesTable = ({ user, onEmployeeUpdate }) => {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="salary">Salary (USD)</Label>
+                        <Label htmlFor="salary">Salary (PKR)</Label>
                         <Input
                           id="salary"
                           type="number"
