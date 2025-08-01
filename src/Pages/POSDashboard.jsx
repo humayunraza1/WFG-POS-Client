@@ -262,6 +262,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
           description: `Final cash: PKR ${finalCash.toLocaleString()}`
         });
         setShowFinalCashModal(false);
+        localStorage.removeItem('temp-orders');
         
         // Clear cart items and switch to dashboard view
         setCartItems([]);
