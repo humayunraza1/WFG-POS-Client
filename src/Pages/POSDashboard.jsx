@@ -83,7 +83,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
       managersError
     } = useRegister();
 
-    const {tempOrders} = useTempOrders();
+    const {tempOrders,clearAllOrders} = useTempOrders();
 
     const {
       products,
@@ -262,8 +262,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
           description: `Final cash: PKR ${finalCash.toLocaleString()}`
         });
         setShowFinalCashModal(false);
-        localStorage.removeItem('temp-orders');
-        
+        clearAllOrders()
         // Clear cart items and switch to dashboard view
         setCartItems([]);
         setActiveView('dashboard');
