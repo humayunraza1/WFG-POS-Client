@@ -16,6 +16,7 @@ import { ShoppingCart, CreditCard, Banknote, X } from 'lucide-react';
 import CartItem from './CartItem';
 import CheckoutDialog from './CheckoutDialog';
 import { useState } from 'react';
+import { usePreferences } from '../hooks/usePreferences';
 
 const Cart = ({ 
   isOpen,
@@ -29,11 +30,13 @@ const Cart = ({
   discount = 0,
   setDiscount
 }) => {
+    
     const [paymentType, setPaymentType] = useState('cash');
     const [showCheckoutDialog, setShowCheckoutDialog] = useState(false);
     const [pendingOrderData, setPendingOrderData] = useState(null);
-
+    const [serverData,setServerData] = useState([])
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const {businessPrefs} = usePreferences();
     const discountAmount = discount;
     const afterDiscount = subtotal - discountAmount;
     const total = afterDiscount;
@@ -45,19 +48,41 @@ const Cart = ({
 
     const handleInitialCheckout = () => {
         if (cartItems.length === 0) return;
+        console.log('final cart: ', cartItems)
+        // Transform cart items to match Order schema
+        const transformedItems = cartItems.map(item => ({
+            category: item.catID,           // Category ObjectId
+            product: item.prodID,                // Product ObjectId
+            option:item._id,
+            optionName: item.option?.name || '', // Option name as string
+            unitPrice: item.price,               // Unit price
+            quantity: item.quantity,             // Quantity
+            totalPrice: item.price * item.quantity // Calculate total price
+        }));
+        let serverInfo;
+        if (businessPrefs?.trackServers){
+            serverInfo = cartItems.map(item=>({
+                category: item.category,
+                product: item.name,
+                variant: item.option.name,
+                qty: item.quantity
+            }))
+        }
+        
+        setServerData(serverInfo)
+        // Calculate actual price (subtotal)
+        const actualPrice = transformedItems.reduce((sum, item) => sum + item.totalPrice, 0);
 
         const orderData = {
-            items: cartItems.map(item => ({
-                product: item.prodID,  // Product _id
-                variant: item.varID,   // Variant _id
-                quantity: item.quantity
-            })),
-            subtotal,
-            discount,
+            items: transformedItems,
+            discount: discountAmount,
             paymentType,
-            finalPrice: total
+            actualPrice,                    // Subtotal before discount
+            finalPrice: total,             // Final price after discount
+            amountPaid: 0,                 // Will be set in checkout dialog
+            outstandingPayment: total      // Will be calculated in checkout dialog
         };
-
+        console.log("Checkout Cart: ", orderData)
         setPendingOrderData(orderData);
         setShowCheckoutDialog(true);
     };
@@ -78,6 +103,9 @@ const Cart = ({
         setShowCheckoutDialog(false);
         setPendingOrderData(null);
     };
+
+    // Calculate total items count
+    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     
     return (
         <>
@@ -90,7 +118,7 @@ const Cart = ({
                         <SheetTitle className="flex items-center justify-between text-lg sm:text-xl">
                             <span>Current Order</span>
                             <Badge variant="secondary" className="text-sm">
-                                {cartItems.length} items
+                                {totalItems} {totalItems === 1 ? 'item' : 'items'}
                             </Badge>
                         </SheetTitle>
                         <SheetDescription className="hidden sm:block">
@@ -112,7 +140,7 @@ const Cart = ({
                                     <div className="space-y-2 sm:space-y-3">
                                         {cartItems.map((item) => (
                                             <CartItem
-                                                key={item._id}
+                                                key={`${item.prodID}-${item.varID}`}
                                                 item={item}
                                                 onUpdateQuantity={onUpdateQuantity}
                                                 onRemove={onRemoveItem}
@@ -237,6 +265,7 @@ const Cart = ({
                 orderData={pendingOrderData}
                 onConfirmOrder={handleConfirmOrder}
                 isProcessing={isProcessingOrder}
+                serverData={serverData}
             />
         </>
     );

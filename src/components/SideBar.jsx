@@ -4,11 +4,17 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  ChevronDown,
-  ChevronRight,
-  DollarSign,
-  ShoppingCart,
-  Calculator,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
+import {
   Package2,
   BarChart3,
   Receipt,
@@ -23,104 +29,81 @@ import {
   PieChart,
   User,
   History,
-  FileText
+  FileText,
+  Settings
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SidebarMenuItem from './SidebarMenuItem';
 import useOrders from '@/hooks/useOrders';
+import useSidebarMenu from '../hooks/userSidebarMenu';
+import { usePreferences } from '@/hooks/usePreferences';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  getManagerBadgeStyle,
+  getManagerInitials,
+  getAvatarBackgroundColor
+} from '@/utils/managerColors';
+import { toast } from 'sonner';
 
-const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, onOpenRegister, registerData, isRegisterOpen }) => {
+const Sidebar = ({ activeView, onViewChange, user, categories, onCloseRegister, onOpenRegister, registerData, isRegisterOpen }) => {
   const [expandedItems, setExpandedItems] = useState({
-    variants: true // Always expand products menu by default
+    variants: true
   });
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const { dailyStats, statsLoading } = useOrders();
-
-  // Function to get manager badge style (same as in RegisterSessionTable)
-  const getManagerBadgeStyle = (manager) => {
-    const styles = {
-      'Hamza': { backgroundColor: '#ef4444', color: 'white', borderColor: '#ef4444' }, // Red
-      'Wajeeh': { backgroundColor: '#22c55e', color: 'white', borderColor: '#22c55e' }, // Green
-      'Talal': { backgroundColor: '#3b82f6', color: 'white', borderColor: '#3b82f6' } // Blue
-    };
-    return styles[manager] || {};
-  };
-
-  // Function to get manager initials for avatar
-  const getManagerInitials = (manager) => {
-    if (!manager) return 'M';
-    return manager.charAt(0).toUpperCase();
-  };
-
-  // Function to get lighter avatar background color
-  const getAvatarBackgroundColor = (manager) => {
-    const baseColors = {
-      'Hamza': '#f87171', // Lighter red
-      'Wajeeh': '#4ade80', // Lighter green
-      'Talal': '#60a5fa' // Lighter blue
-    };
-    return baseColors[manager] || '#94a3b8'; // Default lighter gray
-  };
+  const { accountPrefs, businessPrefs, loading: prefsLoading, updatePreference } = usePreferences();
+  const { user: authUser } = useAuth();
 
   const toggleExpanded = (key) => {
-    // Don't allow collapsing the products menu
     if (key === 'variants') return;
-    
     setExpandedItems(prev => ({
       ...prev,
       [key]: !prev[key]
     }));
   };
 
-  const menuItems = [
-    {
-      key: 'variants',
-      icon: Package2,
-      label: 'Products',
-      children: products,
-      hasSubItems: true
-    },
-    {
-      key: 'orders',
-      icon: Receipt,
-      label: "Orders"
-    },
-    {
-      key: 'expenses',
-      icon: Receipt,
-      label: 'Expenses'
-    },
-    {
-      key: 'summary',
-      icon: History,
-      label: 'Register History'
-    },
-    {
-      key: 'orders-history',
-      icon: FileText,
-      label: 'Orders History'
-    },
-    {
-      key: 'reports',
-      icon: BarChart3,
-      label: 'Reports'
-    },
-    // {
-    //   key: 'analysis',
-    //   icon: TrendingUp,
-    //   label: 'Analysis'
-    // },
-    {
-      key: 'add-product',
-      icon: Plus,
-      label: 'Add Product'
-    },
-    {
-      key: 'edit-product',
-      icon: Edit3,
-      label: 'Edit Product'
+  const menuItems = useSidebarMenu(categories);
+
+  const handlePreferenceChange = async (type, key, value) => {
+    const result = await updatePreference(type, key, value);
+    if (result.success) {
+      toast.success(`Preference "${key}" updated`);
+    } else {
+      toast.error(`Failed to update "${key}"`);
     }
-  ];
+  };
+
+  const PreferenceCheckbox = ({ type, prefKey, label, description, disabled = false }) => {
+    const prefs = type === 'account' ? accountPrefs : businessPrefs;
+    const value = prefs?.[prefKey] || false;
+
+    const handleCheckboxChange = (checked) => {
+      if (disabled || prefsLoading) return;
+      handlePreferenceChange(type, prefKey, checked);
+    };
+
+    return (
+      <div className="flex items-center justify-between space-x-2">
+        <div className="space-y-0.5">
+          <Label className="text-sm font-medium">{label}</Label>
+        </div>
+        <Checkbox
+          checked={value}
+          disabled={disabled || prefsLoading}
+          onCheckedChange={handleCheckboxChange}
+          className={`
+            ${value 
+              ? 'data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600 data-[state=checked]:text-white' 
+              : 'data-[state=unchecked]:bg-red-50 data-[state=unchecked]:border-red-300'
+            }
+            ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+            w-5 h-5
+          `}
+        />
+      </div>
+    );
+  };
 
   return (
     <Card className="w-64 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto">
@@ -137,13 +120,7 @@ const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, onOpenRe
               children={item.children}
               isExpanded={expandedItems[item.key]}
               onToggle={() => toggleExpanded(item.key)}
-              onClick={(subItem) => { 
-                if (item.key === 'analysis' && subItem) {
-                  onViewChange('analysis', subItem.key);
-                } else {
-                  onViewChange(item.key, subItem);
-                }
-              }}
+              onClick={(subItem) => onViewChange(item.key, subItem)}
               isActive={activeView === item.key}
               hasSubItems={item.hasSubItems}
             />
@@ -152,7 +129,73 @@ const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, onOpenRe
 
         <Separator className="my-4" />
 
-        {/* Manager Card - Only show when register is open */}
+        {/* Settings Dialog */}
+        <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="w-full">
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Settings</DialogTitle>
+              <DialogDescription>
+                Manage your account and business preferences.
+              </DialogDescription>
+            </DialogHeader>
+
+            {prefsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="ml-2">Loading preferences...</span>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Account Preferences */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Account Preferences</h3>
+                  <div className="space-y-4">
+                    {accountPrefs && Object.entries(accountPrefs).map(([key]) => (
+                      <PreferenceCheckbox
+                        key={key}
+                        type="account"
+                        prefKey={key}
+                        label={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Business Preferences */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Business Preferences</h3>
+                  <div className="space-y-4">
+                    {businessPrefs && Object.entries(businessPrefs).map(([key]) => (
+                      <PreferenceCheckbox
+                        key={key}
+                        type="business"
+                        prefKey={key}
+                        label={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                        disabled={!authUser?.access?.isAdmin}
+                      />
+                    ))}
+                    {!authUser?.access?.isAdmin && (
+                      <p className="text-xs text-muted-foreground italic">
+                        Admin access required to modify business preferences
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <Separator className="my-4" />
+
         {isRegisterOpen && registerData?.manager && (
           <>
             <Card 
@@ -189,8 +232,7 @@ const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, onOpenRe
           </>
         )}
 
-        {/* Register Control Button - Shows Open when closed, Close when open */}
-        {!isRegisterOpen ? (
+        {!user.access.isManager && (!isRegisterOpen ? (
           <Button
             variant="default"
             className="w-full"
@@ -208,7 +250,7 @@ const Sidebar = ({ activeView, onViewChange, products, onCloseRegister, onOpenRe
             <Power className="mr-2 h-4 w-4" />
             Close Register
           </Button>
-        )}
+        ))}
       </CardContent>
     </Card>
   );

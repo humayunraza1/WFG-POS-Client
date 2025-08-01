@@ -95,7 +95,7 @@ generateRestaurantCopy(order) {
   lines.push(...tableLines);
 
   // Summary - better alignment for NCR 7197
-  const subtotal = order.items.reduce((sum, item) => sum + (item.variant.price * item.quantity), 0);
+  const subtotal = order.items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
   const discountAmount = order.discount;
  
   lines.push('');
@@ -487,9 +487,9 @@ formatItemsTable(order) {
 
   // Items
   order.items.forEach(item => {
-    const name = `${item.product.name} - ${item.variant.name}`;
+    const name = `${item.category.name} - ${item.product.name} - ${item.optionName}`;
     const qty = item.quantity.toString();
-    const price = `${item.variant.price.toFixed(0)}/Rs`;
+    const price = `${item.totalPrice.toFixed(0)}/Rs`;
 
     // Calculate proper spacing for NCR 7197
     const descWidth = 25; // Reduced for NCR 7197
@@ -656,7 +656,7 @@ formatItemsTable(order) {
     tableLines.forEach(line => lines.push(line));
     
     // Pricing Summary - optimized for NCR 7197
-    const subtotal = order.items.reduce((sum, item) => sum + (item.variant.price * item.quantity), 0);
+    const subtotal = order.items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
     const discountAmount =  order.discount;
     
     lines.push('');

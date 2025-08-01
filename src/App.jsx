@@ -3,12 +3,18 @@ import { Toaster } from 'sonner';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './Pages/Login';
-import POSDashboard from './Pages/POSDashboard';
 import Report from './Pages/Report';
+import DashboardRouter from './Pages/DashboardRouter';
+import AxiosInterceptorProvider from './contexts/AxiosInterceptorProvider';
+import { PreferencesProvider } from './hooks/usePreferences.jsx';
+import TempOrdersProvider from './hooks/useTempOrders.jsx';
 
 function App() {
   return (
     <AuthProvider>
+      <PreferencesProvider>
+      <TempOrdersProvider>
+      <AxiosInterceptorProvider />
       <Toaster richColors position="top-right" />
       <Routes>
         {/* Default route - redirect to login */}
@@ -25,21 +31,23 @@ function App() {
               <Report />
             </ProtectedRoute>
           } 
-        />
+          />
         
         {/* Protected dashboard route */}
         <Route 
           path="/dashboard" 
           element={
             <ProtectedRoute>
-              <POSDashboard />
+              <DashboardRouter/>
             </ProtectedRoute>
           } 
-        />
+          />
         
         {/* Catch all route - redirect to login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+        </TempOrdersProvider>
+    </PreferencesProvider>
     </AuthProvider>
   );
 }

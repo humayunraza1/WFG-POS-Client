@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import axios from '@/api/axios';
+import  axiosPublic, {axiosPrivate} from '@/api/axios';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
 
@@ -9,17 +10,18 @@ const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const navigate = useNavigate()
   // Check auth status on app load
   useEffect(() => {
     const checkAuthStatus = async () => {
       setIsLoading(true);
       try {
-        const res = await axios.get('/auth/me', { withCredentials: true });
+        const res = await axiosPrivate.get('/auth/me', { withCredentials: true });
         setUser(res.data.user);
         setIsAuthenticated(true);
       } catch (err) {
         setUser(null);
+        navigate('/login')
         setIsAuthenticated(false);
       } finally {
         setIsLoading(false);
@@ -33,7 +35,7 @@ const AuthProvider = ({ children }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await axios.post('/auth/login', { username, password });
+      const res = await axiosPrivate.post('/auth/login', { username, password });
       setUser(res.data.user);
       setIsAuthenticated(true);
       toast.success('Login successful', {
@@ -55,7 +57,7 @@ const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.post('/auth/logout', {}, { withCredentials: true });
+      await axiosPrivate.post('/auth/logout', {}, { withCredentials: true });
     } catch (err) {
       console.warn('Server logout failed, logging out locally.');
     } finally {
@@ -69,7 +71,7 @@ const AuthProvider = ({ children }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await axios.post('/auth/create', { username, password });
+      const res = await axiosPrivate.post('/auth/create', { username, password });
       setUser(res.data.user);
       setIsAuthenticated(true);
       toast.success('Account created successfully', {
@@ -99,6 +101,8 @@ const AuthProvider = ({ children }) => {
         isLoading,
         error,
         login,
+         setIsAuthenticated,
+         setUser,
         logout,
         createAccount,
         clearError

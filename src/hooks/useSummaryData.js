@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import axios from '@/api/axios';
+import axiosPublic,{axiosPrivate} from '@/api/axios';
 
 const useSummaryData = () => {
   const [summaryData, setSummaryData] = useState(null);
@@ -21,7 +21,7 @@ const useSummaryData = () => {
         params.append('endDate', dateRange.end.toISOString());
       }
 
-      const { data } = await axios.get(`/orders/summary?${params.toString()}`);
+      const { data } = await axiosPrivate.get(`/orders/summary?${params.toString()}`);
       setSummaryData(data);
     } catch (err) {
       setError(err.response?.data?.message || err.message);

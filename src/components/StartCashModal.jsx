@@ -18,11 +18,23 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { DollarSign, Loader2, User } from 'lucide-react';
+import useManager from '../hooks/userManager';
 
-const StartCashModal = ({ isOpen, onClose, onSubmit, isLoading, managers = [] }) => {
+const StartCashModal = ({ isOpen, onClose, onSubmit, isLoading }) => {
   const [startCash, setStartCash] = useState('');
   const [selectedManager, setSelectedManager] = useState('');
+  const [selectedManagerId, setSelectedManagerId] = useState('');
   const [error, setError] = useState('');
+  const {fetchEmployeesByRole} = useManager();
+  const [managers,setManagers] = useState([])
+  
+  useEffect(()=>{
+    const fetchManagers = async() =>{
+      const data = await fetchEmployeesByRole('manager');
+      setManagers(data)
+    }
+    fetchManagers()
+  },[])
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -40,9 +52,11 @@ const StartCashModal = ({ isOpen, onClose, onSubmit, isLoading, managers = [] })
     }
 
     setError('');
+    console.log('Submitting start cash:', { startCash, manager: selectedManagerId });
     onSubmit({
       startCash: cashAmount,
-      manager: selectedManager
+      manager:selectedManager,
+      managerId: selectedManagerId
     });
   };
 
@@ -71,7 +85,7 @@ const StartCashModal = ({ isOpen, onClose, onSubmit, isLoading, managers = [] })
             <Label htmlFor="manager">Manager</Label>
             <Select
               value={selectedManager}
-              onValueChange={setSelectedManager}
+              onValueChange={(e)=>{setSelectedManager(e.name); setSelectedManagerId(e.id)}}
               disabled={isLoading}
             >
               <SelectTrigger className={error && !selectedManager ? 'border-red-500' : ''}>
@@ -86,10 +100,10 @@ const StartCashModal = ({ isOpen, onClose, onSubmit, isLoading, managers = [] })
               </SelectTrigger>
               <SelectContent>
                 {managers.map((manager) => (
-                  <SelectItem key={manager} value={manager}>
+                  <SelectItem key={manager._id} value={{name:manager.name, id: manager._id}}>
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      {manager}
+                      {manager.name}
                     </div>
                   </SelectItem>
                 ))}
