@@ -14,19 +14,28 @@ import useRegister from '@/hooks/useRegister';
 import DateRangeFilter from '../Summary/DateFilter';
 import RegisterSessionsTable from '../Summary/RegisterSessionTable';
 import SessionDetailDrawer from '../Summary/SessionDetailDrawer';
-
+import {getManagerBadgeStyle} from '@/utils/managerColors'
+import useManager from '../../hooks/userManager';
 const SummaryView = () => {
   const [dateRange, setDateRange] = useState({ start: null, end: null });
   const [selectedManager, setSelectedManager] = useState('ALL');
   const [selectedSession, setSelectedSession] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
+  const {fetchEmployeesByRole} = useManager();
+  const [managers,setManagers] = useState([])
+  
+  useEffect(()=>{
+    const fetchManagers = async() =>{
+      const data = await fetchEmployeesByRole('manager');
+      setManagers(data)
+    }
+    fetchManagers()
+  },[])
   const { 
     sessions, 
     sessionsLoading, 
     sessionsError, 
     fetchSessions,
-    managers,
     managersLoading
   } = useRegister();
 
@@ -53,16 +62,6 @@ const SummaryView = () => {
   const handleCloseDrawer = () => {
     setIsDrawerOpen(false);
     setSelectedSession(null);
-  };
-
-  // Function to get manager badge style (same as in table)
-  const getManagerBadgeStyle = (manager) => {
-    const styles = {
-      'Hamza': { backgroundColor: '#ef4444', color: 'white', borderColor: '#ef4444' }, // Red
-      'Wajeeh': { backgroundColor: '#22c55e', color: 'white', borderColor: '#22c55e' }, // Green
-      'Talal': { backgroundColor: '#3b82f6', color: 'white', borderColor: '#3b82f6' } // Blue
-    };
-    return styles[manager] || {};
   };
 
   if (sessionsLoading && !sessions.length) {

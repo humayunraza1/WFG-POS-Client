@@ -40,7 +40,7 @@ const RegisterSummary = ({ summary, loading, selectedSessionId }) => {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'PKR'
     }).format(amount);
   };
 

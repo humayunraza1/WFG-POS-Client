@@ -1,7 +1,7 @@
 import { axiosPrivate } from '@/api/axios'
 
 export default function useStats() {
-  async function getEmployeeStats(period = 'daily', startDate = null, endDate = null, isActive = false) {
+  async function getEmployeeStats(period = 'daily', startDate = null, endDate = null, isActive = true) {
     const params = new URLSearchParams();
 
     if (period) params.append('period', period);

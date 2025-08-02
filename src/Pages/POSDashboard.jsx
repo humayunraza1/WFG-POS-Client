@@ -50,7 +50,6 @@ import MobileCategoryDrawer from '../components/Mobile/MobileCategoryDrawer';
 import CategoryHintPopover from '../components/Mobile/CategoryHintPopover';
 import EmployeeStatsTable from '@/components/stats/EmployeeStatsTable'
 import TempOrdersDrawer from '../components/Mobile/TempOrdersDrawer';
-import { usePreferences } from '../hooks/usePreferences';
 import { useTempOrders } from '../hooks/useTempOrders';
 
 // Main Dashboard Component
@@ -83,7 +82,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
       managersError
     } = useRegister();
 
-    const {tempOrders} = useTempOrders();
+    const {tempOrders,clearAllOrders} = useTempOrders();
 
     const {
       products,
@@ -262,7 +261,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
           description: `Final cash: PKR ${finalCash.toLocaleString()}`
         });
         setShowFinalCashModal(false);
-        
+        clearAllOrders()
         // Clear cart items and switch to dashboard view
         setCartItems([]);
         setActiveView('dashboard');
@@ -387,7 +386,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
       if (!requiresActiveSession('add expenses')) {
         return;
       }
-      return await addExpense(expenseData);
+      return await addExpense(expenseData,sessionId);
     };
 
     const handleUpdateExpense = async (id, expenseData) => {
@@ -558,7 +557,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
               {/* Logo placeholder - replace src with your actual logo */}
-            <img src='/images/ftl-logo.png' className='h-25 w-25'/>
+            <img src='/images/wfg-logo.png' className='h-25 w-25'/>
 
               <div>
                 <h1 className="text-2xl lg:text-3xl font-bold">POS Dashboard</h1>
@@ -716,7 +715,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
   setIsOpen={setTempOrdersOpen}/>
 
           {/* Unified Floating Button Bar (Mobile Only) */}
-<div className="fixed bottom-4 inset-x-0 z-50 flex justify-around px-4 gap-2 sm:gap-4 md:gap-6 lg:hidden">
+{activeView != 'stats' && <div className="fixed bottom-4 inset-x-0 z-40 flex justify-around px-4 gap-2 sm:gap-4 md:gap-6 lg:hidden">
   {/* Category Button */}
   <Button
     onClick={() => setCategoryDrawerOpen(true)}
@@ -760,7 +759,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
       <ClipboardList className="h-5 w-5" />
     </Button>
   </div>
-</div>
+</div>}
 
 
             {/* Mobile Sidebar */}

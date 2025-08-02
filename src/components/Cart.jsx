@@ -178,26 +178,29 @@ const Cart = ({
                                     {/* Payment Type Section */}
                                     <div className="space-y-2 sm:space-y-3">
                                         <Label className="text-sm sm:text-base font-medium">Payment Type</Label>
-                                        <RadioGroup
-                                            value={paymentType}
-                                            onValueChange={setPaymentType}
-                                            className="grid grid-cols-2 gap-3 sm:gap-4"
-                                        >
-                                            <div className="flex items-center space-x-2 border rounded-lg p-2 sm:p-3 hover:bg-muted/50 transition-colors">
-                                                <RadioGroupItem value="cash" id="cash" />
-                                                <Label htmlFor="cash" className="flex items-center cursor-pointer text-sm sm:text-base">
-                                                    <Banknote className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                                    Cash
-                                                </Label>
-                                            </div>
-                                            <div className="flex items-center space-x-2 border rounded-lg p-2 sm:p-3 hover:bg-muted/50 transition-colors">
-                                                <RadioGroupItem value="online" id="online" />
-                                                <Label htmlFor="online" className="flex items-center cursor-pointer text-sm sm:text-base">
-                                                    <CreditCard className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                                    Online
-                                                </Label>
-                                            </div>
-                                        </RadioGroup>
+     <RadioGroup
+  value={paymentType}
+  onValueChange={setPaymentType}
+  className="grid grid-cols-2 gap-3 sm:gap-4"
+>
+  <label
+    htmlFor="cash"
+    className="flex items-center space-x-2 border rounded-lg p-2 sm:p-3 hover:bg-muted/50 transition-colors cursor-pointer"
+  >
+    <RadioGroupItem value="cash" id="cash" />
+    <Banknote className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+    <span className="text-sm sm:text-base">Cash</span>
+  </label>
+
+  <label
+    htmlFor="online"
+    className="flex items-center space-x-2 border rounded-lg p-2 sm:p-3 hover:bg-muted/50 transition-colors cursor-pointer"
+  >
+    <RadioGroupItem value="online" id="online" />
+    <CreditCard className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+    <span className="text-sm sm:text-base">Online</span>
+  </label>
+</RadioGroup>
                                     </div>
                                     
                                     <Separator />

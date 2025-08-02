@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   FileText, 
   Loader2,
@@ -14,16 +13,15 @@ import {
   AlertCircle,
   ArrowLeft,
   CreditCard,
-    Calculator,  // Add this
-  CheckCircle,  // Add this
-  AlertTriangle  // Add this
+  Calculator,
+  CheckCircle,
+  AlertTriangle,
+  Download
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import useReports from '../hooks/useReports';
+import { useNavigate, useParams } from 'react-router-dom';
+import useReports from '@/hooks/useReports'
 import FinancialDiscrepancyChart from '../components/FinancialDiscrepancy';
-
 const Report = () => {
   const { id: reportId } = useParams();
   const navigate = useNavigate();
@@ -35,6 +33,12 @@ const Report = () => {
     fetchReportById,
     clearError
   } = useReports();
+
+
+  // Function to export as PDF
+  const handleExportPDF = () => {
+    window.print();
+  };
 
   // Function to update document title and meta tags
   const updateDocumentMeta = (startDate, endDate) => {
@@ -114,7 +118,6 @@ const Report = () => {
     }
   };
 
-  // Fetch report on component mount or when reportId changes
   useEffect(() => {
     const loadReport = async () => {
       if (reportId) {
@@ -148,15 +151,13 @@ const Report = () => {
   // Show error toasts
   useEffect(() => {
     if (error) {
-      toast.error('Report Error', {
-        description: error
-      });
-      clearError();
+      console.error('Report Error:', error);
+      setError(null);
     }
-  }, [error, clearError]);
+  }, [error]);
 
   const handleBackToReports = () => {
-    navigate('/dashboard'); // Navigate back to dashboard or wherever your reports list is
+    console.log('Navigate back to dashboard');
   };
 
   const formatDate = (dateString) => {
@@ -194,7 +195,7 @@ const Report = () => {
     if (!summary) return null;
     
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6 print:break-inside-avoid">
         <Card className="min-h-32">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xs font-medium">Total Sales</CardTitle>
@@ -275,12 +276,12 @@ const Report = () => {
     );
   };
 
-  // Manager Performance Component
+  // Manager Performance Component (No scroll)
   const ManagerPerformance = ({ salesByManager }) => {
     if (!salesByManager || Object.keys(salesByManager).length === 0) return null;
     
     return (
-      <Card className="mb-6">
+      <Card className="mb-6 print:break-inside-avoid">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
@@ -290,7 +291,7 @@ const Report = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Object.entries(salesByManager).map(([manager, stats]) => (
-              <Card key={manager} className="border-2">
+              <Card key={manager} className="border-2 print:break-inside-avoid">
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-lg">{manager}</h3>
                   <div className="space-y-2 mt-3">
@@ -324,40 +325,38 @@ const Report = () => {
     );
   };
 
-  // Product Performance Component
+  // Product Performance Component (No scroll, shows all products)
   const ProductPerformance = ({ productSummary }) => {
     if (!productSummary || productSummary.length === 0) return null;
     
     return (
       <Card className="mb-6">
-        <CardHeader>
+        <CardHeader className="print:break-inside-avoid">
           <CardTitle className="flex items-center gap-2">
             <Package2 className="h-5 w-5" />
             Top Products (by quantity sold)
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-96">
-            <div className="space-y-2">
-              {productSummary.slice(0, 20).map((product, index) => (
-                <div key={`${product.productId}-${product.variantId}-${index}`} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="secondary" className="w-8 h-8 rounded-full flex items-center justify-center">
-                      {index + 1}
-                    </Badge>
-                    <div>
-                      <p className="font-medium">{product.productName || 'Unknown Product'}</p>
-                      <p className="text-sm text-muted-foreground">{product.variantName || 'Default Variant'}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">{product.quantitySold || 0} sold</p>
-                    <p className="text-sm text-muted-foreground">{formatCurrency(product.totalRevenue)}</p>
+          <div className="space-y-2">
+            {productSummary.map((product, index) => (
+              <div key={`${product.productId}-${product.variantId}-${index}`} className="flex items-center justify-between p-3 border rounded-lg print:break-inside-avoid">
+                <div className="flex items-center gap-3">
+                  <Badge variant="secondary" className="w-8 h-8 rounded-full flex items-center justify-center">
+                    {index + 1}
+                  </Badge>
+                  <div>
+                    <p className="font-medium">{product.productName || 'Unknown Product'}</p>
+                    <p className="text-sm text-muted-foreground">{product.variantName || 'Default Variant'}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </ScrollArea>
+                <div className="text-right">
+                  <p className="font-semibold">{product.quantitySold || 0} sold</p>
+                  <p className="text-sm text-muted-foreground">{formatCurrency(product.totalRevenue)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
     );
@@ -395,63 +394,85 @@ const Report = () => {
 
   // Main render when report is loaded
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <div className="container mx-auto px-4 py-6 space-y-6">
-        {/* Header with Logo and Back Button */}
-        <div className="bg-white rounded-lg shadow-sm border p-6">
-          <div className="flex items-center justify-between mb-4">
-            <Button
-              variant="outline"
-              onClick={handleBackToReports}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Reports
-            </Button>
-            <div className="flex items-center gap-3">
+    <>
+      {/* Add print styles */}
+      <style>{`
+        @media print {
+          body { -webkit-print-color-adjust: exact; }
+          .print\\:hidden { display: none !important; }
+          .print\\:break-inside-avoid { break-inside: avoid; }
+          .print\\:break-before-page { break-before: page; }
+          @page { margin: 0.5in; }
+        }
+      `}</style>
+      
+      <div className="min-h-screen bg-gray-50/50">
+        <div className="container mx-auto px-4 py-6 space-y-6">
+          {/* Header with Logo and Back Button */}
+          <div className="bg-white rounded-lg shadow-sm border p-6 print:break-inside-avoid">
+            <div className="flex items-center justify-between mb-4 print:hidden">
+              <Button
+                variant="outline"
+                onClick={handleBackToReports}
+                className="gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Reports
+              </Button>
+              <Button
+                onClick={handleExportPDF}
+                className="gap-2 bg-blue-600 hover:bg-blue-700"
+              >
+                <Download className="h-4 w-4" />
+                Export PDF
+              </Button>
+            </div>
+            <div className="flex items-center justify-center gap-3 mb-4">
               <div className="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center">
                 <img src="/images/wfg-logo.png" alt="Waffle Guy Logo" className="w-8 h-8" />
               </div>
-              <div className="text-right">
+              <div className="text-center">
                 <h1 className="text-2xl font-bold text-gray-900">The Waffle Guy's Report</h1>
                 <p className="text-sm text-gray-600">
                   {formatDate(currentReport.startDate)} to {formatDate(currentReport.endDate)}
                 </p>
               </div>
             </div>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                Generated on {formatDate(currentReport.createdAt)}
+              </p>
+            </div>
           </div>
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground">
-              Generated on {formatDate(currentReport.createdAt)}
-            </p>
+
+          {/* Report Stats */}
+          <ReportStats summary={currentReport.summary} />
+
+          {/* Manager Performance */}
+          <ManagerPerformance salesByManager={currentReport.salesByManager} />
+
+          {/* Product Performance */}
+          <ProductPerformance productSummary={currentReport.productSummary} />
+
+          <div className="print:break-before-page">
+            {/* FinancialDiscrepancyChart would go here - replace with your actual chart component */}
+                <FinancialDiscrepancyChart sessions={currentReport.sessions} />
+
           </div>
-        </div>
-
-        {/* Report Stats */}
-        <ReportStats summary={currentReport.summary} />
-
-        {/* Manager Performance */}
-        <ManagerPerformance salesByManager={currentReport.salesByManager} />
-
-        {/* Product Performance */}
-        <ProductPerformance productSummary={currentReport.productSummary} />
-
-        <FinancialDiscrepancyChart sessions={currentReport.sessions} />
-        
-        {/* Sessions Summary */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Register Sessions ({currentReport.sessions?.length || 0})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-96">
+          
+          {/* Sessions Summary */}
+          <Card className="shadow-sm print:break-before-page">
+            <CardHeader className="print:break-inside-avoid">
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Register Sessions ({currentReport.sessions?.length || 0})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="space-y-3">
                 {currentReport.sessions && currentReport.sessions.length > 0 ? (
                   currentReport.sessions.map((session, index) => (
-                    <div key={session.sessionId || index} className="p-4 border rounded-lg bg-white hover:bg-gray-50 transition-colors">
+                    <div key={session.sessionId || index} className="p-4 border rounded-lg bg-white hover:bg-gray-50 transition-colors print:break-inside-avoid">
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="font-semibold text-lg">Manager: {session.manager || 'Unknown'}</h3>
                         <Badge variant={session.isOpen ? "destructive" : "secondary"}>
@@ -486,11 +507,11 @@ const Report = () => {
                   </div>
                 )}
               </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
