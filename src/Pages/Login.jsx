@@ -6,12 +6,16 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, ShoppingCart, Eye, EyeOff } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
+import {useDispatch, useSelector} from 'react-redux'
+import { clearAuthError } from '@/features/auth/authSlice';
+import { login } from '../features/auth/authSlice';
+import { toast } from 'sonner';
 
 const LoginPage = () => {
-  const { login, isAuthenticated, isLoading, error, clearError } = useAuth();
   const location = useLocation();
-  
+  const dispatch = useDispatch();
+  const auth = useSelector((state)=>state.auth)
+  const { isAuthenticated, isLoading, error } = useSelector((state) => state.auth);
   // Form states
   const [loginForm, setLoginForm] = useState({
     username: '',
@@ -25,13 +29,11 @@ const LoginPage = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [createError, setCreateError] = useState('');
 
   // Clear errors when component mounts or forms change
-  useEffect(() => {
-    clearError();
-    setCreateError('');
-  }, [clearError]);
+    useEffect(() => {
+      dispatch(clearAuthError());
+    }, [dispatch]);
 
   // Redirect if already authenticated
   if (isAuthenticated) {
@@ -39,31 +41,41 @@ const LoginPage = () => {
     return <Navigate to={from} replace />;
   }
 
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault();
-    if (isSubmitting) return;
+        const handleLoginSubmit = async (e) => {
+          e.preventDefault();
+          if (isSubmitting) return;
 
-    if (!loginForm.username || !loginForm.password) {
-      return;
-    }
+          if (!loginForm.username || !loginForm.password) return;
 
-    setIsSubmitting(true);
-    
-    try {
-      const result = await login(loginForm.username, loginForm.password);
-      if (result.success) {
-        // Redirect will happen automatically due to isAuthenticated change
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+          setIsSubmitting(true);
+
+          try {
+            const resultAction = await dispatch(login({
+              username: loginForm.username,
+              password: loginForm.password
+            }));
+
+            if (login.fulfilled.match(resultAction)) {
+              const user = resultAction.payload;
+              toast.success('Login successful', {
+                description: `Welcome back, ${user.username}!`,
+              });
+            } else {
+              toast.error('Login failed', {
+                description: resultAction.payload || resultAction.error.message,
+              });
+            }
+          } catch (err) {
+            console.error('Unexpected login error:', err);
+          } finally {
+            setIsSubmitting(false);
+          }
+        };
 
   const handleLoginInputChange = (field, value) => {
     setLoginForm(prev => ({ ...prev, [field]: value }));
-    clearError();
+    dispatch(clearAuthError());
+
   };
 
 

@@ -11,20 +11,34 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Trash2, Eye, RefreshCw, Filter, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import ReceiptDrawer from './ReceiptDrawer';
-import { useAuth } from '../hooks/useAuth';
+import { useDispatch, useSelector } from 'react-redux';
+import { deleteOrder, selectAllOrders, setAllOrders } from '../features/orders/ordersSlice';
+import { useGetDailyStatsQuery, useGetOrdersBySessionQuery } from '../features/orders/ordersAPI';
 
 const ORDERS_PER_PAGE = 10;
 
-const OrdersTableView = ({ orders, onDeleteOrder, onRefresh, isLoading, onUpdatePayment }) => {
+const OrdersTableView = ({onUpdatePayment }) => {
   const [page, setPage] = useState(1);
+  const dispatch = useDispatch()
+  const {sessionId} = useSelector((state)=>state.register)
+  const orders = useSelector(selectAllOrders)
+  const { refetch: refetchStats } = useGetDailyStatsQuery(sessionId, {
+      skip: !sessionId,
+      });
+  const { data:fetchedOrders,refetch:refetchSessionOrders, isFetching:isLoading } = useGetOrdersBySessionQuery(sessionId, {
+      skip: !sessionId,
+      });
+
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [searchId, setSearchId] = useState('');
   const [deleteConfirmation, setDeleteConfirmation] = useState({ open: false, order: null });
-  const {user} = useAuth();
+  const {user} = useSelector((state)=> state.auth);
   const filteredOrders = useMemo(() => {
     let filtered = orders;
     
+
+
     // Filter by payment status
     if (paymentFilter !== 'all') {
       filtered = filtered.filter(order => order.paymentStatus === paymentFilter);
@@ -72,9 +86,11 @@ const OrdersTableView = ({ orders, onDeleteOrder, onRefresh, isLoading, onUpdate
     setDeleteConfirmation({ open: true, order });
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (deleteConfirmation.order) {
-      onDeleteOrder(deleteConfirmation.order._id);
+      const res = await dispatch(deleteOrder(deleteConfirmation.order._id));
+      refetchStats()
+      console.log("delete order: ",res)
     }
     setDeleteConfirmation({ open: false, order: null });
   };
@@ -91,6 +107,12 @@ const OrdersTableView = ({ orders, onDeleteOrder, onRefresh, isLoading, onUpdate
     }
   };
 
+   function fetchAllOrders(){
+      console.log("refetching orders")
+      refetchSessionOrders()
+      dispatch(setAllOrders(fetchedOrders))
+    }
+
   return (
     <Card className="h-full max-h-[calc(100vh-200px)] overflow-hidden">
       <CardHeader className="space-y-4">
@@ -100,7 +122,7 @@ const OrdersTableView = ({ orders, onDeleteOrder, onRefresh, isLoading, onUpdate
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={onRefresh}
+            onClick={()=>fetchAllOrders()}
             disabled={isLoading}
             className="flex items-center gap-2"
           >

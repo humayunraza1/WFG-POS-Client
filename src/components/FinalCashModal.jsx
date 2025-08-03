@@ -13,27 +13,25 @@ import {
 import { DollarSign, Loader2, Calculator } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Banknote, CreditCard } from "lucide-react";
+import { useSelector } from 'react-redux';
+import { useGetDailyStatsQuery } from '../features/orders/ordersAPI';
 
 const FinalCashModal = ({ 
   isOpen, 
   onClose, 
-  onSubmit, 
-  isLoading, 
-  registerData,
-  totalCash = 0,
-  totalOnline = 0, 
-  totalPending = 0,
-  expectedCash = 0,
-  expectedOnline = 0,
-  totalSales = 0, 
+  onSubmit,
   totalExpenses = 0 
 }) => {
   const [finalCash, setFinalCash] = useState('');
   const [error, setError] = useState('');
-  console.log(totalCash, totalOnline, totalPending, totalSales, totalExpenses);
-  const expectedClosingCash = (registerData?.startCash || 0) + expectedCash - totalExpenses;
+  const {registerData,isLoading,sessionId} = useSelector((state)=>state.register)
+    const { data: stats } = useGetDailyStatsQuery(sessionId, {
+    skip: !sessionId,
+  });
+  // console.log(totalCash, totalOnline, totalPending, totalSales, totalExpenses);
+  console.log(stats)
+  const expectedClosingCash = (registerData?.startCash || 0) + stats?.expectedCash - totalExpenses;
   const difference = finalCash ? parseFloat(finalCash) - expectedClosingCash : 0;
-  console.log()
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -81,15 +79,15 @@ const FinalCashModal = ({
               </div>
               <div>
                 <span className="text-muted-foreground">Total Cash Payments:</span>
-                <p className="font-medium ">+PKR {totalCash.toLocaleString()}</p>
+                <p className="font-medium ">+PKR {stats?.cashRecvd.toLocaleString()}</p>
               </div>
               <div>
                 <span className="text-muted-foreground">Total Online Payments:</span>
-                <p className="font-medium ">+PKR {totalOnline.toLocaleString()}</p>
+                <p className="font-medium ">+PKR {stats?.onlinePaymnt.toLocaleString()}</p>
               </div>
               <div>
                 <span className="text-muted-foreground">Total Sales:</span>
-                <p className="font-medium text-green-600">+PKR {totalSales.toLocaleString()}</p>
+                <p className="font-medium text-green-600">+PKR {stats?.totalSales.toLocaleString()}</p>
               </div>
               <div>
                 <span className="text-muted-foreground">Total Expenses:</span>
@@ -101,24 +99,24 @@ const FinalCashModal = ({
               </div>
             </div>
           </div>
-{totalPending > 0 && (
+{stats?.totalPendingPayment > 0 && (
   <Alert variant="destructive">
     <AlertTriangle className="h-4 w-4" />
     <AlertTitle>Pending Payments</AlertTitle>
     <AlertDescription>
       <p className="mb-2">
-        You have pending payments totaling <span className="font-semibold">PKR {totalPending.toLocaleString()}</span>.
+        You have pending payments totaling <span className="font-semibold">PKR {stats?.totalPendingPayment.toLocaleString()}</span>.
       </p>
       <div className="flex gap-6 text-sm">
         {/* Cash Pending */}
         <div className="flex items-center gap-2">
           <Banknote className="h-4 w-4 text-yellow-600" />
-          <span>Cash: <span className="font-semibold">PKR {(expectedCash - totalCash).toLocaleString()}</span></span>
+          <span>Cash: <span className="font-semibold">PKR {(stats?.expectedCash - stats?.cashRecvd).toLocaleString()}</span></span>
         </div>
         {/* Online Pending */}
         <div className="flex items-center gap-2">
           <CreditCard className="h-4 w-4 text-blue-600" />
-          <span>Online: <span className="font-semibold">PKR {(expectedOnline - totalOnline).toLocaleString()}</span></span>
+          <span>Online: <span className="font-semibold">PKR {(stats?.expectedOnline - stats?.onlinePaymnt).toLocaleString()}</span></span>
         </div>
       </div>
     </AlertDescription>

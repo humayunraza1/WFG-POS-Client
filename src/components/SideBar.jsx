@@ -35,26 +35,26 @@ import {
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SidebarMenuItem from './SidebarMenuItem';
-import useOrders from '@/hooks/useOrders';
 import useSidebarMenu from '../hooks/userSidebarMenu';
-import { usePreferences } from '@/hooks/usePreferences';
-import { useAuth } from '@/hooks/useAuth';
 import {
   getManagerBadgeStyle,
   getManagerInitials,
   getAvatarBackgroundColor
 } from '@/utils/managerColors';
 import { toast } from 'sonner';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateSetting } from '../features/settings/settingsSlice';
 
-const Sidebar = ({ activeView, onViewChange, user, categories, onCloseRegister, onOpenRegister, registerData, isRegisterOpen }) => {
+const Sidebar = ({ activeView, onViewChange, categories, onCloseRegister, onOpenRegister }) => {
   const [expandedItems, setExpandedItems] = useState({
     variants: true
   });
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { dailyStats, statsLoading } = useOrders();
-  const { accountPrefs, businessPrefs, loading: prefsLoading, updatePreference } = usePreferences();
-  const { user: authUser } = useAuth();
-
+  const {registerData,isOpen:isRegisterOpen} = useSelector((state)=>state.register)
+  const { accountPrefs, businessPrefs,isLoading:prefsLoading } = useSelector((state)=>state.settings);
+  const { user } = useSelector((state)=>state.auth);
+  const dispatch = useDispatch()
+  
   const toggleExpanded = (key) => {
     if (key === 'variants') return;
     setExpandedItems(prev => ({
@@ -66,8 +66,8 @@ const Sidebar = ({ activeView, onViewChange, user, categories, onCloseRegister, 
   const menuItems = useSidebarMenu(categories);
 
   const handlePreferenceChange = async (type, key, value) => {
-    const result = await updatePreference(type, key, value);
-    if (result.success) {
+    const result = await dispatch(updateSetting({type, key, value}));
+    if (result.meta.requestStatus == 'fulfilled') {
       toast.success(`Preference "${key}" updated`);
     } else {
       toast.error(`Failed to update "${key}"`);
@@ -179,10 +179,10 @@ const Sidebar = ({ activeView, onViewChange, user, categories, onCloseRegister, 
                         type="business"
                         prefKey={key}
                         label={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                        disabled={!authUser?.access?.isAdmin}
+                        disabled={!user?.access?.isAdmin}
                       />
                     ))}
-                    {!authUser?.access?.isAdmin && (
+                    {!user?.access?.isAdmin && (
                       <p className="text-xs text-muted-foreground italic">
                         Admin access required to modify business preferences
                       </p>

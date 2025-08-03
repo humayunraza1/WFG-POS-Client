@@ -11,19 +11,18 @@ import {
   CreditCard
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useSelector } from 'react-redux';
+import { useGetDailyStatsQuery } from '../features/orders/ordersAPI';
+import { useEffect } from 'react';
 
-const DashboardStats = ({ 
-  cash,
-  online,
-  sales, 
-  orders,
-  totalExpenses, 
-  cashInHand, 
-  pendingPayment = 0, // New prop for pending payments
-  isLoading = false 
-}) => {
+const DashboardStats = () => {
+  const {sessionId} = useSelector((state)=> state.register)
+  const { data: stats, isFetching:isLoading } = useGetDailyStatsQuery(sessionId, {
+  skip: !sessionId,
+});
+
   // Calculate total cash: actual sales received + cash in hand - expenses
-  const totalCash = (cash || 0) + (cashInHand || 0) - (totalExpenses || 0);
+  const totalCash = (stats?.cash || 0) + (stats?.cashInHand || 0) - (stats?.totalExpenses || 0);
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
@@ -38,7 +37,7 @@ const DashboardStats = ({
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              `PKR ${sales.toLocaleString()}`
+              `PKR ${stats?.totalSales.toLocaleString()||0}`
             )}
           </div>
           <p className="text-xs text-muted-foreground">Today's sales</p>
@@ -55,7 +54,7 @@ const DashboardStats = ({
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              `PKR ${cash.toLocaleString()}`
+              `PKR ${stats?.cashRecvd.toLocaleString()}`
             )}
           </div>
           <p className="text-xs text-muted-foreground">Today's payments</p>
@@ -72,7 +71,7 @@ const DashboardStats = ({
       {isLoading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
-        `PKR ${online}`
+        `PKR ${stats?.onlinePayment || 0}`
       )}
     </div>
     <p className="text-xs text-muted-foreground">Digital transfers</p>
@@ -89,7 +88,7 @@ const DashboardStats = ({
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              `PKR ${pendingPayment.toLocaleString()}`
+              `PKR ${stats?.totalPendingPayment.toLocaleString()}`
             )}
           </div>
           <p className="text-xs text-red-100">Outstanding amount</p>
@@ -107,7 +106,7 @@ const DashboardStats = ({
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              orders
+              stats?.orderCount || 0
             )}
           </div>
           <p className="text-xs text-muted-foreground">Total orders</p>
@@ -143,7 +142,7 @@ const DashboardStats = ({
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              `PKR ${(totalExpenses || 0).toLocaleString()}`
+              `PKR ${(stats?.totalExpenses || 0).toLocaleString()}`
             )}
           </div>
           <p className="text-xs text-muted-foreground">Total spent</p>

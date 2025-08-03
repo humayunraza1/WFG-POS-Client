@@ -36,14 +36,12 @@ import Cart from '../components/Cart';
 import Sidebar from '../components/SideBar';
 import MobileSidebar from '../components/Mobile/MobileSidebar';
 import useRegister from '../hooks/useRegister';
-import useOrders from '../hooks/useOrders';
 import useExpenses from '../hooks/useExpenses';
 import ProductsView from '../components/ProductsView';
 import OrdersTableView from '../components/OrdersTableView';
 import useProducts from '../hooks/useProducts';
 import StartCashModal from '../components/StartCashModal';
 import FinalCashModal from '../components/FinalCashModal';
-import { useAuth } from '../hooks/useAuth';
 import OrdersHistory from '../components/Sidebar/OrderHistory';
 import NewVariantsView from '../components/Sidebar/NewVariantsView';
 import MobileCategoryDrawer from '../components/Mobile/MobileCategoryDrawer';
@@ -51,10 +49,21 @@ import CategoryHintPopover from '../components/Mobile/CategoryHintPopover';
 import EmployeeStatsTable from '@/components/stats/EmployeeStatsTable'
 import TempOrdersDrawer from '../components/Mobile/TempOrdersDrawer';
 import { useTempOrders } from '../hooks/useTempOrders';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '../features/auth/authSlice';
+import { checkRegisterStatus, closeRegister, openRegister } from '../features/registers/registerSlice';
+import { addOrder } from '@/features/orders/ordersSlice';
+import { updatePayment } from '../features/orders/ordersSlice';
+import { useGetDailyStatsQuery } from '../features/orders/ordersAPI';
 
 // Main Dashboard Component
 const POSDashboard = () => {
-    const { logout, user } = useAuth();
+  const dispatch = useDispatch();
+    const { user,isAuthenticated } = useSelector((state)=>state.auth);
+    const {isLoading:registerLoading,sessionId,registerData,isOpen:isRegisterOpen} = useSelector((state)=>state.register)
+    const { refetch: refetchStats } = useGetDailyStatsQuery(sessionId, {
+    skip: !sessionId,
+    });
     const [activeView, setActiveView] = useState('dashboard');
     const [activeSubView, setActiveSubView] = useState(null);
     const [cartItems, setCartItems] = useState([]);
@@ -63,25 +72,14 @@ const POSDashboard = () => {
     const [showStartCashModal, setShowStartCashModal] = useState(false);
     const [showFinalCashModal, setShowFinalCashModal] = useState(false);
     const [isOpeningRegister, setIsOpeningRegister] = useState(false);
-    const [isClosingRegister, setIsClosingRegister] = useState(false);
     const [isCategoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
 const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
-    const [isProcessingOrder, setIsProcessingOrder] = useState(false);
     const [discount, setDiscount] = useState(null);
     const {
-      isOpen: isRegisterOpen,
-      sessionId,
-      registerData,
-      isLoading: registerLoading,
       error: registerError,
-      openRegister,
-      closeRegister,
-      checkRegisterStatus,
       managers,
-      managersLoading,
       managersError
     } = useRegister();
-
     const {tempOrders,clearAllOrders} = useTempOrders();
 
     const {
@@ -93,21 +91,6 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
       fetchProducts,
       fetchProductsByCategory
     } = useProducts();
-
-    const {
-      orders,
-      allOrders,
-      isLoading: ordersLoading,
-      isLoadingAllOrders,
-      error: ordersError,
-      dailyStats,
-      statsLoading,
-      fetchOrders,
-      fetchAllOrders,
-      addOrder,
-      deleteOrder,
-      updatePayment
-    } = useOrders(sessionId, isRegisterOpen, checkRegisterStatus);
 
     // Pass callback to expenses hook to refresh dashboard stats
     const {
@@ -125,6 +108,12 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
       fetchCategories();
       fetchProducts();
     }, []);
+
+    useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(checkRegisterStatus());
+    }
+  }, [dispatch, isAuthenticated]);
 
     // Additional fetch when register opens to ensure fresh data
     useEffect(() => {
@@ -163,11 +152,6 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
           description: productsError
         });
       }
-      if (ordersError) {
-        toast.error('Orders Error', {
-          description: ordersError
-        });
-      }
       if (expensesError) {
         toast.error('Expenses Error', {
           description: expensesError
@@ -178,7 +162,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
           description: managersError
         });
       }
-    }, [registerError, productsError, ordersError, expensesError, managersError]);
+    }, [registerError, productsError, expensesError, managersError]);
 
     // Function to check if operation requires active session
     const requiresActiveSession = (operation) => {
@@ -226,7 +210,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
       console.log(registerData)
       try {
         setIsOpeningRegister(true);
-        await openRegister(registerData);
+        dispatch(openRegister(registerData))
         toast.success('Register opened successfully', {
           description: `Manager: ${registerData.manager}, Starting cash: PKR ${registerData.startCash.toLocaleString()}`
         });
@@ -255,8 +239,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
 
     const handleFinalCashSubmit = async (finalCash) => {
       try {
-        setIsClosingRegister(true);
-        await closeRegister(finalCash);
+        dispatch(closeRegister(finalCash));
         toast.success('Register closed successfully', {
           description: `Final cash: PKR ${finalCash.toLocaleString()}`
         });
@@ -270,8 +253,6 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
         toast.error('Failed to close register', {
           description: error.message
         });
-      } finally {
-        setIsClosingRegister(false);
       }
     };
     
@@ -335,17 +316,19 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
       }
 
       console.log('Processing order:', orderData);
-      setIsProcessingOrder(true);
-      
+
+      const finalOrderData = {...orderData,registerSession: sessionId,
+          paymentStatus: orderData.outstandingPayment > 0 ? 'pending' : 'paid'}
+      console.log("final order data: ",finalOrderData)
       try {
-        await addOrder(orderData);
-        
+        const res = await dispatch(addOrder(finalOrderData));
+        console.log("order placed using thunk: ",res)
         // Show success message with payment status
         const paymentStatus = orderData.outstandingPayment > 0 ? 'partial payment' : 'full payment';
         const description = orderData.outstandingPayment > 0 
           ? `Paid: PKR ${orderData.amountPaid.toLocaleString()}, Outstanding: PKR ${orderData.outstandingPayment.toLocaleString()}`
           : `Total: PKR ${orderData.finalPrice.toLocaleString()}`;
-        
+        refetchStats()
         toast.success(`Order processed successfully (${paymentStatus})`, {
           description: description
         });
@@ -360,18 +343,18 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
           description: error.message
         });
         throw error; // Re-throw to let the cart component handle it
-      } finally {
-        setIsProcessingOrder(false);
-      }
+      } 
     };
 
     // New function to handle payment updates from orders table
     const handleUpdatePayment = async (orderId, amount) => {
       try {
-        const result = await updatePayment(orderId, amount);
+        const result = await dispatch(updatePayment({orderId, amountReceived:amount}));
+        console.log(result)
         toast.success('Payment updated successfully', {
           description: result.message
         });
+        refetchStats()
         return result;
       } catch (error) {
         toast.error('Failed to update payment', {
@@ -405,12 +388,12 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
 
     const handleLogout = async () => {
       try {
-        await logout();
-        // Navigation to login page will be handled automatically by the auth context
+        dispatch(logout())
       } catch (error) {
         console.error('Logout error:', error);
       }
     };
+
   
     const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     
@@ -418,7 +401,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
       return expenses.reduce((total, expense) => total + expense.amount, 0);
     };
 
-    const isLoading = registerLoading || productsLoading || ordersLoading || expensesLoading;
+    const isLoading = registerLoading || productsLoading || expensesLoading;
     
     // Check if we should show the checkout button
     const shouldShowCheckoutButton = (activeView === 'products' || activeView === 'variants') && totalItems > 0;
@@ -451,10 +434,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
           onViewChange={handleViewChange}
         />;
         case 'stats':
-          return <EmployeeStatsTable/>
-        case 'summary':
-          return <SummaryView period={activeSubView || 'All Orders'} orders={orders} />;
-        
+          return <EmployeeStatsTable/>  
         // case 'analysis':
         //   // Handle analysis view with sub-tabs
         //   return <AnalysisView activeTab={activeSubView} />;
@@ -491,24 +471,9 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
           }
           return (
             <OrdersTableView 
-              orders={orders} 
-              onRefresh={fetchOrders}
               onUpdatePayment={handleUpdatePayment}
-              onDeleteOrder={deleteOrder}
-              isLoading={isLoading}
             />
           );
-
-        case 'orders-history':
-          return (
-            <OrdersHistory 
-              onUpdatePayment={handleUpdatePayment}
-              fetchAllOrders={fetchAllOrders}
-              allOrders={allOrders}
-              isLoadingAllOrders={isLoadingAllOrders}
-            />
-          );
-
         case 'add-product':
         case 'edit-product':
           return <ProductManagement mode={activeView} />;
@@ -634,17 +599,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
           </div>
           
           {/* Top Stats - Now using API data with pending payment */}
-          <DashboardStats 
-            cash={isRegisterOpen ? dailyStats.cashRecvd : 0}
-            sales={isRegisterOpen ? dailyStats.totalSales : 0}
-            orders={isRegisterOpen ? dailyStats.orderCount : 0}
-            online={isRegisterOpen ? dailyStats.onlinePaymnt : 0}
-            pendingPayment={isRegisterOpen ? (dailyStats.totalPendingPayment || 0) : 0}
-            totalExpenses={isRegisterOpen ? calculateTotalExpenses() : 0}
-            cashInHand={isRegisterOpen ? (registerData?.startCash || 0) : 0}
-            isRegisterOpen={isRegisterOpen}
-            isLoading={statsLoading}
-          />
+          <DashboardStats />
                     
           {/* Main Layout - Now without cart, extended width */}
           <div className="flex gap-6">
@@ -654,11 +609,8 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
                 activeView={activeView}
                 onViewChange={handleViewChange}
                 categories={categories}
-                user={user}
                 onCloseRegister={handleCloseRegister}
                 onOpenRegister={handleOpenRegister}
-                registerData={registerData}
-                isRegisterOpen={isRegisterOpen}
               />
             </div>
             
@@ -696,7 +648,6 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
             onClearCart={handleClearCart}
             discount={discount}
             setDiscount={setDiscount}
-            isProcessingOrder={isProcessingOrder}
           />
           
           {/* Mobile Category Drawer */}
@@ -791,15 +742,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
             isOpen={showFinalCashModal}
             onClose={() => setShowFinalCashModal(false)}
             onSubmit={handleFinalCashSubmit}
-            isLoading={isClosingRegister}
-            registerData={registerData}
-            totalSales={dailyStats.totalSales}
-            totalCash={dailyStats.cashRecvd}
-            totalOnline={dailyStats.onlinePaymnt}
-            totalPending={dailyStats.totalPendingPayment}
             totalExpenses={calculateTotalExpenses()}
-            expectedOnline={isRegisterOpen ? dailyStats.expectedOnline : 0}
-            expectedCash={isRegisterOpen ? dailyStats.expectedCash : 0}
           />
         </div>
       </div>

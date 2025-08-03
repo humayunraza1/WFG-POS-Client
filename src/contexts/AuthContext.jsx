@@ -38,9 +38,16 @@ const AuthProvider = ({ children }) => {
       const res = await axiosPrivate.post('/auth/login', { username, password });
       setUser(res.data.user);
       setIsAuthenticated(true);
+    if (login.fulfilled.match(resultAction)) {
+      const user = resultAction.payload;
       toast.success('Login successful', {
-        description: `Welcome back, ${res.data.user.username}!`
+        description: `Welcome back, ${user.username}!`,
       });
+    } else {
+      toast.error('Login failed', {
+        description: resultAction.payload || resultAction.error.message,
+      });
+    }
       return { success: true };
     } catch (err) {
       const message =

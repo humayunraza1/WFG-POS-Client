@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 
 // Create the context
 const TempOrdersContext = createContext();
@@ -15,11 +16,13 @@ export const useTempOrders = () => {
 // Provider component
 export const TempOrdersProvider = ({ children }) => {
   const [tempOrders, setTempOrders] = useState([]);
-
+  const {isAuthenticated} = useSelector((state)=>state.auth)
   // Load temp orders from localStorage on mount
   useEffect(() => {
-    loadTempOrders();
-  }, []);
+    if(isAuthenticated){
+      loadTempOrders();
+    }
+  }, [isAuthenticated]);
 
   const loadTempOrders = () => {
     try {

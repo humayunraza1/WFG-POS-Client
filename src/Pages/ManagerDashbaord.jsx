@@ -39,27 +39,25 @@ import Sidebar from '../components/SideBar';
 import MobileSidebar from '../components/Mobile/MobileSidebar';
 import ActiveRegisters from '../components/ActiveRegisters';
 import RegisterSummary from '../components/RegisterSummary';
-import useRegister from '../hooks/useRegister';
-import useOrders from '../hooks/useOrders';
 import useExpenses from '../hooks/useExpenses';
-import ProductsView from '../components/ProductsView';
 import OrdersTableView from '../components/OrdersTableView';
 import useProducts from '../hooks/useProducts';
-import StartCashModal from '../components/StartCashModal';
-import FinalCashModal from '../components/FinalCashModal';
-import { useAuth } from '../hooks/useAuth';
 import OrdersHistory from '../components/Sidebar/OrderHistory';
 import useManager from '../hooks/userManager';
 import EmployeesTable from '../components/EmployeesTable';
 import BranchTable from '../components/BranchTable';
 import AccountsTable from '../components/AccountsTable';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '../features/auth/authSlice';
+import { updatePayment } from '../features/orders/ordersSlice';
 
 // Main Dashboard Component
 const ManagerDashboard = () => {
-    const { logout, user } = useAuth();
+    const { user } = useSelector((state)=>state.auth)
+    const dispatch = useDispatch();
+    const {isLoading:registerLoading,sessionId,registerData,isOpen:isRegisterOpen} = useSelector((state)=>state.register)
     const [activeView, setActiveView] = useState('dashboard');
     const [activeSubView, setActiveSubView] = useState(null);
-    const [cartItems, setCartItems] = useState([]);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedSessionId, setSelectedSessionId] = useState(null);
@@ -68,16 +66,6 @@ const ManagerDashboard = () => {
       products,
       fetchProducts
     } = useProducts();
-
-    const {
-      orders,
-      fetchOrders,
-      deleteOrder,
-      updatePayment,
-      fetchAllOrders,
-      allOrders,
-      isLoadingAllOrders
-    } = useOrders();
 
     const {
       expenses,
@@ -163,11 +151,16 @@ const ManagerDashboard = () => {
     // Payment update handler
     const handleUpdatePayment = async (orderId, amount) => {
       try {
-        const result = await updatePayment(orderId, amount);
-        toast.success('Payment updated successfully', {
-          description: result.message
-        });
-        
+        const result = await dispatch(updatePayment({orderId, amountReceived:amount}));
+        if(result.meta.message == 'fulfilled'){
+
+          toast.success('Payment updated successfully', {
+            description: result.message
+          });
+        }else{
+          toast.error('Error updating order payment')
+        }
+          
         // Refresh register summary if viewing register data
         if (selectedSessionId || activeView === 'registers') {
           setSummaryLoading(true);
@@ -245,7 +238,7 @@ const ManagerDashboard = () => {
 
     const handleLogout = async () => {
       try {
-        await logout();
+        dispatch(logout())
       } catch (error) {
         console.error('Logout error:', error);
       }
@@ -320,9 +313,8 @@ const ManagerDashboard = () => {
               
               <OrdersTableView 
                 orders={filteredOrders}
-                onRefresh={selectedSessionId ? () => fetchRegisterSummary(selectedSessionId) : fetchOrders}
+                onRefresh={selectedSessionId && fetchRegisterSummary(selectedSessionId)}
                 onUpdatePayment={handleUpdatePayment}
-                onDeleteOrder={deleteOrder}
                 isLoading={summaryLoading}
                 selectedSessionId={selectedSessionId}
               />
@@ -333,11 +325,8 @@ const ManagerDashboard = () => {
           return activeSubView == 'Orders History' ?  
             <OrdersHistory 
               onUpdatePayment={handleUpdatePayment}
-              fetchAllOrders={fetchAllOrders}
-              allOrders={allOrders}
-              isLoadingAllOrders={isLoadingAllOrders}
               />:
-          <SummaryView period={activeSubView || 'All Orders'} orders={orders} />;
+          <SummaryView />;
 
         case 'manage-product':
           return <ProductManagement />;

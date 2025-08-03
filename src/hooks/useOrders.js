@@ -2,10 +2,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import axiosPublic,{axiosPrivate} from '@/api/axios';
 import useReceiptPrinter from './useReceiptPrinter';
-import { toast } from 'sonner';
-import { usePreferences } from './usePreferences';
+import { useSelector } from 'react-redux';
 
-const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
+const useOrders = (sessionId, isRegisterOpen) => {
   const [orders, setOrders] = useState([]);
   const [allOrders, setAllOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -20,7 +19,7 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
     totalPendingPayment: 0, 
     orderCount: 0 
   });
-  const {accountPrefs} = usePreferences();
+  const {accountPrefs} = useSelector((state)=>state.settings);
   const [statsLoading, setStatsLoading] = useState(false);
   
   const { printReceipt, isPrinting } = useReceiptPrinter();
@@ -145,81 +144,6 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
     }
   };
 
-  const addOrder = async (orderData, options = {}) => {
-    try {
-      if (!isRegisterOpen || !sessionId) {
-        try {
-          await checkRegisterStatus();
-        } catch (err) {
-          setError(err.response?.data?.message || err.message);
-          throw err;
-        }
-      }
-      console.log("order data p2: ",orderData)
-      // Validate that orderData matches the Order schema
-      const formattedOrderData = {
-        registerSession: sessionId,
-        items: orderData.items,
-        discount: orderData.discount || 0,
-        paymentType: orderData.paymentType,
-        actualPrice: orderData.actualPrice,     // Price before discount
-        finalPrice: orderData.finalPrice,       // Price after discount
-        amountPaid: orderData.amountPaid || 0,
-        serverRef: orderData.serverId,
-        outstandingPayment: orderData.outstandingPayment,
-        paymentStatus: orderData.outstandingPayment > 0 ? 'pending':'paid'
-      };
-
-      console.log('Adding order with schema-compliant data:', formattedOrderData);
-      const { data } = await axiosPrivate.post('/orders', formattedOrderData, { withCredentials: true });
-      setOrders(prev => [...prev, data]);
-      console.log('order placed: ', data)
-      fetchDailyStats();
-
-      // Auto-print receipt if enabled and not explicitly disabled
-      if (accountPrefs.printReceipt) {
-        try {
-          await printReceipt(data);
-          console.log('Receipt printed successfully');
-        } catch (printError) {
-          console.error('Failed to print receipt:', printError);
-        }
-      }
-
-      return data;
-    } catch (err) {
-      setError(err.response?.data?.message || err.message);
-      throw err;
-    }
-  };
-
-  const updatePayment = async (orderId, amountReceived) => {
-    try {
-      const { data } = await axiosPrivate.patch(`/orders/${orderId}/payment`, {
-        amountReceived
-      }, { withCredentials: true });
-
-      setOrders(prev => 
-        prev.map(order => 
-          order._id === orderId ? data.order : order
-        )
-      );
-
-      setAllOrders(prev => 
-        prev.map(order => 
-          order._id === orderId ? data.order : order
-        )
-      );
-
-      fetchDailyStats();
-
-      return data;
-    } catch (err) {
-      setError(err.response?.data?.message || err.message);
-      throw err;
-    }
-  };
-
   const addOrderWithPrint = async (orderData) => {
     return addOrder(orderData, { print: true });
   };
@@ -234,18 +158,6 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
       setOrders(prev => prev.map(o => o._id === id ? data : o));
       fetchDailyStats();
       return data;
-    } catch (err) {
-      setError(err.response?.data?.message || err.message);
-      throw err;
-    }
-  };
-
-  const deleteOrder = async (id) => {
-    try {
-      await axiosPrivate.delete(`/manager/delete-order/${id}`, { withCredentials: true });
-      setOrders(prev => prev.filter(o => o._id !== id));
-      toast.success('Order deleted successfully');
-      fetchDailyStats();
     } catch (err) {
       setError(err.response?.data?.message || err.message);
       throw err;
@@ -274,12 +186,9 @@ const useOrders = (sessionId, isRegisterOpen, checkRegisterStatus) => {
     fetchOrders,
     fetchAllOrders,
     fetchDailyStats,
-    addOrder,
     addOrderWithPrint,
     addOrderWithoutPrint,
     updateOrder,
-    updatePayment,
-    deleteOrder,
     reprintReceipt,
   };
 };

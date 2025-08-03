@@ -9,24 +9,24 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertCircle, DollarSign, Receipt, User } from 'lucide-react';
 import useManager from '../hooks/userManager';
-import { usePreferences } from '../hooks/usePreferences';
 import { toast } from 'sonner';
 import {useTempOrders} from '../hooks/useTempOrders';
+import { useSelector } from 'react-redux';
 
 const CheckoutDialog = ({ 
   isOpen, 
   onClose,
   serverData,
   orderData, 
-  onConfirmOrder, 
-  isProcessing = false 
+  onConfirmOrder,
 }) => {
+  const {isLoading:isProcessing} = useSelector((state)=>state.orders)
+  const {businessPrefs} = useSelector((state)=>state.settings);
   const [amountReceived, setAmountReceived] = useState('');
   const [selectedServerId, setSelectedServerId] = useState('');
   const [error, setError] = useState('');
   const {fetchEmployeesByRole} = useManager();
   const [server, setServer] = useState([]);
-  const {businessPrefs} = usePreferences();
   const {addTempOrder} = useTempOrders()
   useEffect(() => {
     console.log(businessPrefs)

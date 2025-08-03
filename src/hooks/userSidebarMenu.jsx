@@ -8,13 +8,12 @@ import {
   Settings,
   ChartNoAxesColumn
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { usePreferences } from '@/hooks/usePreferences';
+import { useSelector } from 'react-redux';
 
 const useSidebarMenu = (products) => {
-  const { user } = useAuth();
+  const { user } = useSelector((state)=>state.auth);
   const access = user?.access || {};
-  const {businessPrefs} = usePreferences();
+  const {businessPrefs} = useSelector((state)=>state.settings);
     console.log('Access:', access);
   const menuItems = [];
   // Products with variants (Always shown if products exist)

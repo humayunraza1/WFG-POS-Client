@@ -1,7 +1,7 @@
 // src/context/PreferencesContext.js
 import { createContext, useContext, useEffect, useState } from 'react';
 import {axiosPrivate} from '@/api/axios'; // or wherever your axios instance lives
-import { useAuth } from './useAuth';
+import { useSelector } from 'react-redux';
 
 const PreferencesContext = createContext();
 
@@ -9,30 +9,31 @@ export const PreferencesProvider = ({ children }) => {
   const [accountPrefs, setAccountPrefs] = useState(null);
   const [businessPrefs, setBusinessPrefs] = useState(null);
   const [loading, setLoading] = useState(true);
-  const {user} = useAuth()
+  const {user,isAuthenticated} = useSelector((state)=> state.auth)
   // Fetch preferences on mount
   useEffect(() => {
-    if(!user) return 
-    const fetchPreferences = async () => {
-      try {
-        const [accountRes, businessRes] = await Promise.all([
-          axiosPrivate.get('/settings/account'),
-          axiosPrivate.get('/settings/business'),
-        ]);
-        setAccountPrefs(accountRes.data);
-        setBusinessPrefs(businessRes.data);
+    if(isAuthenticated){
 
-        console.log("account settings: ", accountRes.data)
-        console.log("business settings: ", businessRes.data)
-      } catch (error) {
-        console.error('Failed to load preferences:', error);
-      } finally {
-        setLoading(false);
+      const fetchPreferences = async () => {
+        try {
+          const [accountRes, businessRes] = await Promise.all([
+            axiosPrivate.get('/settings/account'),
+            axiosPrivate.get('/settings/business'),
+          ]);
+          setAccountPrefs(accountRes.data);
+          setBusinessPrefs(businessRes.data);
+          
+          console.log("account settings: ", accountRes.data)
+          console.log("business settings: ", businessRes.data)
+        } catch (error) {
+          console.error('Failed to load preferences:', error);
+        } finally {
+          setLoading(false);
+        }
       }
+      fetchPreferences();
     };
-
-    fetchPreferences();
-  }, [user]);
+  }, [isAuthenticated]);
 
   // Utility to update a specific preference
   const updatePreference = async (type, key, value) => {

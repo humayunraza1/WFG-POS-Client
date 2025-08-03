@@ -1,10 +1,10 @@
 // src/Pages/DashboardRouter.jsx
-import { useAuth } from '@/hooks/useAuth';
 import ManagerDashboard from './ManagerDashbaord';
 import POSDashboard from './POSDashboard';
+import { useSelector } from 'react-redux';
 
 const DashboardRouter = () => {
-  const { user } = useAuth();
+  const { user } = useSelector((state)=>state.auth);
 
   if (!user || !user.access) return null;
 

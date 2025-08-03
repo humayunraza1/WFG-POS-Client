@@ -16,7 +16,7 @@ import { ShoppingCart, CreditCard, Banknote, X } from 'lucide-react';
 import CartItem from './CartItem';
 import CheckoutDialog from './CheckoutDialog';
 import { useState } from 'react';
-import { usePreferences } from '../hooks/usePreferences';
+import { useSelector } from 'react-redux';
 
 const Cart = ({ 
   isOpen,
@@ -26,17 +26,17 @@ const Cart = ({
   onRemoveItem, 
   onCheckout, 
   onClearCart,
-  isProcessingOrder = false,
   discount = 0,
   setDiscount
 }) => {
     
     const [paymentType, setPaymentType] = useState('cash');
+    const {isLoading:isProcessingOrder} = useSelector((state)=>state.orders)
     const [showCheckoutDialog, setShowCheckoutDialog] = useState(false);
     const [pendingOrderData, setPendingOrderData] = useState(null);
     const [serverData,setServerData] = useState([])
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const {businessPrefs} = usePreferences();
+    const {businessPrefs} = useSelector((state)=>state.settings)
     const discountAmount = discount;
     const afterDiscount = subtotal - discountAmount;
     const total = afterDiscount;
@@ -267,7 +267,6 @@ const Cart = ({
                 onClose={handleCloseCheckoutDialog}
                 orderData={pendingOrderData}
                 onConfirmOrder={handleConfirmOrder}
-                isProcessing={isProcessingOrder}
                 serverData={serverData}
             />
         </>

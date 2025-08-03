@@ -1,9 +1,9 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
+import { useSelector } from 'react-redux';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useSelector((state)=>state.auth);
   const location = useLocation();
 
   // Show loading spinner while checking authentication

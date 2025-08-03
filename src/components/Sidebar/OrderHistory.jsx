@@ -7,8 +7,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Search, Eye, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import ReceiptDrawer from '../ReceiptDrawer';
+import { useGetAllOrdersQuery } from '../../features/orders/ordersAPI';
 
-const OrdersHistory = ({ onUpdatePayment, fetchAllOrders, allOrders, isLoadingAllOrders }) => {
+const OrdersHistory = ({ onUpdatePayment }) => {
+  const {data:allOrders,isLoading: isLoadingAllOrders,refetch:fetchAllOrders } = useGetAllOrdersQuery()
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [error, setError] = useState(null);
   const [searchId, setSearchId] = useState('');
@@ -30,21 +32,7 @@ const OrdersHistory = ({ onUpdatePayment, fetchAllOrders, allOrders, isLoadingAl
   }, []);
 
   const ordersPerPage = isMobile ? 5 : 10;
-
-  useEffect(() => {
-    // Only fetch if allOrders is empty
-    if (allOrders.length === 0) {
-      const loadOrders = async () => {
-        try {
-          await fetchAllOrders();
-        } catch (err) {
-          setError(err.message || 'Failed to fetch orders');
-        }
-      };
-      loadOrders();
-    }
-  }, [fetchAllOrders, allOrders.length]);
-
+  
   useEffect(() => {
     // Set initial filtered orders when allOrders is loaded
     setFilteredOrders(allOrders);

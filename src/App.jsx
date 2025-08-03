@@ -6,16 +6,17 @@ import LoginPage from './Pages/Login';
 import Report from './Pages/Report';
 import DashboardRouter from './Pages/DashboardRouter';
 import AxiosInterceptorProvider from './contexts/AxiosInterceptorProvider';
-import { PreferencesProvider } from './hooks/usePreferences.jsx';
 import TempOrdersProvider from './hooks/useTempOrders.jsx';
-
+import {Provider} from 'react-redux'
+import { store } from './app/store.js';
+import AppInitializer from './components/AppInitializer.jsx';
 function App() {
   return (
-    <AuthProvider>
-      <PreferencesProvider>
+    <Provider store={store}>
       <TempOrdersProvider>
       <AxiosInterceptorProvider />
       <Toaster richColors position="top-right" />
+      <AppInitializer />
       <Routes>
         {/* Default route - redirect to login */}
         <Route path="/" element={<Navigate to="/login" replace />} />
@@ -47,8 +48,7 @@ function App() {
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
         </TempOrdersProvider>
-    </PreferencesProvider>
-    </AuthProvider>
+  </Provider>
   );
 }
 
