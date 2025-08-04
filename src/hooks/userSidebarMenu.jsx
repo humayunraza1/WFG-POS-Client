@@ -51,12 +51,6 @@ const useSidebarMenu = (products) => {
   }
 
   if (access.isManager || access.isAdmin) {
-
-    menuItems.push({
-      key: 'registers',
-      icon: DollarSign,
-      label: 'Overview'
-    });
     menuItems.push({
       key: 'history',
       icon: History,

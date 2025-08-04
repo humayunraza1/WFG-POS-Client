@@ -15,21 +15,20 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Banknote, CreditCard } from "lucide-react";
 import { useSelector } from 'react-redux';
 import { useGetDailyStatsQuery } from '../features/orders/ordersAPI';
+import { selectTotalExpenses } from '../features/expense/expenseSlice';
 
 const FinalCashModal = ({ 
   isOpen, 
   onClose, 
   onSubmit,
-  totalExpenses = 0 
 }) => {
   const [finalCash, setFinalCash] = useState('');
   const [error, setError] = useState('');
   const {registerData,isLoading,sessionId} = useSelector((state)=>state.register)
+  const totalExpenses = useSelector(selectTotalExpenses);
     const { data: stats } = useGetDailyStatsQuery(sessionId, {
     skip: !sessionId,
   });
-  // console.log(totalCash, totalOnline, totalPending, totalSales, totalExpenses);
-  console.log(stats)
   const expectedClosingCash = (registerData?.startCash || 0) + stats?.expectedCash - totalExpenses;
   const difference = finalCash ? parseFloat(finalCash) - expectedClosingCash : 0;
   const handleSubmit = (e) => {

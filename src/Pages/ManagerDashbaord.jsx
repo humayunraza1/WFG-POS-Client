@@ -50,12 +50,16 @@ import AccountsTable from '../components/AccountsTable';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
 import { updatePayment } from '../features/orders/ordersSlice';
+import { useGetDailyStatsQuery, useGetOrdersBySessionQuery, useLazyGetDailyStatsQuery, useLazyGetOrdersBySessionQuery } from '../features/orders/ordersAPI';
+import { setSessionId } from '../features/registers/registerSlice';
 
 // Main Dashboard Component
 const ManagerDashboard = () => {
     const { user } = useSelector((state)=>state.auth)
     const dispatch = useDispatch();
     const {isLoading:registerLoading,sessionId,registerData,isOpen:isRegisterOpen} = useSelector((state)=>state.register)
+    const {refetch:refetchStats} = useGetDailyStatsQuery(sessionId,{skip:!sessionId})
+    // const {refetch:refetchSessionOrders} = useGetOrdersBySessionQuery(sessionId,{skip:!sessionId})
     const [activeView, setActiveView] = useState('dashboard');
     const [activeSubView, setActiveSubView] = useState(null);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -67,28 +71,13 @@ const ManagerDashboard = () => {
       fetchProducts
     } = useProducts();
 
-    const {
-      expenses,
-      addExpense,
-      updateExpense,
-      deleteExpense,
-      expensesLoading
-    } = useExpenses();
-
     // Use the manager hook for register management
     const {
-      summary: registerSummary,
       activeRegisters,
       loading: managerLoading,
-      error: managerError,
-      fetchSummary: fetchRegisterSummary,
       fetchActiveRegisters,
       allEmployees,
-      fetchEmployees
     } = useManager();
-
-    // Separate loading state for register summary
-    const [summaryLoading, setSummaryLoading] = useState(false);
 
     // Fetch products initially
     useEffect(() => {
@@ -117,23 +106,7 @@ const ManagerDashboard = () => {
     // Handle register selection
     const handleRegisterClick = async (sessionId) => {
       setSelectedSessionId(sessionId);
-      setSummaryLoading(true);
-      try {
-        await fetchRegisterSummary(sessionId);
-      } finally {
-        setSummaryLoading(false);
-      }
-    };
-
-    // Handle view all summary
-    const handleGetAllSummary = async () => {
-      setSelectedSessionId(null);
-      setSummaryLoading(true);
-      try {
-        await fetchRegisterSummary();
-      } finally {
-        setSummaryLoading(false);
-      }
+        dispatch(setSessionId(sessionId))
     };
 
     const handleViewChange = (view, subView = null) => {
@@ -150,90 +123,17 @@ const ManagerDashboard = () => {
 
     // Payment update handler
     const handleUpdatePayment = async (orderId, amount) => {
-      try {
+      
         const result = await dispatch(updatePayment({orderId, amountReceived:amount}));
-        if(result.meta.message == 'fulfilled'){
-
+        if(result.meta.requestStatus == 'fulfilled'){
           toast.success('Payment updated successfully', {
             description: result.message
           });
         }else{
           toast.error('Error updating order payment')
         }
-          
-        // Refresh register summary if viewing register data
-        if (selectedSessionId || activeView === 'registers') {
-          setSummaryLoading(true);
-          try {
-            await fetchRegisterSummary(selectedSessionId);
-          } finally {
-            setSummaryLoading(false);
-          }
-        }
-        
+        refetchStats()     
         return result;
-      } catch (error) {
-        toast.error('Failed to update payment', {
-          description: error.message
-        });
-        throw error;
-      }
-    };
-
-    // Expense handlers
-    const handleAddExpense = async (expenseData,sessionId) => {
-      try {
-        const result = await addExpense(expenseData,sessionId);
-        
-        // Refresh register summary if viewing register data
-        if (selectedSessionId || activeView === 'registers') {
-          setSummaryLoading(true);
-          try {
-            await fetchRegisterSummary(selectedSessionId);
-          } finally {
-            setSummaryLoading(false);
-          }
-        }
-        
-        return result;
-      } catch (error) {
-        throw error;
-      }
-    };
-
-    const handleUpdateExpense = async (id, expenseData) => {
-      try {
-        const result = await updateExpense(id, expenseData);
-        
-        // Refresh register summary if viewing register data
-        if (selectedSessionId || activeView === 'registers') {
-          setSummaryLoading(true);
-          try {
-            await fetchRegisterSummary(selectedSessionId);
-          } finally {
-            setSummaryLoading(false);
-          }
-        }
-        
-        return result;
-      } catch (error) {
-        throw error;
-      }
-    };
-
-    const handleDeleteExpense = async (id) => {
-      try {
-        const result = await deleteExpense(id);
-        
-        // Refresh register summary if viewing register data
-        if (selectedSessionId || activeView === 'registers') {
-          fetchRegisterSummary(selectedSessionId);
-        }
-        
-        return result;
-      } catch (error) {
-        throw error;
-      }
     };
 
     const handleLogout = async () => {
@@ -254,14 +154,14 @@ const ManagerDashboard = () => {
       }
 
       switch(activeView) {
-        case 'registers':
-          return (
-            <RegisterSummary
-              summary={registerSummary}
-              loading={summaryLoading}
-              selectedSessionId={selectedSessionId}
-            />
-          );
+        // case 'registers':
+        //   return (
+        //     <RegisterSummary
+        //       summary={registerSummary}
+        //       loading={summaryLoading}
+        //       selectedSessionId={selectedSessionId}
+        //     />
+        //   );
         
         case 'branch':
           return <BranchTable user = {user}/>
@@ -279,21 +179,14 @@ const ManagerDashboard = () => {
         
         case 'expenses':
           return (
-            <ExpensesView 
-              expenses={expenses}
-              addExpense={handleAddExpense}
-              sessionId = {selectedSessionId}
-              updateExpense={handleUpdateExpense}
-              deleteExpense={handleDeleteExpense}
-              isLoading={expensesLoading}
-            />
+            <ExpensesView   />
           );
 
         case 'reports':
           return <AllReports />;
 
         case 'orders':
-          const filteredOrders = registerSummary?.orders || [];
+          default:
           return (
             <div className="space-y-4">
               {/* Header showing which register's orders are being displayed */}
@@ -305,18 +198,12 @@ const ManagerDashboard = () => {
                       Showing orders from session: {selectedSessionId.slice(-8)}...
                     </p>
                   </div>
-                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                    {filteredOrders.length} Orders
-                  </Badge>
+
                 </div>
               )}
               
               <OrdersTableView 
-                orders={filteredOrders}
-                onRefresh={selectedSessionId && fetchRegisterSummary(selectedSessionId)}
                 onUpdatePayment={handleUpdatePayment}
-                isLoading={summaryLoading}
-                selectedSessionId={selectedSessionId}
               />
             </div>
           );
@@ -330,48 +217,6 @@ const ManagerDashboard = () => {
 
         case 'manage-product':
           return <ProductManagement />;
-        
-        default:
-          return (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold">Dashboard Overview</h2>
-              <p className="text-muted-foreground">
-                Welcome to your POS Manager Dashboard. Use the sidebar to navigate between different sections.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Card 
-                  className="cursor-pointer hover:shadow-md transition-shadow" 
-                  onClick={() => handleViewChange('registers')}
-                >
-                  <CardContent className="p-6 text-center">
-                    <Monitor className="mx-auto h-12 w-12 text-primary mb-4" />
-                    <h3 className="font-semibold">Active Registers</h3>
-                    <p className="text-sm text-muted-foreground">Monitor active cash registers</p>
-                  </CardContent>
-                </Card>
-                <Card 
-                  className="cursor-pointer hover:shadow-md transition-shadow" 
-                  onClick={() => handleViewChange('summary', 'All Orders')}
-                >
-                  <CardContent className="p-6 text-center">
-                    <History className="mx-auto h-12 w-12 text-primary mb-4" />
-                    <h3 className="font-semibold">View History</h3>
-                    <p className="text-sm text-muted-foreground">Check Register History</p>
-                  </CardContent>
-                </Card>
-                <Card 
-                  className="cursor-pointer hover:shadow-md transition-shadow" 
-                  onClick={() => handleViewChange('expenses')}
-                >
-                  <CardContent className="p-6 text-center">
-                    <Receipt className="mx-auto h-12 w-12 text-primary mb-4" />
-                    <h3 className="font-semibold">Manage Expenses</h3>
-                    <p className="text-sm text-muted-foreground">Track business expenses</p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          );
       }
     };
   
@@ -435,6 +280,7 @@ const ManagerDashboard = () => {
               </div>
             </div>
           </div>
+            <DashboardStats />
           
           {/* Main Layout */}
           <div className="flex gap-6">
@@ -458,7 +304,6 @@ const ManagerDashboard = () => {
             {showRegisters && (
               <ActiveRegisters 
                 activeRegisters={activeRegisters} 
-                handleGetAllSummary={handleGetAllSummary} 
                 selectedSessionId={selectedSessionId} 
                 handleRegisterClick={handleRegisterClick} 
                 setActiveView={setActiveView} 

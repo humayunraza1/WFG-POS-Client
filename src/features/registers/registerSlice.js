@@ -37,6 +37,11 @@ const registerSlice = createSlice({
     isLoading: false,
     error: null
   },
+  reducers:{
+    setSessionId: (state,action)=>{
+      state.sessionId = action.payload
+    }
+  },
   extraReducers: (builder) => {
     builder
     .addCase(checkRegisterStatus.pending,(state)=>{
@@ -78,4 +83,5 @@ const registerSlice = createSlice({
   }
 });
 
+export const { setSessionId } = registerSlice.actions;
 export default registerSlice.reducer;

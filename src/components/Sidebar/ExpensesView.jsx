@@ -17,6 +17,10 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import useExpenses from '@/hooks/useExpenses';
+import { useDispatch, useSelector } from 'react-redux';
+import { useGetExpensesBySessionQuery } from '../../features/expense/expenseAPI';
+import { useEffect } from 'react';
+import { addExpense, deleteExpense, setExpenses, updateExpense } from '../../features/expense/expenseSlice';
 
 // Move ExpenseForm outside the main component
 const ExpenseForm = ({ onSubmit, isEdit = false, formData, setFormData, isSubmitting, onCancel }) => (
@@ -88,14 +92,16 @@ const DeleteConfirmDialog = ({ isOpen, onClose, onConfirm, expenseName, isDeleti
   </Dialog>
 );
 
-const ExpensesView = ({expenses, isLoading, addExpense, updateExpense, deleteExpense,sessionId}) => {
+const ExpensesView = () => {
+  const dispatch = useDispatch()
+  const {expenses,isLoading,error} = useSelector((state)=>state.expense)
+  const {sessionId} = useSelector((state)=>state.register)
+  const {data:allExpenses} = useGetExpensesBySessionQuery(sessionId,{skip:!sessionId})
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
   const [deletingExpense, setDeletingExpense] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     amount: ''
@@ -111,80 +117,67 @@ const ExpensesView = ({expenses, isLoading, addExpense, updateExpense, deleteExp
   const handleAddExpense = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.amount) return;
-
-    setIsSubmitting(true);
-    try {
-      await addExpense({
+    const expenseData ={
         name: formData.name,
         amount: parseFloat(formData.amount),
         
-      },sessionId);
-      
-      toast.success('Expense added successfully', {
-        description: `${formData.name} - PKR ${parseFloat(formData.amount).toLocaleString()}`
-      });
-      
-      setIsAddDialogOpen(false);
-      resetForm();
-    } catch (error) {
-      console.error('Error adding expense:', error);
-      toast.error('Failed to add expense', {
-        description: error.response.data || 'An error occurred while adding the expense'
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+      }
+        const res = await dispatch(addExpense({expenseData,sessionId}));
+        console.log(res)
+        if(res.meta.requestStatus == 'fulfilled'){
+          toast.success('Expense added successfully', {
+            description: `${formData.name} - PKR ${parseFloat(formData.amount).toLocaleString()}`
+          });
+        }else{
+          toast.error('Failed to add expense', {
+            description: error || 'An error occurred while adding the expense'
+          });
+          
+        }
+        setIsAddDialogOpen(false);
+        resetForm();
   };
 
   const handleEditExpense = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.amount || !editingExpense) return;
-
-    setIsSubmitting(true);
-    try {
-      await updateExpense(editingExpense._id, {
-        name: formData.name,
+    const expenseData = {
+          name: formData.name,
         amount: parseFloat(formData.amount)
-      });
-      
-      toast.success('Expense updated successfully', {
-        description: `${formData.name} - PKR ${parseFloat(formData.amount).toLocaleString()}`
-      });
+    }
+     const res = await dispatch(updateExpense({id:editingExpense._id,expenseData}));
+     console.log(res)
+      if (res.meta.requestStatus == 'fulfilled'){
+        toast.success('Expense updated successfully', {
+          description: `${formData.name} - PKR ${parseFloat(formData.amount).toLocaleString()}`
+        });
+      }else{
+        toast.error('Failed to update expense', {
+          description: error || 'An error occurred while updating the expense'
+        });
+      }
       
       setIsEditDialogOpen(false);
       setEditingExpense(null);
       resetForm();
-    } catch (error) {
-      console.error('Error updating expense:', error);
-      toast.error('Failed to update expense', {
-        description: error.message || 'An error occurred while updating the expense'
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  
   };
 
   const handleDeleteExpense = async () => {
-    if (!deletingExpense) return;
+    const res = await dispatch(deleteExpense(deletingExpense._id));
+    console.log(res)
+      if(res.meta.requestStatus == 'fulfilled'){
+        toast.success('Expense deleted successfully', {
+          description: `${deletingExpense.name} has been removed`
+        });
+      }else{
+        toast.error('Failed to delete expense', {
+          description: error || 'An error occurred while deleting the expense'
+        });
 
-    setIsDeleting(true);
-    try {
-      await deleteExpense(deletingExpense._id);
-      
-      toast.success('Expense deleted successfully', {
-        description: `${deletingExpense.name} has been removed`
-      });
-      
+      }
       setIsDeleteDialogOpen(false);
       setDeletingExpense(null);
-    } catch (error) {
-      console.error('Error deleting expense:', error);
-      toast.error('Failed to delete expense', {
-        description: error.message || 'An error occurred while deleting the expense'
-      });
-    } finally {
-      setIsDeleting(false);
-    }
   };
 
   const openEditDialog = (expense) => {
@@ -251,7 +244,7 @@ const ExpensesView = ({expenses, isLoading, addExpense, updateExpense, deleteExp
                 onSubmit={handleAddExpense} 
                 formData={formData}
                 setFormData={setFormData}
-                isSubmitting={isSubmitting}
+                isSubmitting={isLoading}
                 onCancel={handleCancelAdd}
               />
             </DialogContent>
@@ -265,7 +258,7 @@ const ExpensesView = ({expenses, isLoading, addExpense, updateExpense, deleteExp
             <Loader2 className="h-6 w-6 animate-spin mr-2" />
             <span>Loading expenses...</span>
           </div>
-        ) : expenses.length === 0 ? (
+        ) : expenses?.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Receipt className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No expenses recorded yet</p>
@@ -274,20 +267,20 @@ const ExpensesView = ({expenses, isLoading, addExpense, updateExpense, deleteExp
         ) : (
           <ScrollArea className="h-96">
             <div className="space-y-2">
-              {expenses.map((expense) => (
+              {expenses?.map((expense) => (
                 <div key={expense._id} className="flex justify-between items-center p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <div className="font-medium">{expense.name}</div>
+                      <div className="font-medium">{expense?.name}</div>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {formatDate(expense.dateAdded || expense.createdAt)}
+                      {formatDate(expense?.dateAdded || expense?.createdAt)}
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-2">
                     <Badge variant="destructive" className="font-mono">
-                      PKR {expense.amount.toLocaleString()}
+                      PKR {expense?.amount.toLocaleString()}
                     </Badge>
                     
                     <div className="flex gap-1">
@@ -314,7 +307,7 @@ const ExpensesView = ({expenses, isLoading, addExpense, updateExpense, deleteExp
         )}
 
         {/* Summary */}
-        {expenses.length > 0 && (
+        {expenses?.length > 0 && (
           <div className="mt-4 pt-4 border-t">
             <div className="flex justify-between items-center">
               <span className="font-medium">Total Expenses:</span>
@@ -337,7 +330,7 @@ const ExpensesView = ({expenses, isLoading, addExpense, updateExpense, deleteExp
             isEdit={true}
             formData={formData}
             setFormData={setFormData}
-            isSubmitting={isSubmitting}
+            isSubmitting={isLoading}
             onCancel={handleCancelEdit}
           />
         </DialogContent>
@@ -349,7 +342,7 @@ const ExpensesView = ({expenses, isLoading, addExpense, updateExpense, deleteExp
         onClose={handleCancelDelete}
         onConfirm={handleDeleteExpense}
         expenseName={deletingExpense?.name || ''}
-        isDeleting={isDeleting}
+        isDeleting={isLoading}
       />
     </Card>
   );

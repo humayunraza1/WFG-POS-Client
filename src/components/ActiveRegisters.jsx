@@ -27,7 +27,6 @@ const ActiveRegisters = ({
   };
 
   const handleRegisterSelect = (sessionId) => {
-    setActiveView('registers');
     handleRegisterClick(sessionId);
     setIsDrawerOpen(false);
   };
@@ -41,15 +40,6 @@ const ActiveRegisters = ({
   const RegisterContent = ({ isMobile = false }) => (
     <div className={`space-y-4 ${isMobile ? 'px-4 pb-4' : ''}`}>
       {/* Get All Summary Button */}
-      <Button 
-        onClick={handleViewAllSummary}
-        variant={selectedSessionId === null ? "default" : "outline"}
-        className="w-full"
-        size="sm"
-      >
-        View All Summary
-      </Button>
-      
       {managerLoading ? (
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin" />

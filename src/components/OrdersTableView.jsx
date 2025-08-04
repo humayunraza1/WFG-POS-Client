@@ -118,7 +118,13 @@ const OrdersTableView = ({onUpdatePayment }) => {
       <CardHeader className="space-y-4">
         {/* Title and Refresh Button Row */}
         <div className="flex items-center justify-between">
+  <div className='flex items-center gap-2'>
+
           <CardTitle>Orders</CardTitle>
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                    {filteredOrders.length}
+                  </Badge>
+                  </div>
           <Button 
             variant="outline" 
             size="sm" 

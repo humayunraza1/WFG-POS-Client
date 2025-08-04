@@ -55,6 +55,7 @@ import { checkRegisterStatus, closeRegister, openRegister } from '../features/re
 import { addOrder } from '@/features/orders/ordersSlice';
 import { updatePayment } from '../features/orders/ordersSlice';
 import { useGetDailyStatsQuery } from '../features/orders/ordersAPI';
+import { addExpense, deleteExpense, updateExpense } from '../features/expense/expenseSlice';
 
 // Main Dashboard Component
 const POSDashboard = () => {
@@ -64,6 +65,7 @@ const POSDashboard = () => {
     const { refetch: refetchStats } = useGetDailyStatsQuery(sessionId, {
     skip: !sessionId,
     });
+    const {expenses} = useSelector((state) => state.expense)
     const [activeView, setActiveView] = useState('dashboard');
     const [activeSubView, setActiveSubView] = useState(null);
     const [cartItems, setCartItems] = useState([]);
@@ -91,17 +93,6 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
       fetchProducts,
       fetchProductsByCategory
     } = useProducts();
-
-    // Pass callback to expenses hook to refresh dashboard stats
-    const {
-      expenses,
-      isLoading: expensesLoading,
-      error: expensesError,
-      fetchExpenses,
-      addExpense,
-      updateExpense,
-      deleteExpense
-    } = useExpenses(sessionId, isRegisterOpen);
 
     // Fetch products initially and when register opens
     useEffect(() => {
@@ -152,17 +143,12 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
           description: productsError
         });
       }
-      if (expensesError) {
-        toast.error('Expenses Error', {
-          description: expensesError
-        });
-      }
       if (managersError) {
         toast.error('Managers Error', {
           description: managersError
         });
       }
-    }, [registerError, productsError, expensesError, managersError]);
+    }, [registerError, productsError, managersError]);
 
     // Function to check if operation requires active session
     const requiresActiveSession = (operation) => {
@@ -238,22 +224,25 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
     };
 
     const handleFinalCashSubmit = async (finalCash) => {
-      try {
-        dispatch(closeRegister(finalCash));
-        toast.success('Register closed successfully', {
-          description: `Final cash: PKR ${finalCash.toLocaleString()}`
-        });
+     
+        const res = await dispatch(closeRegister(finalCash));
+        if(res.meta.requestStatus == 'fulfilled'){
+
+          toast.success('Register closed successfully', {
+            description: `Final cash: PKR ${finalCash.toLocaleString()}`
+          });
+          clearAllOrders()
+          setCartItems([]);
+          // Clear cart items and switch to dashboard view
+          setActiveView('dashboard');
+          setActiveSubView(null);
+        }else{
+          toast.error('Failed to close register', {
+            description: error.message
+          });
+        }
         setShowFinalCashModal(false);
-        clearAllOrders()
-        // Clear cart items and switch to dashboard view
-        setCartItems([]);
-        setActiveView('dashboard');
-        setActiveSubView(null);
-      } catch (error) {
-        toast.error('Failed to close register', {
-          description: error.message
-        });
-      }
+     
     };
     
     const handleAddToCart = (category, product) => {
@@ -364,28 +353,6 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
       }
     };
 
-    // Wrapped expense functions with session validation
-    const handleAddExpense = async (expenseData) => {
-      if (!requiresActiveSession('add expenses')) {
-        return;
-      }
-      return await addExpense(expenseData,sessionId);
-    };
-
-    const handleUpdateExpense = async (id, expenseData) => {
-      if (!requiresActiveSession('update expenses')) {
-        return;
-      }
-      return await updateExpense(id, expenseData);
-    };
-
-    const handleDeleteExpense = async (id) => {
-      if (!requiresActiveSession('delete expenses')) {
-        return;
-      }
-      return await deleteExpense(id);
-    };
-
     const handleLogout = async () => {
       try {
         dispatch(logout())
@@ -397,11 +364,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
   
     const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     
-    const calculateTotalExpenses = () => {
-      return expenses.reduce((total, expense) => total + expense.amount, 0);
-    };
-
-    const isLoading = registerLoading || productsLoading || expensesLoading;
+    const isLoading = registerLoading || productsLoading;
     
     // Check if we should show the checkout button
     const shouldShowCheckoutButton = (activeView === 'products' || activeView === 'variants') && totalItems > 0;
@@ -449,13 +412,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
         
           }
           return (
-            <ExpensesView 
-              expenses={expenses}
-              addExpense={handleAddExpense}
-              updateExpense={handleUpdateExpense}
-              deleteExpense={handleDeleteExpense}
-              isLoading={expensesLoading}
-            />
+            <ExpensesView />
           );
 
         case 'reports':
@@ -742,7 +699,6 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
             isOpen={showFinalCashModal}
             onClose={() => setShowFinalCashModal(false)}
             onSubmit={handleFinalCashSubmit}
-            totalExpenses={calculateTotalExpenses()}
           />
         </div>
       </div>

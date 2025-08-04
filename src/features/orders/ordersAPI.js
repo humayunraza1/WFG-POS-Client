@@ -30,6 +30,12 @@ export const ordersAPI = createApi({
   }),
 });
 
+
+export const {
+  useLazyGetOrdersBySessionQuery,
+  useLazyGetDailyStatsQuery
+} = ordersAPI;
+
 export const {
   useGetOrdersBySessionQuery,
   useGetDailyStatsQuery,
