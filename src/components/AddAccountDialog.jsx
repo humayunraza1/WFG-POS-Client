@@ -18,6 +18,7 @@ import { Loader2, UserPlus, Shield, Eye, EyeOff, Edit3, Building } from 'lucide-
 import { toast } from 'sonner';
 import useManager from '../hooks/userManager';
 import useBranch from '../hooks/useBranch';
+import { addAccount, updateAccount } from '../features/account/accountSlice';
 
 const AddAccountDialog = ({ 
   isOpen, 
@@ -33,7 +34,7 @@ const AddAccountDialog = ({
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { addAccount, loading: managerLoading, updateAccount} = useManager();
+  const { loading: managerLoading} = useManager();
   const [branches, setBranches] = useState([]);
   const { getBranch } = useBranch();
 
@@ -272,14 +273,21 @@ const AddAccountDialog = ({
       }
 
       if (mode === 'edit') {
-        await updateAccount(defaultValues.accountId, payload);
+        const res = await dispatch(updateAccount({accountId:defaultValues.accountId, status:payload}));
         console.log(payload)
-        toast.success("Account updated successfully");
+        if(res.meta.requestStatus == 'fulfilled'){
+          toast.success("Account updated successfully");
+        }else{
+          toast.error(res.payload);
+        }
       } else {
         // Use the existing addAccount function for create mode
-        await addAccount(payload);
-        console.log(payload)
-        toast.success('Account created successfully');
+        const res = await dispatch(addAccount(payload));
+        if(res.meta.requestStatus == 'fulfilled'){
+          toast.success('Account created successfully');
+        }else{
+          toast.error(res.payload)
+        }
       }
 
       reset();
