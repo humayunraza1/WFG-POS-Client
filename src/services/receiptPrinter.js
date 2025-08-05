@@ -57,7 +57,7 @@ class ReceiptPrinter {
       return `<div style="text-align: center; margin-top: 10px; margin-bottom: -30px;">
                 <img src="./images/ftl-logo.png" 
                      style="width: 100px; height: 100px; margin: 0 auto; display: block;" 
-                     alt="The Waffle Guy Logo" 
+                     alt="Fruits Lab Logo" 
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
                 <div style="display: none; font-size: 14px; font-weight: bold; color: #FF1493;">🧇 THE WAFFLE GUY 🧇</div>
               </div>`;
