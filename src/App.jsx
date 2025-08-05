@@ -10,6 +10,7 @@ import TempOrdersProvider from './hooks/useTempOrders.jsx';
 import {Provider} from 'react-redux'
 import { store } from './app/store.js';
 import AppInitializer from './components/AppInitializer.jsx';
+import RedirectIfAuthenticated from './components/RedirectIfAuthenticated.jsx';
 function App() {
   return (
     <Provider store={store}>
@@ -22,7 +23,11 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         
         {/* Login page */}
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={
+                          <RedirectIfAuthenticated>
+                  <LoginPage />
+                </RedirectIfAuthenticated>
+          } />
         
         {/* Protected report route */}
         <Route 

@@ -4,6 +4,7 @@ import registerReducer from '@/features/registers/registerSlice';
 import ordersReducer from '@/features/orders/ordersSlice';
 import settingsReducer from '@/features/settings/settingsSlice';
 import expensesReducer from '@/features/expense/expenseSlice';
+import accountReducer from '@/features/account/accountSlice';
 import { ordersAPI } from '../features/orders/ordersAPI';
 import { expensesAPI } from '../features/expense/expenseAPI';
 // import registerReducer from '@/features/register/registerSlice';
@@ -19,6 +20,7 @@ export const store = configureStore({
     orders: ordersReducer,
     settings: settingsReducer,
     expense: expensesReducer,
+    account: accountReducer,
     // // RTK Query APIs (must match reducerPath)
     // [registerAPI.reducerPath]: registerAPI.reducer,
     [ordersAPI.reducerPath]: ordersAPI.reducer,

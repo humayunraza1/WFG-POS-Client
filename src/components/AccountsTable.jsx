@@ -30,10 +30,14 @@ import { toast } from 'sonner';
 import useManager from '../hooks/userManager';
 import AddAccountDialog from './AddAccountDialog';
 import useBranch from '../hooks/useBranch';
+import { useDispatch, useSelector } from 'react-redux';
+import { assignAccountToEmployee, fetchAccounts, updateAccountStatus } from '../features/account/accountSlice';
 
-const AccountsTable = ({ user }) => {
-  const { fetchAccounts, updateAccountStatus, assignAccountToEmployee, fetchEmployeesWithoutAccounts, loading: managerLoading } = useManager();
-  const [accounts, setAccounts] = useState([]);
+const AccountsTable = () => {
+  const {user} = useSelector((state)=>state.auth)
+  const {accounts,isLoading,error} = useSelector((state)=>state.account)
+  const dispatch = useDispatch()
+  const { fetchEmployeesWithoutAccounts } = useManager();
   const [filteredAccounts, setFilteredAccounts] = useState([]);
   const [addAccountDialog, setAddAccountDialog] = useState({
     isOpen: false,
@@ -51,7 +55,6 @@ const AccountsTable = ({ user }) => {
   const [switchStates, setSwitchStates] = useState({});
   const [availableEmployees, setAvailableEmployees] = useState([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
-  const [assignLoading, setAssignLoading] = useState(false);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState({});
   const [confirmationPopover, setConfirmationPopover] = useState({
     isOpen: false,
@@ -63,8 +66,7 @@ const AccountsTable = ({ user }) => {
   let role = user.access?.isAdmin ? 'admin' : 'manager';
 
   useEffect(() => {
-    console.log('user: ',user)
-    getAccounts();
+    dispatch(fetchAccounts())
     if (user.access?.isAdmin) {
       fetchBranches();
     }
@@ -102,15 +104,7 @@ useEffect(() => {
   }
 
   async function getAccounts() {
-    try {
-      const data = await fetchAccounts();
-      console.log("accounts: ", data);
-      setAccounts(data || []);
-    } catch (err) {
-      toast.error("Failed to fetch accounts");
-      console.log(err);
-      setAccounts([]);
-    }
+      dispatch(fetchAccounts());
   }
 
   const formatDate = (dateString) => {
@@ -180,47 +174,32 @@ const handleStatusChange = (account, newStatus) => {
   // Update your confirmStatusChange function:
 const confirmStatusChange = async () => {
   const { accountId, newStatus } = confirmationPopover;
-  
-  setStatusUpdateLoading(prev => ({ ...prev, [accountId]: true }));
-  
-  try {
-    await updateAccountStatus(accountId, newStatus);
-    
-    // Update the local state
-    setAccounts(prev => 
-      prev.map(account => 
-        account._id === accountId 
-          ? { ...account, isActive: newStatus }
-          : account
-      )
-    );
-    
-    // Update switch state to match the confirmed status
-    setSwitchStates(prev => ({
-      ...prev,
-      [accountId]: newStatus
-    }));
-    
-    toast.success(`Account ${newStatus ? 'activated' : 'deactivated'} successfully`);
-  } catch (error) {
-    // Revert switch state on error
-    const account = accounts.find(acc => acc._id === accountId);
-    if (account) {
+    console.log(accountId,newStatus)
+    setStatusUpdateLoading(prev => ({ ...prev, [accountId]: true })); 
+    const res = await dispatch(updateAccountStatus({accountId, newStatus}));
+    console.log(res)
+    if (res.meta.requestStatus == 'fulfilled'){
+      
+      // Update switch state to match the confirmed status
       setSwitchStates(prev => ({
         ...prev,
-        [accountId]: account.isActive
+        [accountId]: newStatus
       }));
-    }
-    toast.error(error.message);
-  } finally {
+      
+      toast.success(`Account ${newStatus ? 'activated' : 'deactivated'} successfully`);
+      
+    } else{
+      toast.error(error.message);
+      setConfirmationPopover({
+        isOpen: false,
+        accountId: null,
+        currentStatus: false,
+        newStatus: false
+      });
+    } 
+    
     setStatusUpdateLoading(prev => ({ ...prev, [accountId]: false }));
-    setConfirmationPopover({
-      isOpen: false,
-      accountId: null,
-      currentStatus: false,
-      newStatus: false
-    });
-  }
+
 };
 
     // Update your cancelStatusChange function:
@@ -276,20 +255,12 @@ const confirmStatusChange = async () => {
       toast.error('Please select an employee');
       return;
     }
-
-    setAssignLoading(true);
-    try {
       console.log(assignEmployeeDialog.accountId, selectedEmployeeId)
-      const res = await assignAccountToEmployee(assignEmployeeDialog.accountId, selectedEmployeeId);
+      const res = await dispatch(assignAccountToEmployee({accountId:assignEmployeeDialog.accountId, empId:selectedEmployeeId}));
       toast.success('Employee assigned successfully');
       handleCloseAssignDialog();
-      getAccounts(); // Refresh the accounts list
-    } catch (error) {
-      toast.error(error.message || 'Failed to assign employee');
-      console.error(error);
-    } finally {
-      setAssignLoading(false);
-    }
+     toast.error(error.message || 'Failed to assign employee');
+   
   };
 
   const resetForm = () => {
@@ -349,7 +320,7 @@ const confirmStatusChange = async () => {
     getAccounts(); // Refresh the accounts list
   };
 
-  if (managerLoading) {
+  if (isLoading) {
     return (
       <Card>
         <CardHeader>
@@ -641,16 +612,16 @@ const confirmStatusChange = async () => {
                 type="button"
                 variant="outline"
                 onClick={handleCloseAssignDialog}
-                disabled={assignLoading}
+                disabled={isLoading}
               >
                 Cancel
               </Button>
               <Button 
                 onClick={handleConfirmAssign}
-                disabled={assignLoading || !selectedEmployeeId}
+                disabled={isLoading || !selectedEmployeeId}
                 className="flex items-center gap-2"
               >
-                {assignLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
                 Assign Employee
               </Button>
             </div>

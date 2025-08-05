@@ -36,10 +36,10 @@ const LoginPage = () => {
     }, [dispatch]);
 
   // Redirect if already authenticated
-  if (isAuthenticated) {
-    const from = location.state?.from?.pathname || '/dashboard';
-    return <Navigate to={from} replace />;
-  }
+  // if (isAuthenticated) {
+  //   const from = location.state?.from?.pathname || '/dashboard';
+  //   return <Navigate to={from} replace />;
+  // }
 
         const handleLoginSubmit = async (e) => {
           e.preventDefault();
