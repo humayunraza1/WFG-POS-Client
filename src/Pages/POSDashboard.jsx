@@ -36,7 +36,6 @@ import Cart from '../components/Cart';
 import Sidebar from '../components/SideBar';
 import MobileSidebar from '../components/Mobile/MobileSidebar';
 import useRegister from '../hooks/useRegister';
-import useExpenses from '../hooks/useExpenses';
 import ProductsView from '../components/ProductsView';
 import OrdersTableView from '../components/OrdersTableView';
 import useProducts from '../hooks/useProducts';
@@ -201,8 +200,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
           description: `Manager: ${registerData.manager}, Starting cash: PKR ${registerData.startCash.toLocaleString()}`
         });
         setShowStartCashModal(false);
-        
-        // The useOrders and useExpenses hooks will automatically fetch fresh data
+      
         // due to the sessionId change, so we don't need to manually call fetch here
       } catch (error) {
         toast.error('Failed to open register', {

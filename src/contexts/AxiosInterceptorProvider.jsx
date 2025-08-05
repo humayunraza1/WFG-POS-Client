@@ -18,7 +18,7 @@ const AxiosInterceptorProvider = () => {
         const requestUrl = error?.config?.url;
        const isAuthLogout = requestUrl?.includes('/auth/logout');
 
-        if (status === 401 && isAuthLogout) {
+        if (status === 401 && !isAuthLogout) {
       
             toast.error('Session expired. Please login again.');
             navigate('/login');

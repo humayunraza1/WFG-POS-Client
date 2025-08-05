@@ -16,7 +16,6 @@ import {
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import useExpenses from '@/hooks/useExpenses';
 import { useDispatch, useSelector } from 'react-redux';
 import { useGetExpensesBySessionQuery } from '../../features/expense/expenseAPI';
 import { useEffect } from 'react';

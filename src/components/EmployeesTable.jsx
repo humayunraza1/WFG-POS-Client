@@ -31,13 +31,14 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import useManager from '../hooks/userManager';
 import EmployeeDrawer from './EmployeeDrawer';
-import useBranch from '../hooks/useBranch';
 import getRoles from '../utils/getRoles';
 import RolesManagementDialog from './RolesManagementDialog';
+import { useSelector } from 'react-redux';
 
-const EmployeesTable = ({ user, onEmployeeUpdate }) => {
+const EmployeesTable = () => {
   const { fetchEmployees, addEmployee, updateEmployee, loading: managerLoading } = useManager();
-  const { getBranch } = useBranch();
+  const {branches, loading: branchesLoading,error} = useSelector((state) => state.branch);
+  const {user} = useSelector((state) => state.auth);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [employees, setEmployees] = useState([]);
@@ -74,8 +75,6 @@ const EmployeesTable = ({ user, onEmployeeUpdate }) => {
     branchCode: ''
   });
   const [formErrors, setFormErrors] = useState({});
-  const [branches, setBranches] = useState([]);
-  const [branchesLoading, setBranchesLoading] = useState(false);
 
   useEffect(() => {
     const fetchRoles = async () => {
@@ -114,26 +113,7 @@ const EmployeesTable = ({ user, onEmployeeUpdate }) => {
 
   let role = user.access.isAdmin ? 'admin' : 'manager';
 
-  // Fetch branches for admin users
-  useEffect(() => {
-    if (user.access.isAdmin) {
-      fetchBranches();
-    }
-  }, [user.access.isAdmin]);
 
-  const fetchBranches = async () => {
-    setBranchesLoading(true);
-    try {
-      const data = await getBranch();
-      setBranches(data || []);
-    } catch (error) {
-      toast.error(error);
-      console.log(error);
-      setBranches([]);
-    } finally {
-      setBranchesLoading(false);
-    }
-  };
 
   const getBranchDisplay = (branchCode) => {
     const branch = branches.find(b => b.branchCode === branchCode);

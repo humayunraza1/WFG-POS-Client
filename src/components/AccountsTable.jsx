@@ -29,12 +29,11 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import useManager from '../hooks/userManager';
 import AddAccountDialog from './AddAccountDialog';
-import useBranch from '../hooks/useBranch';
 import { useDispatch, useSelector } from 'react-redux';
 import { assignAccountToEmployee, fetchAccounts, updateAccountStatus } from '../features/account/accountSlice';
 
 const AccountsTable = () => {
-  const {user} = useSelector((state)=>state.auth)
+  const {isAuthenticated,user} = useSelector((state)=>state.auth)
   const {accounts,isLoading,error} = useSelector((state)=>state.account)
   const dispatch = useDispatch()
   const { fetchEmployeesWithoutAccounts } = useManager();
@@ -44,9 +43,8 @@ const AccountsTable = () => {
     mode: 'add',
     accountData: null
   });
-  const [branches, setBranches] = useState([]);
+  const {branches, isLoading: branchesLoading, error: branchesError} = useSelector((state) => state.branch);
   const [selectedBranch, setSelectedBranch] = useState({ code: 'all', name: 'All Branches' });
-  const { getBranch } = useBranch();
   const [assignEmployeeDialog, setAssignEmployeeDialog] = useState({
     isOpen: false,
     accountId: null,
@@ -67,9 +65,6 @@ const AccountsTable = () => {
 
   useEffect(() => {
     dispatch(fetchAccounts())
-    if (user.access?.isAdmin) {
-      fetchBranches();
-    }
   }, []);
 
   // Add this useEffect to initialize switch states when accounts change:
@@ -90,18 +85,6 @@ useEffect(() => {
       setFilteredAccounts(filtered);
     }
   }, [accounts, selectedBranch]);
-
-  async function fetchBranches() {
-    try {
-      const data = await getBranch();
-      console.log("branches: ", data);
-      setBranches(data || []);
-    } catch (err) {
-      toast.error("Failed to fetch branches");
-      console.log(err);
-      setBranches([]);
-    }
-  }
 
   async function getAccounts() {
       dispatch(fetchAccounts());
@@ -189,7 +172,7 @@ const confirmStatusChange = async () => {
       toast.success(`Account ${newStatus ? 'activated' : 'deactivated'} successfully`);
       
     } else{
-      toast.error(error.message);
+      toast.error(error);
       setConfirmationPopover({
         isOpen: false,
         accountId: null,
@@ -568,7 +551,6 @@ const confirmStatusChange = async () => {
         employeeId={addAccountDialog.accountData?.employeeId}
         onAccountAdded={handleAccountUpdate}
         onAccountUpdated={handleAccountUpdate}
-        branches={branches}
       />
 
       {/* Assign Employee Dialog */}

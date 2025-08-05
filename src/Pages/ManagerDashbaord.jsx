@@ -39,7 +39,6 @@ import Sidebar from '../components/SideBar';
 import MobileSidebar from '../components/Mobile/MobileSidebar';
 import ActiveRegisters from '../components/ActiveRegisters';
 import RegisterSummary from '../components/RegisterSummary';
-import useExpenses from '../hooks/useExpenses';
 import OrdersTableView from '../components/OrdersTableView';
 import useProducts from '../hooks/useProducts';
 import OrdersHistory from '../components/Sidebar/OrderHistory';

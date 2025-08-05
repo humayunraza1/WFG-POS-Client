@@ -24,16 +24,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Building, MapPin, Phone, Edit, Loader2, Users, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import useBranch from '../hooks/useBranch';
 import useManager from '../hooks/userManager';
+import { addBranch, fetchBranches, updateBranch } from '../features/branch/branchSlice';
+import { useDispatch, useSelector } from 'react-redux';
 
 const BranchTable = ({ user }) => {
-  const { getBranch, addBranch, updateBranch, loading: branchLoading } = useBranch();
+  const dispatch = useDispatch();
+  const {branches,isLoading:branchLoading} = useSelector((state) => state.branch);
   const { fetchManagers,assignManagers } = useManager();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isManagerModalOpen, setIsManagerModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [branches, setBranches] = useState([]);
   const [managers, setManagers] = useState([]);
   const [selectedBranchForManager, setSelectedBranchForManager] = useState(null);
   const [selectedManagers, setSelectedManagers] = useState([]);
@@ -49,7 +50,7 @@ const BranchTable = ({ user }) => {
   const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
-    fetchBranches();
+    dispatch(fetchBranches());
     fetchManagersList();
   }, []);
 
@@ -93,7 +94,6 @@ const BranchTable = ({ user }) => {
       
       toast.success("Managers assigned successfully");
       setIsManagerModalOpen(false);
-      fetchBranches(); // Refresh branches to show updated managers
       
     } catch (error) {
       toast.error("Failed to assign managers");
@@ -107,18 +107,6 @@ const BranchTable = ({ user }) => {
     setSelectedBranchForManager(null);
     setSelectedManagers([]);
     setIsManagerModalOpen(false);
-  };
-
-  const fetchBranches = async () => {
-    try {
-      const data = await getBranch();
-      console.log("branches: ", data);
-      setBranches(data || []);
-    } catch (err) {
-      toast.error("Failed to fetch branches");
-      console.log(err);
-      setBranches([]);
-    }
   };
 
   const validateForm = () => {
@@ -172,18 +160,17 @@ const BranchTable = ({ user }) => {
 
       if (editMode) {
         // Update existing branch
-        await updateBranch(editingBranchId, branchData);
+        await dispatch(updateBranch({id:editingBranchId, branchData}));
         toast.success("Branch Updated Successfully");
       } else {
         // Add new branch
-        await addBranch(branchData);
+        await dispatch(addBranch(branchData));
         toast.success("Branch Added Successfully");
       }
 
       // Reset form and close modal
       resetForm();
       setIsModalOpen(false);
-      fetchBranches();
 
     } catch (error) {
       const message = editMode ? "Failed to Update Branch" : "Failed to Add Branch";

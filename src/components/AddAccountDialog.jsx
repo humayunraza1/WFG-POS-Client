@@ -17,8 +17,9 @@ import { Separator } from '@/components/ui/separator';
 import { Loader2, UserPlus, Shield, Eye, EyeOff, Edit3, Building } from 'lucide-react';
 import { toast } from 'sonner';
 import useManager from '../hooks/userManager';
-import useBranch from '../hooks/useBranch';
 import { addAccount, updateAccount } from '../features/account/accountSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchBranches } from '../features/branch/branchSlice';
 
 const AddAccountDialog = ({ 
   isOpen, 
@@ -30,13 +31,12 @@ const AddAccountDialog = ({
   onAccountAdded,
   mode = 'create', // 'create' or 'edit'
   defaultValues = {}, // For edit mode
-  branches: propBranches = [] // Branches passed from parent
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { loading: managerLoading} = useManager();
-  const [branches, setBranches] = useState([]);
-  const { getBranch } = useBranch();
+  const dispatch = useDispatch();
+  const { branches, isLoading: branchLoading, error: branchError } = useSelector(state => state.branch);
 
   const {
     register,
@@ -62,24 +62,14 @@ const AddAccountDialog = ({
   });
 
   // Fetch branches on component mount if admin and branches not provided
-  useEffect(() => {
-    if (userRole === 'admin') {
-      if (propBranches && propBranches.length > 0) {
-        setBranches(propBranches);
-      } else {
-        const fetchBranches = async () => {
-          try {
-            const data = await getBranch();
-            setBranches(data || []);
-          } catch (err) {
-            console.error('Failed to fetch branches:', err);
-            toast.error('Failed to fetch branches');
-          }
-        };
-        fetchBranches();
-      }
+useEffect(() => {
+  if (userRole === 'admin') {
+    // Only fetch if branches are not already loaded
+    if (branches.length === 0) {
+      dispatch(fetchBranches());
     }
-  }, [userRole, propBranches, getBranch]);
+  }
+}, [userRole, dispatch]);
 
   // Set form values when in edit mode
   useEffect(() => {

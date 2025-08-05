@@ -7,6 +7,7 @@ import expensesReducer from '@/features/expense/expenseSlice';
 import accountReducer from '@/features/account/accountSlice';
 import { ordersAPI } from '../features/orders/ordersAPI';
 import { expensesAPI } from '../features/expense/expenseAPI';
+import branchReducer from '@/features/branch/branchSlice';
 // import registerReducer from '@/features/register/registerSlice';
 // import ordersReducer from '@/features/orders/ordersSlice';
 
@@ -21,6 +22,7 @@ export const store = configureStore({
     settings: settingsReducer,
     expense: expensesReducer,
     account: accountReducer,
+    branch: branchReducer, // Ensure branchReducer is imported and added here
     // // RTK Query APIs (must match reducerPath)
     // [registerAPI.reducerPath]: registerAPI.reducer,
     [ordersAPI.reducerPath]: ordersAPI.reducer,
