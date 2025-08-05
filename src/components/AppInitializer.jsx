@@ -9,7 +9,8 @@ import { setExpenses } from '../features/expense/expenseSlice';
 
 const AppInitializer = () => {
   const dispatch = useDispatch();
-  const {isOpen,sessionId,isAuthenticated} = useSelector((state)=>state.register)
+  const {isOpen,sessionId} = useSelector((state)=>state.register)
+  const {isAuthenticated} = useSelector((state)=>state.auth)
   const {data:sessionOrders,isSuccess:successOrderBySession} = useGetOrdersBySessionQuery(sessionId,{skip:!sessionId})
     const {data:allExpenses} = useGetExpensesBySessionQuery(sessionId,{skip:!sessionId})
   
@@ -17,9 +18,9 @@ const AppInitializer = () => {
     dispatch(checkAuth());
   }, [dispatch]);
 
-  useEffect(()=>{
-        dispatch(getSettings())
-  },[isAuthenticated])
+  // useEffect(()=>{
+  //       dispatch(getSettings())
+  // },[isAuthenticated,dispatch])
 
   useEffect(()=>{
     if(successOrderBySession && sessionOrders){

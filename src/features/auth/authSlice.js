@@ -1,9 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosPublic,{ axiosPrivate } from '@/api/axios';
+import { getSettings } from '../settings/settingsSlice';
 
-export const login = createAsyncThunk('auth/login', async ({ username, password }, { rejectWithValue }) => {
+export const login = createAsyncThunk('auth/login', async ({ username, password }, { rejectWithValue, dispatch }) => {
   try {
     const res = await axiosPrivate.post('/auth/login', { username, password });
+    await dispatch(getSettings());
     return res.data.user;
   } catch (err) {
     return rejectWithValue(err.response?.data?.message || err.message);
@@ -23,9 +25,10 @@ export const createAccount = createAsyncThunk('auth/createAccount', async ({ use
   }
 });
 
-export const checkAuth = createAsyncThunk('auth/check', async (_, { rejectWithValue }) => {
+export const checkAuth = createAsyncThunk('auth/check', async (_, { rejectWithValue,dispatch }) => {
   try {
     const res = await axiosPrivate.get('/auth/me');
+    await dispatch(getSettings());
     return res.data.user;
   } catch (err) {
     return rejectWithValue(err.response?.data?.message || err.message);
