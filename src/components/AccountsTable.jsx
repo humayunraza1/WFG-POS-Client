@@ -157,10 +157,10 @@ const handleStatusChange = (account, newStatus) => {
   // Update your confirmStatusChange function:
 const confirmStatusChange = async () => {
   const { accountId, newStatus } = confirmationPopover;
-    console.log(accountId,newStatus)
+    //console.log(accountId,newStatus)
     setStatusUpdateLoading(prev => ({ ...prev, [accountId]: true })); 
     const res = await dispatch(updateAccountStatus({accountId, newStatus}));
-    console.log(res)
+    //console.log(res)
     if (res.meta.requestStatus == 'fulfilled'){
       
       // Update switch state to match the confirmed status
@@ -238,7 +238,7 @@ const confirmStatusChange = async () => {
       toast.error('Please select an employee');
       return;
     }
-      console.log(assignEmployeeDialog.accountId, selectedEmployeeId)
+      //console.log(assignEmployeeDialog.accountId, selectedEmployeeId)
       const res = await dispatch(assignAccountToEmployee({accountId:assignEmployeeDialog.accountId, empId:selectedEmployeeId}));
       toast.success('Employee assigned successfully');
       handleCloseAssignDialog();

@@ -39,7 +39,7 @@ const ProductForm = ({ mode, product = null, onBack, onSuccess }) => {
       setNewCategory({ name: '', imageUrl: '' });
       toast.success('Category added');
     } catch (err) {
-      console.log(err)
+      //console.log(err)
       toast.error('Error creating category');
     }
   };
@@ -70,7 +70,7 @@ const ProductForm = ({ mode, product = null, onBack, onSuccess }) => {
           await addProduct(payload);
           toast.success('Product added successfully')
         }catch(err){
-          console.log(err)
+          //console.log(err)
           toast.error(err)
         }
       } else if (mode === 'Edit Product') {
@@ -78,7 +78,7 @@ const ProductForm = ({ mode, product = null, onBack, onSuccess }) => {
           await updateProduct(product._id, payload);
           toast.success('Product updated successfully')
         }catch(err){
-          console.log(err)
+          //console.log(err)
           toast.error(err)
         }
       }

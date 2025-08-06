@@ -79,7 +79,7 @@ const useOrders = (sessionId, isRegisterOpen) => {
     try {
       setIsLoading(true);
       const { data } = await axiosPrivate.get(`/orders/session/${sessionId}`, { withCredentials: true });
-      console.log(data);
+      //console.log(data);
       setOrders(data);
     } catch (err) {
       if (err.response?.status === 404) {
@@ -128,7 +128,7 @@ const useOrders = (sessionId, isRegisterOpen) => {
     setStatsLoading(true);
     try {
       const { data } = await axiosPrivate.get(`/orders/daily-sales/${sessionId}`, { withCredentials: true });
-      console.log('Daily stats:', data);
+      //console.log('Daily stats:', data);
       setDailyStats(data);
     } catch (error) {
       console.error('Error fetching daily stats:', error);

@@ -29,16 +29,16 @@ const CheckoutDialog = ({
   const [server, setServer] = useState([]);
   const {addTempOrder} = useTempOrders()
   useEffect(() => {
-    console.log(businessPrefs)
+    //console.log(businessPrefs)
     const fetchWaiters = async () => {
       try {
         const data = await fetchEmployeesByRole('server');
-        console.log("servers fetched: ",data)
+        //console.log("servers fetched: ",data)
         setServer(data)
       } catch(err) {
         setServer([])
         toast.error("Unable to fetch servers list")
-        console.log(err)
+        //console.log(err)
       }
     } 
       fetchWaiters()

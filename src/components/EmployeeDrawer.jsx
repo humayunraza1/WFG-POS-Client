@@ -93,7 +93,7 @@ const [editData, setEditData] = useState(null);
   ];
 
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
-  console.log("employee information: ", employee)
+  //console.log("employee information: ", employee)
   useEffect(() => {
     if (isOpen && employee) {
       fetchPaymentData();
@@ -148,9 +148,9 @@ const [editData, setEditData] = useState(null);
       const data = await getAccountDetails(id)
           setEditData(data); // You will use this to prefill the dialog
     setIsEditOpen(true);
-      console.log(data)
+      //console.log(data)
     }catch(err){
-      console.log(err)
+      //console.log(err)
     }
   }
 

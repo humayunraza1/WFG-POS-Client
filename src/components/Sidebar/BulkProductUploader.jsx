@@ -28,7 +28,7 @@ const [showDialog, setShowDialog] = useState(false);
     const handleCreateCategory = async () => {
     try {
       const { name, imageUrl } = newCategory;
-      console.log(newCategory)
+      //console.log(newCategory)
       if (!name || !imageUrl) return toast.error('Both fields required');
 
       await addCategory({ name, imageUrl });
@@ -37,7 +37,7 @@ const [showDialog, setShowDialog] = useState(false);
       setNewCategory({ name: '', imageUrl: '' });
       toast.success('Category added');
     } catch (err) {
-      console.log(err)
+      //console.log(err)
       toast.error('Error creating category');
     }
   };

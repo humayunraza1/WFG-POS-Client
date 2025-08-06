@@ -52,11 +52,11 @@ const EmployeesTable = () => {
   async function getEmployees() {
     try {
       const data = await fetchEmployees();
-      console.log("employees: ", data);
+      //console.log("employees: ", data);
       setEmployees(data || []);
     } catch (err) {
       toast.error(err);
-      console.log(err);
+      //console.log(err);
       setEmployees([]);
     }
   }

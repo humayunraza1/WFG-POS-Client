@@ -48,7 +48,7 @@ const Cart = ({
 
     const handleInitialCheckout = () => {
         if (cartItems.length === 0) return;
-        console.log('final cart: ', cartItems)
+        //console.log('final cart: ', cartItems)
         // Transform cart items to match Order schema
         const transformedItems = cartItems.map(item => ({
             category: item.catID,           // Category ObjectId
@@ -82,7 +82,7 @@ const Cart = ({
             amountPaid: 0,                 // Will be set in checkout dialog
             outstandingPayment: total      // Will be calculated in checkout dialog
         };
-        console.log("Checkout Cart: ", orderData)
+        //console.log("Checkout Cart: ", orderData)
         setPendingOrderData(orderData);
         setShowCheckoutDialog(true);
     };

@@ -157,7 +157,7 @@ const Report = () => {
   }, [error]);
 
   const handleBackToReports = () => {
-    console.log('Navigate back to dashboard');
+    //console.log('Navigate back to dashboard');
   };
 
   const formatDate = (dateString) => {

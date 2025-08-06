@@ -16,7 +16,7 @@ const useManager = () => {
       setLoading(true);
       const url = sessionId ? `/manager/registers/summary?sessionId=${sessionId}` : '/manager/registers/summary';
       const res = await axiosPrivate.get(url);
-      console.log('Fetched Summary:', res.data); // Debugging line
+      //console.log('Fetched Summary:', res.data); // Debugging line
       setSummary(res.data);
     } catch (err) {
       setError(err.message);
@@ -30,17 +30,17 @@ const useManager = () => {
       const res = await axiosPrivate.get(`/manager?role=${role}`)
       return res.data
     }catch(err){
-      console.log(err)
+      //console.log(err)
     }
   }
 
   async function assignManagers(id,managers){
     try{
       const res = await axiosPrivate.put('/branch/assign-manager',{branchId:id,managerIds:managers})
-      console.log(res.data)
+      //console.log(res.data)
       return res.data
     }catch(err){
-      console.log(err)
+      //console.log(err)
     }
   }
 
@@ -244,9 +244,9 @@ const addEmployee = async (employeeData) => {
 async function updateEmployee(id, employeeData){
   try{
     const res = await axiosPrivate.put('/manager/update-employee',{id,employeeData})
-    console.log(res.data)
+    //console.log(res.data)
   }catch(err){
-    console.log(err)
+    //console.log(err)
   }
 }
 

@@ -35,7 +35,7 @@ const ProductsView = ({ categories, onViewChange }) => {
         ) || [];
     }, [categories, searchQuery]);
 
-    console.log("products view categories: ", filteredCategories);
+    //console.log("products view categories: ", filteredCategories);
 
     const CategoryBox = ({ category }) => (
         <div 

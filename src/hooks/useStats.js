@@ -14,7 +14,7 @@ export default function useStats() {
     const endpoint = `/stats/?${params.toString()}`;
 
     const res = await axiosPrivate.get(endpoint);
-    console.log(res)
+    //console.log(res)
     return res.data; // Let caller handle the data
   }
 

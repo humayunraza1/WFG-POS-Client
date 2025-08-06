@@ -16,7 +16,7 @@ import SessionExpensesTable from './SessionExpensesTable';
 
 const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
   if (!session) return null;
-  console.log('Session Detail:', session);
+  //console.log('Session Detail:', session);
   
   const formatCurrency = (amount) => {
     return `PKR ${(amount || 0).toLocaleString()}`;

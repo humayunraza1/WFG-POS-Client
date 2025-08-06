@@ -23,8 +23,8 @@ export const PreferencesProvider = ({ children }) => {
           setAccountPrefs(accountRes.data);
           setBusinessPrefs(businessRes.data);
           
-          console.log("account settings: ", accountRes.data)
-          console.log("business settings: ", businessRes.data)
+          //console.log("account settings: ", accountRes.data)
+          //console.log("business settings: ", businessRes.data)
         } catch (error) {
           console.error('Failed to load preferences:', error);
         } finally {

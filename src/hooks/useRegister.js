@@ -55,7 +55,7 @@ const useRegister = () => {
       if (data.isOpen) {
         setIsOpen(true);
         setSessionId(data.sessionId);
-        console.log(data);
+        //console.log(data);
         setRegisterData(data.register);
         // Return the data so other hooks can use it
         return data;

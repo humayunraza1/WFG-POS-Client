@@ -90,7 +90,7 @@ const OrdersTableView = ({onUpdatePayment }) => {
     if (deleteConfirmation.order) {
       const res = await dispatch(deleteOrder(deleteConfirmation.order._id));
       refetchStats()
-      console.log("delete order: ",res)
+      //console.log("delete order: ",res)
     }
     setDeleteConfirmation({ open: false, order: null });
   };
@@ -108,7 +108,7 @@ const OrdersTableView = ({onUpdatePayment }) => {
   };
 
    function fetchAllOrders(){
-      console.log("refetching orders")
+      //console.log("refetching orders")
       refetchSessionOrders()
       dispatch(setAllOrders(fetchedOrders))
     }

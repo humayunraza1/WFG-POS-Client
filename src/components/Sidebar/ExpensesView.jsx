@@ -122,7 +122,7 @@ const ExpensesView = () => {
         
       }
         const res = await dispatch(addExpense({expenseData,sessionId}));
-        console.log(res)
+        //console.log(res)
         if(res.meta.requestStatus == 'fulfilled'){
           toast.success('Expense added successfully', {
             description: `${formData.name} - PKR ${parseFloat(formData.amount).toLocaleString()}`
@@ -145,7 +145,7 @@ const ExpensesView = () => {
         amount: parseFloat(formData.amount)
     }
      const res = await dispatch(updateExpense({id:editingExpense._id,expenseData}));
-     console.log(res)
+     //console.log(res)
       if (res.meta.requestStatus == 'fulfilled'){
         toast.success('Expense updated successfully', {
           description: `${formData.name} - PKR ${parseFloat(formData.amount).toLocaleString()}`
@@ -164,7 +164,7 @@ const ExpensesView = () => {
 
   const handleDeleteExpense = async () => {
     const res = await dispatch(deleteExpense(deletingExpense._id));
-    console.log(res)
+    //console.log(res)
       if(res.meta.requestStatus == 'fulfilled'){
         toast.success('Expense deleted successfully', {
           description: `${deletingExpense.name} has been removed`

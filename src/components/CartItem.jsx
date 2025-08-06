@@ -23,7 +23,7 @@ import {
 
 // Cart Item Component
 const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
-  console.log("CartItem Rendered", item);
+  //console.log("CartItem Rendered", item);
   return (
     <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
       <div className="flex-1">

@@ -71,7 +71,7 @@ export const TempOrdersProvider = ({ children }) => {
     const existingOrders = [...tempOrders, newOrder];
     saveTempOrders(existingOrders);
 
-    console.log("add temp order ran, ", orderData);
+    //console.log("add temp order ran, ", orderData);
   };
 
   const value = {

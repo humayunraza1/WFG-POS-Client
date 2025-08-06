@@ -14,7 +14,7 @@ const useSidebarMenu = (products) => {
   const { user } = useSelector((state)=>state.auth);
   const access = user?.access || {};
   const {businessPrefs} = useSelector((state)=>state.settings);
-    console.log('Access:', access);
+    //console.log('Access:', access);
   const menuItems = [];
   // Products with variants (Always shown if products exist)
   if (access.isCashier && (!access.isAdmin && !access.usManager)) {

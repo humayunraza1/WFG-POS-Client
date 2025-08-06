@@ -17,7 +17,7 @@ const ReceiptDrawer = ({ order, onClose, onUpdatePayment }) => {
   const [error, setError] = useState('');
 
   if (!order) return null;
-  console.log('ReceiptDrawer order:', order);
+  //console.log('ReceiptDrawer order:', order);
   
   // Use dateOrdered if createdAt doesn't exist
   const orderDate = order.createdAt || order.dateOrdered;

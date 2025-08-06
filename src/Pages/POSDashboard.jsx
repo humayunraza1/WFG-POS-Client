@@ -55,15 +55,18 @@ import { addOrder } from '@/features/orders/ordersSlice';
 import { updatePayment } from '../features/orders/ordersSlice';
 import { useGetDailyStatsQuery } from '../features/orders/ordersAPI';
 import { addExpense, deleteExpense, updateExpense } from '../features/expense/expenseSlice';
+import useReceiptPrinter from '../hooks/useReceiptPrinter';
 
 // Main Dashboard Component
 const POSDashboard = () => {
   const dispatch = useDispatch();
     const { user,isAuthenticated } = useSelector((state)=>state.auth);
     const {isLoading:registerLoading,sessionId,registerData,isOpen:isRegisterOpen} = useSelector((state)=>state.register)
+    const {accountPrefs} = useSelector((state)=>state.settings)
     const { refetch: refetchStats } = useGetDailyStatsQuery(sessionId, {
     skip: !sessionId,
     });
+    const {printReceipt} = useReceiptPrinter();
     const {expenses} = useSelector((state) => state.expense)
     const [activeView, setActiveView] = useState('dashboard');
     const [activeSubView, setActiveSubView] = useState(null);
@@ -173,7 +176,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
             fetchProductsByCategory(subView._id);
           }
 
-          console.log(`Switching to view: ${view}`, subView);
+          //console.log(`Switching to view: ${view}`, subView);
           setActiveView(view);
           setActiveSubView(subView);
         };
@@ -192,7 +195,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
     };
 
     const handleStartCashSubmit = async (registerData) => {
-      console.log(registerData)
+      //console.log(registerData)
       try {
         setIsOpeningRegister(true);
         dispatch(openRegister(registerData))
@@ -247,11 +250,11 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
       if (!requiresActiveSession('add items to cart')) {
         return;
       }
-      console.log('Adding to cart - product:', product);
-      console.log('Adding to cart - category:', category);
+      //console.log('Adding to cart - product:', product);
+      //console.log('Adding to cart - category:', category);
   
       const existingItem = cartItems.find(item => item.option._id === product.option._id);
-      console.log("Cart: ",cartItems)
+      //console.log("Cart: ",cartItems)
       if (existingItem) {
         setCartItems(prevItems =>
           prevItems.map(item =>
@@ -270,12 +273,12 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
     };
     
     const handleUpdateQuantity = (variantId, newQuantity) => {
-      console.log(`Updating quantity for variant ${variantId} to ${newQuantity}`);
+      //console.log(`Updating quantity for variant ${variantId} to ${newQuantity}`);
       if (newQuantity === 0) {
         handleRemoveFromCart(variantId);
         return;
       }
-      console.log("update quantity: ",cartItems)
+      //console.log("update quantity: ",cartItems)
       setCartItems(prevItems =>
         prevItems.map(item =>
           item.option._id === variantId
@@ -286,8 +289,8 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
     };
     
     const handleRemoveFromCart = (productId) => {
-      console.log(`Removing item with ID ${productId} from cart`);
-      console.log(cartItems)
+      //console.log(`Removing item with ID ${productId} from cart`);
+      //console.log(cartItems)
       setCartItems(prevItems => prevItems.filter(item => item._id !== productId));
       toast.success('Item removed from cart');
     };
@@ -302,14 +305,21 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
         return;
       }
 
-      console.log('Processing order:', orderData);
+      //console.log('Processing order:', orderData);
 
       const finalOrderData = {...orderData,registerSession: sessionId,
           paymentStatus: orderData.outstandingPayment > 0 ? 'pending' : 'paid'}
-      console.log("final order data: ",finalOrderData)
+      //console.log("final order data: ",finalOrderData)
       try {
         const res = await dispatch(addOrder(finalOrderData));
-        console.log("order placed using thunk: ",res)
+        //console.log("order placed using thunk: ",res)
+        if(accountPrefs.printReceipt){
+          try{
+            await printReceipt(res.payload)
+         } catch (printError) {
+          console.error('Failed to print receipt:', printError);
+        }
+        }
         // Show success message with payment status
         const paymentStatus = orderData.outstandingPayment > 0 ? 'partial payment' : 'full payment';
         const description = orderData.outstandingPayment > 0 
@@ -325,7 +335,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
         setIsCartSheetOpen(false);
         // Daily stats will be refreshed automatically in useOrders hook
       } catch (error) {
-        console.log(error)
+        //console.log(error)
         toast.error('Failed to process order', {
           description: error.message
         });
@@ -337,7 +347,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
     const handleUpdatePayment = async (orderId, amount) => {
       try {
         const result = await dispatch(updatePayment({orderId, amountReceived:amount}));
-        console.log(result)
+        //console.log(result)
         toast.success('Payment updated successfully', {
           description: result.message
         });

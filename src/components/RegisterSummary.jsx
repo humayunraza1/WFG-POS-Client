@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 const RegisterSummary = ({ summary, loading, selectedSessionId }) => {
-  console.log('Rendering RegisterSummary', summary);
+  //console.log('Rendering RegisterSummary', summary);
   if (loading) {
     return (
       <Card className="w-full">

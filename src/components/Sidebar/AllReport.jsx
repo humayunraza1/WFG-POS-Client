@@ -156,7 +156,7 @@ const AllReports = () => {
         endDate = formatDateForBackend(toDate);
       }
 
-      console.log('Sending to backend:', { startDate, endDate }); // Debug log
+      //console.log('Sending to backend:', { startDate, endDate }); // Debug log
 
       await generateReport(startDate, endDate);
       toast.success('Report generated successfully');

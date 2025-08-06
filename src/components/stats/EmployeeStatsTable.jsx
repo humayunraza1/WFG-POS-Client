@@ -96,7 +96,7 @@ const getEmployeeStats = useStats();
     const rdata = await getEmployeeStats(filterPeriod,filterStartDate,filterEndDate,filterIsActive)
     setData(rdata)
   }catch(err){
-    console.log(err)
+    //console.log(err)
     toast.error("Error fetching employee stats: ",err)
   }finally{
     setLoading(false)

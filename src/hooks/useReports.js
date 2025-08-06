@@ -15,7 +15,7 @@ const useReports = () => {
       setIsLoading(true);
       setError(null);
       const response = await axiosPrivate.get('/reports');
-      console.log('Fetched reports:', response.data);
+      //console.log('Fetched reports:', response.data);
       setReports(response.data || []);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch reports');
@@ -56,7 +56,7 @@ const useReports = () => {
       setIsFetching(true);
       setError(null);
       const response = await axiosPrivate.get(`/reports/get-report/${reportId}`);
-      console.log('Fetched report:', response.data);
+      //console.log('Fetched report:', response.data);
       setCurrentReport(response.data);
       return response.data;
     } catch (err) {

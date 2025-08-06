@@ -20,7 +20,7 @@ const useProducts = () => {
     try {
       setIsLoading(true);
       const { data } = await axiosPrivate.get('/products/categories', { withCredentials: true });
-      console.log("category ",data)
+      //console.log("category ",data)
       setCategories(data);
     } catch (err) {
       setError(err.response?.data?.message || err.message);
@@ -31,13 +31,13 @@ const useProducts = () => {
 
     const addCategory = async (categoryData) => {
     try {
-      console.log(categoryData)
+      //console.log(categoryData)
       const { data } = await axiosPrivate.post('/products/add-category', {name:categoryData.name,imageUrl:categoryData.imageUrl});
       setCategories(prev => [...prev, data.category]);
       return data.category;
     } catch (err) {
       setError(err.response?.data?.message || err.message);
-      console.log(err)
+      //console.log(err)
       throw new err;
     }
   };
@@ -47,7 +47,7 @@ const useProducts = () => {
       setIsLoading(true);
       const { data } = await axiosPrivate.get(`/products`, { withCredentials: true });
       setProducts(data);
-      console.log("products ",data)
+      //console.log("products ",data)
     } catch (err) {
       setError(err.response?.data?.message || err.message);
     } finally {
@@ -60,7 +60,7 @@ const useProducts = () => {
     setIsLoading(true);
     const { data } = await axiosPrivate.get(`/products/${categoryId}`, { withCredentials: true });
     setProducts(data);
-    console.log(data)
+    //console.log(data)
   } catch (err) {
     setError(err.response?.data?.message || err.message);
   } finally {
@@ -81,7 +81,7 @@ const useProducts = () => {
 
   const bulkAddProducts = async (products) => {
   try{
-    console.log("bulk add: ",products)
+    //console.log("bulk add: ",products)
     const res = await axiosPrivate.post('/products/bulk-add', products);
     setProducts(prev => [...prev, res.data]);
     return res.data;

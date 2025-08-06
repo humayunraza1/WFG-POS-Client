@@ -57,11 +57,11 @@ const BranchTable = ({ user }) => {
   const fetchManagersList = async () => {
     try {
       const data = await fetchManagers();
-      console.log("managers: ", data);
+      //console.log("managers: ", data);
       setManagers(data || []);
     } catch (err) {
       toast.error("Failed to fetch managers");
-      console.log(err);
+      //console.log(err);
       setManagers([]);
     }
   };
@@ -84,7 +84,7 @@ const BranchTable = ({ user }) => {
 
   const handleAssignManagersSubmit = async () => {
     if (!selectedBranchForManager) return;
-    console.log("branch id: ", selectedBranchForManager._id)
+    //console.log("branch id: ", selectedBranchForManager._id)
     setManagersLoading(true);
     try {
       await assignManagers(
@@ -97,7 +97,7 @@ const BranchTable = ({ user }) => {
       
     } catch (error) {
       toast.error("Failed to assign managers");
-      console.log(error);
+      //console.log(error);
     } finally {
       setManagersLoading(false);
     }
@@ -175,7 +175,7 @@ const BranchTable = ({ user }) => {
     } catch (error) {
       const message = editMode ? "Failed to Update Branch" : "Failed to Add Branch";
       toast.error(message);
-      console.log(error);
+      //console.log(error);
     }
   };
 

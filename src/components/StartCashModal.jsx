@@ -52,7 +52,7 @@ const StartCashModal = ({ isOpen, onClose, onSubmit, isLoading }) => {
     }
 
     setError('');
-    console.log('Submitting start cash:', { startCash, manager: selectedManagerId });
+    //console.log('Submitting start cash:', { startCash, manager: selectedManagerId });
     onSubmit({
       startCash: cashAmount,
       manager:selectedManager,

@@ -96,7 +96,7 @@ generateRestaurantCopy(order) {
 
   // Summary - better alignment for NCR 7197
   const subtotal = order.items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
-  const discountAmount = order.discount;
+  const discountAmount = order.discount || 0;
  
   lines.push('');
   lines.push('');
@@ -117,7 +117,7 @@ generateRestaurantCopy(order) {
 
   async printRestaurantCopy(order) {
     const receiptContent = this.generateRestaurantCopy(order);
-    console.log(receiptContent);
+    //console.log(receiptContent);
 
     const printWindow = window.open('', '_blank', 'width=450,height=700');
     const printContent = `
@@ -284,6 +284,7 @@ generateRestaurantCopy(order) {
 
 async printBothReceipts(order) {
   // Generate the same customer receipt content as printReceipt does
+  //console.log("print both receipt: ", order)
   const customerContent = this.generateReceiptContent(order);
   
   // Generate the restaurant copy (different format)
@@ -657,7 +658,7 @@ formatItemsTable(order) {
     
     // Pricing Summary - optimized for NCR 7197
     const subtotal = order.items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
-    const discountAmount =  order.discount;
+    const discountAmount =  order.discount || 0;
     
     lines.push('');
     lines.push('');

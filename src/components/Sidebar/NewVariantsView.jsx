@@ -11,8 +11,8 @@ const NewVariantsView = ({ selectedCategory, products, onAddToCart, onViewChange
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  console.log('VariantsView - selectedCategory:', selectedCategory);
-  console.log('VariantsView - products:', products);
+  //console.log('VariantsView - selectedCategory:', selectedCategory);
+  //console.log('VariantsView - products:', products);
 
   // Filter products by search query
   const filteredProducts = useMemo(() => {

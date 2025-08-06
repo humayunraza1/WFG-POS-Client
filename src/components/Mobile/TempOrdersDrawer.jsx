@@ -20,7 +20,7 @@ const TempOrdersDrawer = ({isOpen, setIsOpen }) => {
   // Load temp orders from localStorage on component mount
   useEffect(() => {
     loadTempOrders();
-    console.log(tempOrders)
+    //console.log(tempOrders)
   }, []);
 
   return (

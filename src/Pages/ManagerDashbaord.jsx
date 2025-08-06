@@ -115,7 +115,7 @@ const ManagerDashboard = () => {
       }else{
         setShowRegisters(true)
       }
-      console.log("view: ", view)
+      //console.log("view: ", view)
       setActiveView(view);
       setActiveSubView(subView);
     };

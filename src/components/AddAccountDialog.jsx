@@ -264,7 +264,7 @@ useEffect(() => {
 
       if (mode === 'edit') {
         const res = await dispatch(updateAccount({accountId:defaultValues.accountId, status:payload}));
-        console.log(payload)
+        //console.log(payload)
         if(res.meta.requestStatus == 'fulfilled'){
           toast.success("Account updated successfully");
         }else{
