@@ -8,6 +8,7 @@ import accountReducer from '@/features/account/accountSlice';
 import { ordersAPI } from '../features/orders/ordersAPI';
 import { expensesAPI } from '../features/expense/expenseAPI';
 import branchReducer from '@/features/branch/branchSlice';
+import statsAPI from '../features/stats/statsAPI';
 // import registerReducer from '@/features/register/registerSlice';
 // import ordersReducer from '@/features/orders/ordersSlice';
 
@@ -27,12 +28,14 @@ export const store = configureStore({
     // [registerAPI.reducerPath]: registerAPI.reducer,
     [ordersAPI.reducerPath]: ordersAPI.reducer,
     [expensesAPI.reducerPath]: expensesAPI.reducer,
+     [statsAPI.reducerPath]: statsAPI.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
       // registerAPI.middleware,
       ordersAPI.middleware,
-      expensesAPI.middleware
+      expensesAPI.middleware,
+      statsAPI.middleware
     ),
   devTools: process.env.NODE_ENV !== 'production',
 });

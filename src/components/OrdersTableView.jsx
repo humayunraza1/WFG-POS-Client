@@ -14,6 +14,7 @@ import ReceiptDrawer from './ReceiptDrawer';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteOrder, selectAllOrders, setAllOrders } from '../features/orders/ordersSlice';
 import { useGetDailyStatsQuery, useGetOrdersBySessionQuery } from '../features/orders/ordersAPI';
+import { toast } from 'sonner';
 
 const ORDERS_PER_PAGE = 10;
 
@@ -21,6 +22,7 @@ const OrdersTableView = ({onUpdatePayment }) => {
   const [page, setPage] = useState(1);
   const dispatch = useDispatch()
   const {sessionId} = useSelector((state)=>state.register)
+  const {isLoading:orderLoading,error} = useSelector((state)=>state.orders)
   const orders = useSelector(selectAllOrders)
   const { refetch: refetchStats } = useGetDailyStatsQuery(sessionId, {
       skip: !sessionId,
@@ -89,7 +91,13 @@ const OrdersTableView = ({onUpdatePayment }) => {
   const handleDeleteConfirm = async () => {
     if (deleteConfirmation.order) {
       const res = await dispatch(deleteOrder(deleteConfirmation.order._id));
-      refetchStats()
+      if(res.meta.requestStatus=='fulfilled'){
+        toast.success('Order deleted successfuly')
+        refetchStats()
+        refetchSessionOrders()
+      }else{
+        toast.error("Error:",error)
+      }
       //console.log("delete order: ",res)
     }
     setDeleteConfirmation({ open: false, order: null });

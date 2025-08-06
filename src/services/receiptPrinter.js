@@ -55,9 +55,9 @@ class ReceiptPrinter {
     if (isForBrowser) {
       // Return HTML img tag for browser preview with top margin
       return `<div style="text-align: center; margin-top: 10px; margin-bottom: -30px;">
-                <img src="./images/wfg-logo.png" 
+                <img src="./images/ftl-logo.png" 
                      style="width: 100px; height: 100px; margin: 0 auto; display: block;" 
-                     alt="The Waffle Guy Logo" 
+                     alt="Fruits Lab Logo" 
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
                 <div style="display: none; font-size: 14px; font-weight: bold; color: #FF1493;">🧇 THE WAFFLE GUY 🧇</div>
               </div>`;
@@ -576,7 +576,7 @@ formatItemsTable(order) {
           resolve(bitmap);
         };
         img.onerror = () => reject(new Error('Could not load logo'));
-        img.src = './wfg-logo.png';
+        img.src = './ftl-logo.png';
       });
     } catch (error) {
       console.warn('Logo loading failed, using ASCII fallback:', error);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -8,108 +8,45 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { CalendarIcon, Package, Eye, Filter } from 'lucide-react';
+import { RefreshCw, Package, Eye, DollarSign, Percent } from 'lucide-react';
 import EmployeeDetailsDrawer from './EmployeeDetailsDrawer';
-import useStats from '@/hooks/useStats';
+import { useGetEmployeeStatsQuery } from '../../features/stats/statsAPI';
 
 // Utility functions
-const formatDateTime = (dateString) => {
-  if (!dateString) return 'N/A';
-  const date = new Date(dateString);
-  return date.toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  });
+const formatCurrency = (amount) => {
+  if (typeof amount !== 'number') return 'Rs. 0';
+  return `Rs. ${amount.toLocaleString()}`;
 };
 
-const getPeriodTitle = (period) => {
-  switch (period) {
-    case 'daily':
-      return "Today's Stats";
-    case 'weekly':
-      return 'Weekly Stats';
-    case 'monthly':
-      return 'Monthly Stats';
-    case 'custom':
-      return 'Custom Period Stats';
-    default:
-      return 'Daily Stats';
-  }
+const calculateServerPayout = (totalValue) => {
+  return Math.round(totalValue * 40); // 40% of total order value
 };
 
 const EmployeeStatsTable = () => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   
-  // Filter states
-const [filterPeriod, setFilterPeriod] = useState('daily');
-const [filterStartDate, setFilterStartDate] = useState('');
-const [filterEndDate, setFilterEndDate] = useState('');
-const [filterIsActive, setFilterIsActive] = useState(true);
-
-const [period, setPeriod] = useState('daily');
-const [startDate, setStartDate] = useState('');
-const [endDate, setEndDate] = useState('');
-const [isActiveSessionOnly, setIsActiveSessionOnly] = useState(true);
-const getEmployeeStats = useStats();
-  const fetchData = async () => {
-    setLoading(true);
-    try {  
-      const rdata = await getEmployeeStats()
-      setData(rdata)
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      setLoading(false);
-    }finally{
-      setLoading(false)
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-
-  const handleApplyFilters = async () => {
-      setPeriod(filterPeriod);
-  setStartDate(filterStartDate);
-  setEndDate(filterEndDate);
-  setIsActiveSessionOnly(filterIsActive);
-  setLoading(true)
-  try{
-    const rdata = await getEmployeeStats(filterPeriod,filterStartDate,filterEndDate,filterIsActive)
-    setData(rdata)
-  }catch(err){
-    //console.log(err)
-    toast.error("Error fetching employee stats: ",err)
-  }finally{
-    setLoading(false)
-  }
-};
+  const { data, isSuccess, isLoading: loading, refetch, isFetching } = useGetEmployeeStatsQuery();
 
   const handleViewDetails = (employee) => {
     setSelectedEmployee(employee);
     setDrawerOpen(true);
   };
 
+  const handleRefresh = () => {
+    refetch();
+  };
 
-  if (!data?.success) {
+  if (loading && !data) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
+        Loading employee statistics...
+      </div>
+    );
+  }
+
+  if (!isSuccess) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         Failed to load statistics data
@@ -117,154 +54,205 @@ const getEmployeeStats = useStats();
     );
   }
 
+  // Calculate totals for summary
+  const totalOrders = data?.data?.reduce((sum, emp) => sum + emp.orderCount, 0) || 0;
+  const totalValue = data?.data?.reduce((sum, emp) => sum + emp.totalValue, 0) || 0;
+  const totalPayout = data?.data?.reduce((sum, emp) => sum + calculateServerPayout(emp.orderCount), 0) || 0;
+
   return (
     <div className="space-y-6">
-      {/* Filters Section */}
-      <div className="bg-card p-4 rounded-lg border">
-        <div className="flex items-center gap-2 mb-4">
-          <Filter className="h-4 w-4" />
-          <h3 className="text-sm font-medium">Filters</h3>
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-2">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+            Server Statistics
+          </h2>
+          <div className="text-sm text-muted-foreground">
+            Current active session statistics
+          </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-          {/* Period Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="period">Period</Label>
-            <Select value={filterPeriod} onValueChange={setFilterPeriod}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select period" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="daily">Daily</SelectItem>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="custom">Custom Range</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Start Date - Only show for custom period */}
-            {filterPeriod === 'custom' && (
-              <Input
-                type="date"
-                value={filterStartDate}
-                onChange={(e) => setFilterStartDate(e.target.value)}
-              />
-            )}
-
-            {filterPeriod === 'custom' && (
-              <Input
-                type="date"
-                value={filterEndDate}
-                onChange={(e) => setFilterEndDate(e.target.value)}
-              />
-            )}
-
-          {/* Active Sessions Checkbox */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="activeSession"
-              checked={filterIsActive}
-              onCheckedChange={setFilterIsActive}
-            />
-            <Label 
-              htmlFor="activeSession" 
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Get stats for active sessions only
-            </Label>
-          </div>
-
-          {/* Refresh Button */}
-          <div className="flex justify-end">
-            <Button onClick={handleApplyFilters} disabled={loading}>
-              {loading ? 'Loading...' : 'Apply Filters'}
-            </Button>
-          </div>
-        </div>
+        {/* Refresh Button */}
+        <Button 
+          onClick={handleRefresh} 
+          disabled={isFetching}
+          variant="outline"
+          className="flex items-center gap-2 w-full sm:w-auto"
+        >
+          <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+          {isFetching ? 'Refreshing...' : 'Refresh'}
+        </Button>
       </div>
 
-      {/* Header Section */}
-      <div className="space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight">
-          {getPeriodTitle(data?.data?.summary?.period || period)}
-        </h2>
-        {data?.data?.summary?.dateRange && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <CalendarIcon className="h-4 w-4" />
-            <span>
-              {formatDateTime(data.data.summary.dateRange.startDate)} - {formatDateTime(data.data.summary.dateRange.endDate)}
-            </span>
-          </div>
-        )}
-        {data?.data?.summary && (
-          <div className="flex gap-6 text-sm">
-            <span className="flex items-center gap-2">
-              <span className="font-medium">Total Employees:</span>
-              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                {data.data.summary.totalEmployees}
-              </span>
-            </span>
-            <span className="flex items-center gap-2">
-              <span className="font-medium">Total Deliveries:</span>
-              <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                {data.data.summary.totalDeliveries}
-              </span>
-            </span>
-            {isActiveSessionOnly && (
-              <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">
-                Active Sessions Only
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Statistics Table */}
-      <div className="border rounded-lg">
+      {/* Desktop Table View */}
+      <div className="hidden lg:block border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[300px]">Employee Name</TableHead>
-              <TableHead className="w-[150px]">Total Deliveries</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
+              <TableHead className="w-[200px]">Server Name</TableHead>
+              <TableHead className="w-[120px] text-center">Total Orders</TableHead>
+              <TableHead className="w-[150px] text-right">Total Value</TableHead>
+              <TableHead className="w-[150px] text-right">Server Payout</TableHead>
+              <TableHead className="w-[100px] text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data?.data?.employees?.length > 0 ? (
-              data.data.employees.map((employee) => (
-                <TableRow key={employee.employeeId}>
-                  <TableCell className="font-medium">
-                    {employee.employeeName}
-                  </TableCell>
-                  <TableCell>
-                    <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-sm">
-                      <Package className="h-3 w-3" />
-                      {employee.totalDeliveries}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewDetails(employee)}
-                      className="flex items-center gap-1"
-                    >
-                      <Eye className="h-3 w-3" />
-                      View
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
+            {data?.data?.length > 0 ? (
+              data.data.map((server) => {
+                const serverPayout = calculateServerPayout(server.orderCount);
+                
+                return (
+                  <TableRow key={server.serverId || 'unassigned'}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <span className="text-xs font-semibold text-blue-600">
+                            {server.serverName.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        {server.serverName}
+                      </div>
+                    </TableCell>
+                    
+                    <TableCell className="text-center">
+                      <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                        <Package className="h-3 w-3" />
+                        {server.orderCount}
+                      </span>
+                    </TableCell>
+                    
+                    <TableCell className="text-right">
+                      <span className="font-semibold text-purple-700">
+                        {formatCurrency(server.totalValue)}
+                      </span>
+                    </TableCell>
+                    
+                    <TableCell className="text-right">
+                      <span className="inline-flex items-center gap-1 bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold">
+                        <DollarSign className="h-3 w-3" />
+                        {formatCurrency(serverPayout)}
+                      </span>
+                    </TableCell>
+                    
+                    <TableCell className="text-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewDetails(server)}
+                        className="flex items-center gap-1"
+                      >
+                        <Eye className="h-3 w-3" />
+                        View
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
-                  {loading ? 'Loading employee data...' : 'No employee data available for this period'}
+                <TableCell colSpan={5} className="text-center py-12">
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <Package className="h-8 w-8" />
+                    <div className="text-lg font-medium">No server data available</div>
+                    <div className="text-sm">No orders found for the current active session</div>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile/Tablet Card View */}
+      <div className="lg:hidden space-y-4">
+        {data?.data?.length > 0 ? (
+          data.data.map((server) => {
+            const serverPayout = calculateServerPayout(server.orderCount);
+            
+            return (
+              <div 
+                key={server.serverId || 'unassigned'} 
+                className="bg-card border rounded-lg p-4 space-y-4"
+              >
+                {/* Server Header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-semibold text-blue-600">
+                        {server.serverName.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-base">{server.serverName}</div>
+                    </div>
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewDetails(server)}
+                    className="flex items-center gap-1"
+                  >
+                    <Eye className="h-3 w-3" />
+                    View
+                  </Button>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Total Orders */}
+                  <div className="bg-green-50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Package className="h-4 w-4 text-green-600" />
+                      <span className="text-xs font-medium text-green-700 uppercase tracking-wide">
+                        Total Orders
+                      </span>
+                    </div>
+                    <div className="text-lg font-bold text-green-800">
+                      {server.orderCount}
+                    </div>
+                  </div>
+
+                  {/* Total Value */}
+                  <div className="bg-purple-50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <DollarSign className="h-4 w-4 text-purple-600" />
+                      <span className="text-xs font-medium text-purple-700 uppercase tracking-wide">
+                        Total Value
+                      </span>
+                    </div>
+                    <div className="text-lg font-bold text-purple-800">
+                      {formatCurrency(server.totalValue)}
+                    </div>
+                  </div>
+
+                  {/* Server Payout */}
+                  <div className="bg-orange-50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Percent className="h-4 w-4 text-orange-600" />
+                      <span className="text-xs font-medium text-orange-700 uppercase tracking-wide">
+                        Server Payout
+                      </span>
+                    </div>
+                    <div className="text-lg font-bold text-orange-800">
+                      {formatCurrency(serverPayout)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="bg-card border rounded-lg p-12 text-center">
+            <div className="flex flex-col items-center gap-4 text-muted-foreground">
+              <Package className="h-12 w-12" />
+              <div className="space-y-2">
+                <div className="text-lg font-medium">No server data available</div>
+                <div className="text-sm">No orders found for the current active session</div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Employee Details Drawer */}

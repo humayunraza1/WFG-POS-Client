@@ -85,8 +85,9 @@ const CheckoutDialog = ({
       ...orderData,
       amountPaid: amountReceivedNum,
       outstandingPayment: outstandingPayment,
-      serverId: businessPrefs?.trackServers ? selectedServerId : null,
+      serverRef: businessPrefs?.trackServers ? selectedServerId : null,
     };
+    console.log(finalOrderData)
     const finalTempOrder = {items:serverData,serverName:name}
     addTempOrder(finalTempOrder)
     onConfirmOrder(finalOrderData);
