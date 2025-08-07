@@ -46,7 +46,7 @@ const Report = () => {
     const formattedEndDate = formatDate(endDate);
     
     // Update document title
-    document.title = "Fruits Lab - Report Dashboard";
+    document.title = "The Waffle Guy - Report Dashboard";
     
     // Update or create meta description
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -429,7 +429,7 @@ const Report = () => {
             </div>
             <div className="flex items-center justify-center gap-3 mb-4">
               <div className="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center">
-                <img src="/images/ftl-logo.png" alt="Waffle Guy Logo" className="w-8 h-8" />
+                <img src="/images/wfg-logo.png" alt="Waffle Guy Logo" className="w-8 h-8" />
               </div>
               <div className="text-center">
                 <h1 className="text-2xl font-bold text-gray-900">The Waffle Guy's Report</h1>

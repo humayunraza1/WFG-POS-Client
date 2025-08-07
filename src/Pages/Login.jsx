@@ -100,7 +100,7 @@ const LoginPage = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <img src='/images/ftl-logo.png' className='h-35 w-35'/>
+            <img src='/images/wfg-logo.png' className='h-35 w-35'/>
           </div>
           <h1 className="text-3xl font-bold">POS System</h1>
           <p className="text-muted-foreground">Sign in to your account to continue</p>
