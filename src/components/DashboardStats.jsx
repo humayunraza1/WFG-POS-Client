@@ -25,7 +25,7 @@ const DashboardStats = () => {
 const totalExpenses = useSelector(selectTotalExpenses);
 
   // Calculate total cash: actual sales received + cash in hand - expenses
-  const totalCash = (stats?.cashRecvd || 0) + (registerData?.cashInHand || 0) - (totalExpenses || 0);
+  const totalCash = (stats?.cashRecvd || 0) + (registerData?.startCash || 0) - (totalExpenses || 0);
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
       {/* Today's Sales */}
