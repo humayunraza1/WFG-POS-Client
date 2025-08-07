@@ -3,6 +3,7 @@ const BASE_URL = import.meta.env.VITE_API_URL
 
 const axiosPublic = axios.create({
     baseURL:BASE_URL,
+    withCredentials: true
 })
 
 export default axiosPublic
