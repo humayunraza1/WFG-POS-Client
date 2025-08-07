@@ -55,9 +55,9 @@ const EmployeeStatsTable = () => {
   }
 
   // Calculate totals for summary
-  const totalOrders = data?.data?.reduce((sum, emp) => sum + emp.orderCount, 0) || 0;
-  const totalValue = data?.data?.reduce((sum, emp) => sum + emp.totalValue, 0) || 0;
-  const totalPayout = data?.data?.reduce((sum, emp) => sum + calculateServerPayout(emp.orderCount), 0) || 0;
+  // const totalOrders = data?.data?.reduce((sum, emp) => sum + emp.orderCount, 0) || 0;
+  // const totalValue = data?.data?.reduce((sum, emp) => sum + emp.totalValue, 0) || 0;
+  // const totalPayout = data?.data?.reduce((sum, emp) => sum + calculateServerPayout(emp.orderCount), 0) || 0;
 
   return (
     <div className="space-y-6">

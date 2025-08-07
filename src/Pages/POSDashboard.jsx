@@ -312,7 +312,6 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
       //console.log("final order data: ",finalOrderData)
       try {
         const res = await dispatch(addOrder(finalOrderData));
-        //console.log("order placed using thunk: ",res)
         if(accountPrefs.printReceipt){
           try{
             await printReceipt(res.payload)
