@@ -22,6 +22,7 @@ const DashboardStats = () => {
   const { data: stats, isFetching:isLoading } = useGetDailyStatsQuery(sessionId, {
   skip: !sessionId,
 });
+console.log("stats: ",stats)
 const totalExpenses = useSelector(selectTotalExpenses);
 
   // Calculate total cash: actual sales received + cash in hand - expenses
@@ -73,7 +74,7 @@ const totalExpenses = useSelector(selectTotalExpenses);
       {isLoading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
-        `PKR ${stats?.onlinePayment || 0}`
+        `PKR ${stats?.onlinePaymnt || 0}`
       )}
     </div>
     <p className="text-xs text-muted-foreground">Digital transfers</p>
