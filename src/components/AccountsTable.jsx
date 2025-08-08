@@ -421,10 +421,10 @@ const confirmStatusChange = async () => {
                                   </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-64">
-                                  <p className="text-sm">Unassign <strong>{account.employeeRef.name}</strong> from this account?</p>
+                                  <p className="text-sm">Unassign <strong>{account?.employeeRef.name}</strong> from this account?</p>
                                   <div className="mt-4 flex justify-end gap-2">
                                     <Button size="sm" variant="outline">Cancel</Button>
-                                    <Button size="sm" className="bg-red-500 text-white" onClick={() => handleUnassign(account._id)}>
+                                    <Button size="sm" className="bg-red-500 text-white" onClick={() => handleUnassign(account?._id)}>
                                       Confirm
                                     </Button>
                                   </div>
@@ -447,25 +447,25 @@ const confirmStatusChange = async () => {
                       {user.access?.isAdmin && (
                         <TableCell>
                           <Badge variant="outline" className="text-xs">
-                            {getBranchName(account.branchCode)}
+                            {getBranchName(account?.branchCode)}
                           </Badge>
                         </TableCell>
                       )}
                       
                       <TableCell>
-                        {getAccessBadge(account.access)}
+                        {getAccessBadge(account?.access)}
                       </TableCell>
                       
                       <TableCell className="hidden md:table-cell">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{formatDate(account.createdAt)}</span>
+                          <span className="text-sm">{formatDate(account?.createdAt)}</span>
                         </div>
                       </TableCell>
                       
 <TableCell>
   <Popover 
-    open={confirmationPopover.isOpen && confirmationPopover.accountId === account._id}
+    open={confirmationPopover.isOpen && confirmationPopover.accountId === account?._id}
     onOpenChange={(open) => {
       if (!open) cancelStatusChange();
     }}

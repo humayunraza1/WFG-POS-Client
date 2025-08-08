@@ -33,9 +33,9 @@ const AddAccountDialog = ({
   defaultValues = {}, // For edit mode
 }) => {
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const { loading: managerLoading} = useManager();
   const dispatch = useDispatch();
+  const {isLoading:loading} = useSelector((state)=>state.account)
   const { branches, isLoading: branchLoading, error: branchError } = useSelector(state => state.branch);
 
   const {
@@ -240,9 +240,6 @@ useEffect(() => {
   };
 
   const onSubmit = async (data) => {
-    try {
-      setLoading(true);
-      
       // Prepare the access object with only true values
       const access = {};
       Object.keys(data).forEach(key => {
@@ -273,6 +270,7 @@ useEffect(() => {
       } else {
         // Use the existing addAccount function for create mode
         const res = await dispatch(addAccount(payload));
+        console.log("add account: ",res)
         if(res.meta.requestStatus == 'fulfilled'){
           toast.success('Account created successfully');
         }else{
@@ -281,19 +279,7 @@ useEffect(() => {
       }
 
       reset();
-      onAccountAdded?.();
       (onClose || handleClose)();
-
-    } catch (error) {
-      console.error(`Error ${mode === 'edit' ? 'updating' : 'creating'} account:`, error);
-      toast.error(error.response?.data?.message || error.message || `Failed to ${mode === 'edit' ? 'update' : 'create'} account`);
-      
-      if (error.denied && error.denied.length > 0) {
-        toast.error(`Denied permissions: ${error.denied.join(', ')}`);
-      }
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleDialogClose = () => {
