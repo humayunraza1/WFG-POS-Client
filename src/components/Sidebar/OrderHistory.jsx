@@ -98,8 +98,8 @@ const OrdersHistory = ({ onUpdatePayment }) => {
   // Pagination logic
   const indexOfLastOrder = currentPage * ordersPerPage;
   const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-  const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
-  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+  const currentOrders = filteredOrders?.slice(indexOfFirstOrder, indexOfLastOrder);
+  const totalPages = Math.ceil(filteredOrders?.length / ordersPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -170,7 +170,7 @@ const OrdersHistory = ({ onUpdatePayment }) => {
         </CardHeader>
 
         <CardContent className="p-0">
-          {filteredOrders.length === 0 ? (
+          {filteredOrders?.length === 0 ? (
             <div className="text-center p-8">
               <p className="text-muted-foreground">
                 {searchId ? 'No orders found matching your search.' : 'No orders found.'}
@@ -194,7 +194,7 @@ const OrdersHistory = ({ onUpdatePayment }) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {currentOrders.map((order) => {
+                      {currentOrders?.map((order) => {
                         const orderDate = order.createdAt || order.dateOrdered;
                         return (
                           <tr key={order._id} className="border-b hover:bg-muted/50">
@@ -249,7 +249,7 @@ const OrdersHistory = ({ onUpdatePayment }) => {
               {/* Mobile Cards - No ScrollArea, just pagination */}
               <div className="lg:hidden">
                 <div className="space-y-3 p-4">
-                  {currentOrders.map((order) => {
+                  {currentOrders?.map((order) => {
                     const orderDate = order.createdAt || order.dateOrdered;
                     return (
                       <Card key={order._id} className="border">
@@ -306,7 +306,7 @@ const OrdersHistory = ({ onUpdatePayment }) => {
           {totalPages > 1 && (
             <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t bg-background gap-4">
               <div className="text-sm text-muted-foreground">
-                Showing {indexOfFirstOrder + 1} to {Math.min(indexOfLastOrder, filteredOrders.length)} of {filteredOrders.length} orders
+                Showing {indexOfFirstOrder + 1} to {Math.min(indexOfLastOrder, filteredOrders?.length)} of {filteredOrders?.length} orders
                 {isMobile && <span className="block text-xs mt-1">({ordersPerPage} per page on mobile)</span>}
               </div>
               

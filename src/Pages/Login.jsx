@@ -56,7 +56,7 @@ const LoginPage = () => {
             }));
 
             if (login.fulfilled.match(resultAction)) {
-              const user = resultAction.payload;
+              const user = resultAction.payload.user;
               toast.success('Login successful', {
                 description: `Welcome back, ${user.username}!`,
               });
