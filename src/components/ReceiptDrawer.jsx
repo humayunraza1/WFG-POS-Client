@@ -36,10 +36,6 @@ const ReceiptDrawer = ({ order, onClose, onUpdatePayment }) => {
     }
 
     const amount = parseFloat(paymentAmount);
-    if (amount > (order.outstandingPayment || 0)) {
-      setError(`Amount cannot exceed outstanding payment of PKR ${(order.outstandingPayment || 0)}`);
-      return;
-    }
 
     setIsUpdatingPayment(true);
     setError('');
@@ -166,12 +162,20 @@ const ReceiptDrawer = ({ order, onClose, onUpdatePayment }) => {
                         </div>
                       )}
 
-                      {paymentAmount && parseFloat(paymentAmount) > 0 && parseFloat(paymentAmount) <= (order.outstandingPayment || 0) && (
-                        <div className="text-xs text-muted-foreground bg-white p-2 rounded border">
-                          <div>Amount to be received: PKR {parseFloat(paymentAmount).toLocaleString()}</div>
-                          <div>Remaining outstanding: PKR {((order.outstandingPayment || 0) - parseFloat(paymentAmount)).toLocaleString()}</div>
-                        </div>
-                      )}
+                        {paymentAmount && parseFloat(paymentAmount) > 0 && (
+                          <div className="text-xs text-muted-foreground bg-white p-2 rounded border">
+                            <div>Amount to be received: PKR {parseFloat(paymentAmount).toLocaleString()}</div>
+                            {parseFloat(paymentAmount) >= (order.outstandingPayment || 0) ? (
+                              <div className="text-green-700">
+                                Change to return: PKR {(parseFloat(paymentAmount) - (order.outstandingPayment || 0)).toLocaleString()}
+                              </div>
+                            ) : (
+                              <div>
+                                Remaining outstanding: PKR {((order.outstandingPayment || 0) - parseFloat(paymentAmount)).toLocaleString()}
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                       <div className="flex gap-2">
                         <Button 

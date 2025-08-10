@@ -55,43 +55,57 @@ const CheckoutDialog = ({
 
   if (!orderData) return null;
 
-  const { finalPrice, discount, paymentType, items } = orderData;
-  const amountReceivedNum = parseFloat(amountReceived) || 0;
-  const outstandingPayment = Math.max(0, finalPrice - amountReceivedNum);
-  const isValidAmount = amountReceivedNum >= 0 && amountReceivedNum <= finalPrice;
+const { finalPrice, discount, paymentType, items } = orderData;
+const amountReceivedNum = parseFloat(amountReceived) || 0;
 
-  const handleAmountChange = (value) => {
-    setAmountReceived(value);
-    setError('');
-    
-    if (value && parseFloat(value) > finalPrice) {
-      setError(`Amount cannot exceed total of PKR ${finalPrice.toLocaleString()}`);
-    }
+// If paid more than total, outstanding is 0
+const outstandingPayment = Math.max(0, finalPrice - amountReceivedNum);
+
+// Allow any amount >= 0
+const isValidAmount = amountReceivedNum >= 0;
+
+const handleAmountChange = (value) => {
+  setAmountReceived(value);
+  setError('');
+  
+  // No hard limit on amount; just a warning if overpaying (optional)
+  if (value && parseFloat(value) < 0) {
+    setError('Amount cannot be negative');
+  }
+};
+
+const handleConfirm = () => {
+  if (!isValidAmount) {
+    setError('Please enter a valid amount');
+    return;
+  }
+
+  // Check if server selection is required but not provided
+  if (businessPrefs?.trackServers && !selectedServerId) {
+    setError('Please select a server/waiter');
+    return;
+  }
+
+  let name = server.find(s => s._id === selectedServerId)?.name;
+
+  const finalOrderData = {
+    ...orderData,
+    amountPaid: Math.min(amountReceivedNum, finalPrice), // Cap stored paid amount at total
+    outstandingPayment: outstandingPayment,
+    paymentStatus: outstandingPayment <= 0 ? 'paid' : 'pending',
+    serverRef: businessPrefs?.trackServers ? selectedServerId : null,
   };
 
-  const handleConfirm = () => {
-    if (!isValidAmount) {
-      setError('Please enter a valid amount');
-      return;
-    }
+  console.log(finalOrderData);
 
-    // Check if server selection is required but not provided
-    if (businessPrefs?.trackServers && !selectedServerId) {
-      setError('Please select a server/waiter');
-      return;
-    }
-    let name = server.find(s => s._id === selectedServerId)?.name
-    const finalOrderData = {
-      ...orderData,
-      amountPaid: amountReceivedNum,
-      outstandingPayment: outstandingPayment,
-      serverRef: businessPrefs?.trackServers ? selectedServerId : null,
-    };
-    console.log(finalOrderData)
-    const finalTempOrder = {items:serverData,serverName:name}
-    addTempOrder(finalTempOrder)
-    onConfirmOrder(finalOrderData);
+  const finalTempOrder = {
+    items: serverData,
+    serverName: name,
   };
+
+  addTempOrder(finalTempOrder);
+  onConfirmOrder(finalOrderData);
+};
 
   const handleClose = () => {
     setAmountReceived('');
@@ -294,7 +308,7 @@ const CheckoutDialog = ({
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={!isValidAmount || isProcessing || error || (businessPrefs?.trackServers && !selectedServerId)}
+            disabled={isProcessing || error || (businessPrefs?.trackServers && !selectedServerId)}
             className="min-w-[120px]"
           >
             {isProcessing ? (
