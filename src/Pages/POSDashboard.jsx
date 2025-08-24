@@ -246,59 +246,55 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
      
     };
     
-    const handleAddToCart = (category, product) => {
-      if (!requiresActiveSession('add items to cart')) {
-        return;
-      }
-      //console.log('Adding to cart - product:', product);
-      //console.log('Adding to cart - category:', category);
-  
-      const existingItem = cartItems.find(item => item.option._id === product.option._id);
-      //console.log("Cart: ",cartItems)
-      if (existingItem) {
-        setCartItems(prevItems =>
-          prevItems.map(item =>
-            item.varID === product.varID
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          )
+      const handleAddToCart = (product, option) => {
+        // find by BOTH product._id and option._id
+        console.log("adding to cart: ",product, option)
+        const existingItem = cartItems.find(
+          item =>
+            item.productId === product._id &&
+            item.option._id === option._id
         );
-      } else {
-        setCartItems(prevItems => [...prevItems, product]);
+
+        if (existingItem) {
+          setCartItems(prevItems =>
+            prevItems.map(item =>
+              item.productId === product._id && item.option._id === option._id
+                ? { ...item, quantity: item.quantity + 1 }
+                : item
+            )
+          );
+        } else {
+          setCartItems(prevItems => [
+            ...prevItems,
+            option
+          ]);
+        }
+      };
+    
+    const handleUpdateQuantity = (productId, optionId, newQuantity) => {
+      console.log("updating quantity: ",productId, optionId, newQuantity)
+      if (newQuantity === 0) {
+        handleRemoveFromCart(productId, optionId);
+        return;
       }
 
-      toast.success('Added to cart', {
-        description: `${product.name} - ${product.option.name} added to cart`
-      });
-    };
-    
-    const handleUpdateQuantity = (variantId, newQuantity) => {
-      //console.log(`Updating quantity for variant ${variantId} to ${newQuantity}`);
-      if (newQuantity === 0) {
-        handleRemoveFromCart(variantId);
-        return;
-      }
-      //console.log("update quantity: ",cartItems)
       setCartItems(prevItems =>
         prevItems.map(item =>
-          item.option._id === variantId
+          item.productId === productId && item.option._id === optionId
             ? { ...item, quantity: newQuantity }
             : item
         )
       );
     };
-    
-    const handleRemoveFromCart = (productId) => {
-      //console.log(`Removing item with ID ${productId} from cart`);
-      //console.log(cartItems)
-      setCartItems(prevItems => prevItems.filter(item => item._id !== productId));
-      toast.success('Item removed from cart');
+    const handleRemoveFromCart = (productId, optionId) => {
+      setCartItems(prevItems =>
+        prevItems.filter(
+          item => !(item.productId === productId && item.option._id === optionId)
+        )
+      );
     };
-    
-    const handleClearCart = () => {
-      setCartItems([]);
-      toast.success('Cart cleared');
-    };
+
+    const handleClearCart = () => { setCartItems([]); toast.success('Cart cleared'); };
     
     const handleCheckout = async (orderData) => {
       if (!requiresActiveSession('process orders')) {
