@@ -248,7 +248,8 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
     
       const handleAddToCart = (product, option) => {
         // find by BOTH product._id and option._id
-        console.log("adding to cart: ",product, option)
+        if (!requiresActiveSession('add items to cart')) { return; }
+        
         const existingItem = cartItems.find(
           item =>
             item.productId === product._id &&
