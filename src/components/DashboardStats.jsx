@@ -13,20 +13,19 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSelector } from 'react-redux';
 import { useGetDailyStatsQuery } from '../features/orders/ordersAPI';
-import { useEffect } from 'react';
-import { useGetExpensesBySessionQuery } from '../features/expense/expenseAPI';
 import { selectTotalExpenses } from '../features/expense/expenseSlice';
 
 const DashboardStats = () => {
-  const {sessionId,registerData} = useSelector((state)=> state.register)
+  const {sessionId} = useSelector((state)=> state.register)
   const { data: stats, isFetching:isLoading } = useGetDailyStatsQuery(sessionId, {
   skip: !sessionId,
 });
-console.log("stats: ",stats)
+// console.log("stats: ",stats)
 const totalExpenses = useSelector(selectTotalExpenses);
 
   // Calculate total cash: actual sales received + cash in hand - expenses
-  const totalCash = (stats?.cashRecvd || 0) + (registerData?.startCash || 0) - (totalExpenses || 0);
+  const totalCash = (stats?.cashRecvd || 0) + (stats?.startCash || 0) - (totalExpenses || 0);
+  console.log("Total Cash: ", totalCash);
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
       {/* Today's Sales */}
