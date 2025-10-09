@@ -483,7 +483,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
               {/* Logo placeholder - replace src with your actual logo */}
-            <img src='/images/wfg-logo.png' className='h-25 w-25'/>
+            <img src='/images/tml-logo.png' className='h-25 w-25'/>
 
               <div>
                 <h1 className="text-2xl lg:text-3xl font-bold">POS Dashboard</h1>

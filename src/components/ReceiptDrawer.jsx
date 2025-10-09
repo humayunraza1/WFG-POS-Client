@@ -75,7 +75,7 @@ const ReceiptDrawer = ({ order, onClose, onUpdatePayment }) => {
         {/* Fixed Header - Properly constrained */}
         <div className="flex-shrink-0 p-4 pb-3 border-b bg-white z-10">
           <SheetHeader>
-            <SheetTitle className="text-center text-lg font-bold">The Waffle Guy</SheetTitle>
+            <SheetTitle className="text-center text-lg font-bold">The Munch Lab</SheetTitle>
           </SheetHeader>
 
           <div className="text-xs text-muted-foreground space-y-1 mt-3">
