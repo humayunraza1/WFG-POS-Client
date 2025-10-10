@@ -20,14 +20,20 @@ export const updatePayment = createAsyncThunk('orders/payment',async({orderId,am
   }
 })
 
-export const deleteOrder = createAsyncThunk('orders/delete',async(id,{rejectWithValue})=>{
-  try{
-    const {data} = await axiosPrivate.delete(`/orders/delete/${id}`)
-    return data
-  }catch(err){
-    return rejectWithValue(err.response?.data?.message || err.message);
+export const deleteOrder = createAsyncThunk(
+  'orders/delete',
+  async ({ id, reason }, { rejectWithValue }) => {
+    try {
+      const { data } = await axiosPrivate.delete(`/orders/delete/${id}`, {
+        data: { reason } // 👈 Send reason in request body
+      });
+      return data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
   }
-})
+);
+
 // updateOrder, updatePayment, deleteOrder = similar
 
 const ordersAdapter = createEntityAdapter({ selectId: (order) => order._id });

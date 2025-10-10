@@ -8,16 +8,17 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { DollarSign, ShoppingCart, Receipt, Wallet, User, CreditCard, Banknote } from 'lucide-react';
+import { DollarSign, ShoppingCart, Receipt, Wallet, User, CreditCard, Banknote, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import SessionMetrics from './SessionMetrics';
 import SessionOrdersTable from './SessionOrdersTable';
 import SessionExpensesTable from './SessionExpensesTable';
+import SessionDeletedOrdersTable from './SessionDeletedOrdersTable';
 
 const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
   if (!session) return null;
   //console.log('Session Detail:', session);
-  
+  console.log('Session Orders:', session);
   const formatCurrency = (amount) => {
     return `PKR ${(amount || 0).toLocaleString()}`;
   };
@@ -216,6 +217,68 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
               </Card>
             </div>
           </div>
+          
+          {/* Deleted Orders Summary */}
+{(session.deletedSales > 0 ||
+  session.deletedCash > 0 ||
+  session.deletedOnline > 0) && (
+  <>
+    <Separator className="my-4 sm:my-6" />
+    <div>
+      <h3 className="text-base sm:text-lg font-semibold mb-4 flex items-center gap-2 text-red-700">
+        <Trash2 className="h-4 sm:h-5 w-4 sm:w-5" />
+        Deleted Orders Summary
+      </h3>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {/* Deleted Cash Orders */}
+        <Card className="text-center bg-red-50 border-red-200">
+          <CardHeader className="pb-1">
+            <CardTitle className="text-xs font-medium flex items-center justify-center gap-1 text-red-700">
+              <Banknote className="h-3 w-3" />
+              Deleted Cash
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="text-sm font-bold text-red-700">
+              {formatCurrency(session.deletedCash)}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Deleted Online Orders */}
+        <Card className="text-center bg-red-50 border-red-200">
+          <CardHeader className="pb-1">
+            <CardTitle className="text-xs font-medium flex items-center justify-center gap-1 text-red-700">
+              <CreditCard className="h-3 w-3" />
+              Deleted Online
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="text-sm font-bold text-red-700">
+              {formatCurrency(session.deletedOnline)}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Total Deleted Sales */}
+        <Card className="text-center bg-red-100 border-red-300">
+          <CardHeader className="pb-1">
+            <CardTitle className="text-xs font-medium flex items-center justify-center gap-1 text-red-800">
+              <DollarSign className="h-3 w-3" />
+              Total Deleted Sales
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="text-sm font-bold text-red-800">
+              {formatCurrency(session.deletedSales)}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  </>
+)}
 
           <Separator className="my-4 sm:my-6" />
 
@@ -242,6 +305,16 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
               <SessionExpensesTable expenses={session.expenses || []} />
             </div>
           </div>
+
+          <Separator className="my-4 sm:my-6" />
+          {/* Deleted Orders Section */}
+        <div>
+          <h3 className="text-base sm:text-lg font-semibold mb-4 flex items-center gap-2 text-red-700">
+            <Trash2 className="h-4 sm:h-5 w-4 sm:w-5" />
+            Deleted Orders ({session.deletedOrders?.length || 0})
+          </h3>
+          <SessionDeletedOrdersTable deletedOrders={session.deletedOrders || []} />
+        </div>
         </div>
       </SheetContent>
     </Sheet>

@@ -84,24 +84,25 @@ const OrdersTableView = ({onUpdatePayment }) => {
     setPage(1);
   };
 
-  const handleDeleteClick = (order) => {
-    setDeleteConfirmation({ open: true, order });
-  };
+const handleDeleteClick = (order) => {
+  setDeleteConfirmation({ open: true, order, reason: '' });
+};
 
-  const handleDeleteConfirm = async () => {
-    if (deleteConfirmation.order) {
-      const res = await dispatch(deleteOrder(deleteConfirmation.order._id));
-      if(res.meta.requestStatus=='fulfilled'){
-        toast.success('Order deleted successfuly')
-        refetchStats()
-        refetchSessionOrders()
-      }else{
-        toast.error("Error:",error)
-      }
-      //console.log("delete order: ",res)
+const handleDeleteConfirm = async () => {
+  const { order, reason } = deleteConfirmation;
+  if (order && reason) {
+    const res = await dispatch(deleteOrder({ id: order._id, reason }));
+    if (res.meta.requestStatus === 'fulfilled') {
+      toast.success('Order deleted successfully');
+      refetchStats();
+      refetchSessionOrders();
+    } else {
+      toast.error(`Error: ${error}`);
     }
-    setDeleteConfirmation({ open: false, order: null });
-  };
+  }
+  setDeleteConfirmation({ open: false, order: null, reason: '' });
+};
+
 
   const handleDeleteCancel = () => {
     setDeleteConfirmation({ open: false, order: null });
@@ -355,29 +356,44 @@ const OrdersTableView = ({onUpdatePayment }) => {
       </CardContent>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteConfirmation.open} onOpenChange={(open) => !open && handleDeleteCancel()}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Order</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete order{' '}
-              <span className="font-mono font-medium">
-                {deleteConfirmation.order?._id.slice(-6).toUpperCase()}
-              </span>
-              ? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleDeleteCancel}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeleteConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Yes, Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+<AlertDialog open={deleteConfirmation.open} onOpenChange={(open) => !open && handleDeleteCancel()}>
+  <AlertDialogContent>
+    <AlertDialogHeader>
+      <AlertDialogTitle>Delete Order</AlertDialogTitle>
+      <AlertDialogDescription>
+        You’re about to delete order{' '}
+        <span className="font-mono font-medium">
+          {deleteConfirmation.order?._id.slice(-6).toUpperCase()}
+        </span>. <br />
+        Please provide a reason for deletion. This action cannot be undone.
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+
+    <div className="mt-3">
+      <label className="text-sm font-medium">Reason for deletion</label>
+      <textarea
+        className="mt-2 w-full border rounded-md p-2 text-sm"
+        rows={3}
+        placeholder="e.g. Customer canceled, duplicate order, etc."
+        value={deleteConfirmation.reason || ''}
+        onChange={(e) =>
+          setDeleteConfirmation((prev) => ({ ...prev, reason: e.target.value }))
+        }
+      />
+    </div>
+
+    <AlertDialogFooter>
+      <AlertDialogCancel onClick={handleDeleteCancel}>Cancel</AlertDialogCancel>
+      <AlertDialogAction
+        disabled={!deleteConfirmation.reason?.trim()}
+        onClick={handleDeleteConfirm}
+        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+      >
+        Yes, Delete
+      </AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog>
 
       <ReceiptDrawer 
         order={selectedOrder} 
