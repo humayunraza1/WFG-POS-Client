@@ -56,6 +56,7 @@ import { updatePayment } from '../features/orders/ordersSlice';
 import { useGetDailyStatsQuery } from '../features/orders/ordersAPI';
 import { addExpense, deleteExpense, updateExpense } from '../features/expense/expenseSlice';
 import useReceiptPrinter from '../hooks/useReceiptPrinter';
+import DaySummaryModal from '../components/DaySummaryModal';
 
 // Main Dashboard Component
 const POSDashboard = () => {
@@ -68,6 +69,9 @@ const POSDashboard = () => {
     });
     const {printReceipt} = useReceiptPrinter();
     const {expenses} = useSelector((state) => state.expense)
+    const { businessPrefs } = useSelector((state) => state.settings);
+    const [daySummary, setDaySummary] = useState(null);
+    const [showDaySummaryModal, setShowDaySummaryModal] = useState(false);
     const [activeView, setActiveView] = useState('dashboard');
     const [activeSubView, setActiveSubView] = useState(null);
     const [cartItems, setCartItems] = useState([]);
@@ -224,28 +228,32 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
       setShowFinalCashModal(true);
     };
 
-    const handleFinalCashSubmit = async (finalCash) => {
-     
-        const res = await dispatch(closeRegister(finalCash));
-        if(res.meta.requestStatus == 'fulfilled'){
+const handleFinalCashSubmit = async (finalCash) => {
+  const res = await dispatch(closeRegister(finalCash));
 
-          toast.success('Register closed successfully', {
-            description: `Final cash: PKR ${finalCash.toLocaleString()}`
-          });
-          clearAllOrders()
-          setCartItems([]);
-          // Clear cart items and switch to dashboard view
-          setActiveView('dashboard');
-          setActiveSubView(null);
-        }else{
-          toast.error('Failed to close register', {
-            description: error.message
-          });
-        }
-        setShowFinalCashModal(false);
-     
-    };
-    
+  if (res.meta.requestStatus === 'fulfilled') {
+    toast.success('Register closed successfully', {
+      description: `Final cash: PKR ${finalCash.toLocaleString()}`
+    });
+
+    clearAllOrders();
+    setCartItems([]);
+    setActiveView('dashboard');
+    setActiveSubView(null);
+    setShowFinalCashModal(false);
+
+    // ✅ If enabled, show summary modal
+    if (businessPrefs?.sendDaySummaryReport && res.payload?.summary) {
+      setDaySummary(res.payload.summary);
+      setShowDaySummaryModal(true);
+    }
+  } else {
+    toast.error('Failed to close register', {
+      description: res.error?.message || 'Something went wrong'
+    });
+  }
+};
+
       const handleAddToCart = (product, option) => {
         // find by BOTH product._id and option._id
         if (!requiresActiveSession('add items to cart')) { return; }
@@ -704,6 +712,13 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
             onClose={() => setShowFinalCashModal(false)}
             onSubmit={handleFinalCashSubmit}
           />
+
+          <DaySummaryModal
+  isOpen={showDaySummaryModal}
+  onClose={() => setShowDaySummaryModal(false)}
+  summary={daySummary}
+/>
+
         </div>
       </div>
     );
