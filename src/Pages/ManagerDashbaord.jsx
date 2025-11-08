@@ -225,7 +225,7 @@ const ManagerDashboard = () => {
           {/* Header with Mobile Controls */}
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img src='/images/tml-logo.png' className='h-25 w-25' alt="Logo" />
+              <img src='/images/wfg-logo.png' className='h-25 w-25' alt="Logo" />
               <div>
                 <h1 className="text-2xl lg:text-3xl font-bold">POS Manager Dashboard</h1>
                 <p className="text-muted-foreground">Manage your point of sale operations</p>
