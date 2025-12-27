@@ -32,6 +32,7 @@ import ExpensesView from '../components/Sidebar/ExpensesView';
 import AllReports from '../components/Sidebar/AllReport';
 import ProductManagement from '../components/Sidebar/ProductManagement';
 import DashboardStats from '../components/DashboardStats';
+import LiveStatsBookmark from '../components/LiveStatsBookmark';
 import Cart from '../components/Cart';
 import Sidebar from '../components/SideBar';
 import MobileSidebar from '../components/Mobile/MobileSidebar';
@@ -569,6 +570,8 @@ const handleFinalCashSubmit = async (finalCash) => {
           
           {/* Top Stats - Now using API data with pending payment */}
           <DashboardStats />
+          {/* Live Stats bookmark (floating) */}
+          <LiveStatsBookmark sessionId={sessionId} isRegisterOpen={isRegisterOpen} />
                     
           {/* Main Layout - Now without cart, extended width */}
           <div className="flex gap-6">
