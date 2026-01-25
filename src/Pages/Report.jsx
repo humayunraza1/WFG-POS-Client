@@ -46,7 +46,7 @@ const Report = () => {
     const formattedEndDate = formatDate(endDate);
     
     // Update document title
-    document.title = "Chugg Juicebar - Report Dashboard";
+    document.title = "Chugg - Report Dashboard";
     
     // Update or create meta description
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -64,11 +64,11 @@ const Report = () => {
     // Update or create og:title
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) {
-      ogTitle.setAttribute('content', "Chugg Juicebar's - Report Dashboard");
+      ogTitle.setAttribute('content', "Chugg's - Report Dashboard");
     } else {
       const newOgTitle = document.createElement('meta');
       newOgTitle.setAttribute('property', 'og:title');
-      newOgTitle.content = "Chugg Juicebar's - Report Dashboard";
+      newOgTitle.content = "Chugg's - Report Dashboard";
       document.head.appendChild(newOgTitle);
     }
 
@@ -86,11 +86,11 @@ const Report = () => {
     // Update or create twitter:title
     const twitterTitle = document.querySelector('meta[name="twitter:title"]');
     if (twitterTitle) {
-      twitterTitle.setAttribute('content', "Chugg Juicebar's - Report Dashboard");
+      twitterTitle.setAttribute('content', "Chugg's - Report Dashboard");
     } else {
       const newTwitterTitle = document.createElement('meta');
       newTwitterTitle.name = 'twitter:title';
-      newTwitterTitle.content = "Chugg Juicebar's - Report Dashboard";
+      newTwitterTitle.content = "Chugg's - Report Dashboard";
       document.head.appendChild(newTwitterTitle);
     }
 
@@ -109,12 +109,12 @@ const Report = () => {
   // Function to restore original meta tags when leaving the page
   const restoreOriginalMeta = () => {
     // Restore original title (you can customize this)
-    document.title = "Chugg Juicebar's";
+    document.title = "Chugg's";
     
     // Restore original meta description (you can customize this)
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
-      metaDescription.setAttribute('content', "Chugg Juicebar's - Premium Waffles & Delicious Treats");
+      metaDescription.setAttribute('content', "Chugg's - Premium Waffles & Delicious Treats");
     }
   };
 
@@ -432,7 +432,7 @@ const Report = () => {
                 <img src="/images/chugg-logo.png" alt="Waffle Guy Logo" className="w-8 h-8" />
               </div>
               <div className="text-center">
-                <h1 className="text-2xl font-bold text-gray-900">Chugg Juicebar's Report</h1>
+                <h1 className="text-2xl font-bold text-gray-900">Chugg's Report</h1>
                 <p className="text-sm text-gray-600">
                   {formatDate(currentReport.startDate)} to {formatDate(currentReport.endDate)}
                 </p>

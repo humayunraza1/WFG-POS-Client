@@ -57,9 +57,9 @@ class ReceiptPrinter {
       return `<div style="text-align: center; margin-top: 10px; margin-bottom: -30px;">
                 <img src="./images/chugg-logo.png" 
                      style="width: 100px; height: 100px; margin: 0 auto; display: block;" 
-                     alt="Chugg Juicebar Logo" 
+                     alt="Chugg Logo" 
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
-                <div style="display: none; font-size: 14px; font-weight: bold; color: #FF1493;">🧇 Chugg Juicebar 🧇</div>
+                <div style="display: none; font-size: 14px; font-weight: bold; color: #FF1493;">🧇 Chugg 🧇</div>
               </div>`;
     } else {
       // For thermal printing, add top margin lines
@@ -75,7 +75,7 @@ generateRestaurantCopy(order) {
   lines.push(...Array(this.topMargin).fill(''));
   
   // Header - Make sure "Restaurant's Copy" is included
-  lines.push(this.centerText('Chugg Juicebar'));
+  lines.push(this.centerText('Chugg'));
   lines.push(this.centerText("Restaurant's Copy"));
   lines.push('');
   lines.push(this.createSolidLine());
@@ -124,7 +124,7 @@ generateRestaurantCopy(order) {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Restaurant Receipt - Chugg Juicebar</title>
+        <title>Restaurant Receipt - Chugg</title>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
 
@@ -299,7 +299,7 @@ async printBothReceipts(order) {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Receipt - Chugg Juicebar</title>
+      <title>Receipt - Chugg</title>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
 
@@ -637,7 +637,7 @@ formatItemsTable(order) {
     lines.push(...Array(this.topMargin).fill(''));
     
     // Logo and Header
-    lines.push(this.centerText('Chugg Juicebar'));
+    lines.push(this.centerText('Chugg'));
     lines.push(this.centerText('Receipt'));
     lines.push('');
     lines.push(this.createSolidLine());
@@ -781,7 +781,7 @@ formatItemsTable(order) {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Receipt - Chugg Juicebar</title>
+        <title>Receipt - Chugg</title>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
           
