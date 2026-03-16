@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosPublic,{ axiosPrivate } from '@/api/axios';
 import { getSettings } from '../settings/settingsSlice';
+import statsAPI from '../stats/statsAPI';
+import { ordersAPI } from '../orders/ordersAPI';
 
 export const login = createAsyncThunk('auth/login', async ({ username, password }, { rejectWithValue, dispatch }) => {
   try {
@@ -12,8 +14,13 @@ export const login = createAsyncThunk('auth/login', async ({ username, password 
   }
 });
 
-export const logout = createAsyncThunk('auth/logout', async () => {
-  await axiosPrivate.post('/auth/logout');
+export const logout = createAsyncThunk('auth/logout', async (_, { dispatch }) => {
+  try {
+    await axiosPrivate.post('/auth/logout');
+  } finally {
+    dispatch(statsAPI.util.resetApiState());
+    dispatch(ordersAPI.util.resetApiState());
+  }
 });
 
 export const createAccount = createAsyncThunk('auth/createAccount', async ({ username, password }, { rejectWithValue }) => {
@@ -91,6 +98,11 @@ const authSlice = createSlice({
         state.isLoading = false
       })
       .addCase(logout.fulfilled, (state) => {
+        state.user = null;
+        state.isAuthenticated = false;
+        state.accessToken = null;
+      })
+      .addCase(logout.rejected, (state) => {
         state.user = null;
         state.isAuthenticated = false;
         state.accessToken = null;

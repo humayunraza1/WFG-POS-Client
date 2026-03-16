@@ -25,8 +25,9 @@ export const statsAPI = createApi({
         };
       },
       providesTags: ['Stats'],
-      // optional: set to 0 if you don't want caching between mounts
-      keepUnusedDataFor: 60,
+      // Avoid carrying stale stats across account/session switches.
+      keepUnusedDataFor: 0,
+      refetchOnMountOrArgChange: true,
       // optional: refetch on focus or reconnect
       refetchOnReconnect: true,
       refetchOnFocus: false,

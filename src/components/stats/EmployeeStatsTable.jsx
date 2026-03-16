@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw, Package, Eye, DollarSign, Percent } from 'lucide-react';
 import EmployeeDetailsDrawer from './EmployeeDetailsDrawer';
 import { useGetEmployeeStatsQuery } from '../../features/stats/statsAPI';
+import { useSelector } from 'react-redux';
 
 // Utility functions
 const formatCurrency = (amount) => {
@@ -25,8 +26,12 @@ const calculateServerPayout = (totalValue) => {
 const EmployeeStatsTable = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { isOpen: isRegisterOpen } = useSelector((state) => state.register);
   
-  const { data, isSuccess, isLoading: loading, refetch, isFetching } = useGetEmployeeStatsQuery();
+  const { data, isSuccess, isLoading: loading, refetch, isFetching } = useGetEmployeeStatsQuery(undefined, {
+    skip: !isRegisterOpen,
+    refetchOnMountOrArgChange: true,
+  });
 
   const handleViewDetails = (employee) => {
     setSelectedEmployee(employee);
@@ -34,8 +39,17 @@ const EmployeeStatsTable = () => {
   };
 
   const handleRefresh = () => {
+    if (!isRegisterOpen) return;
     refetch();
   };
+
+  if (!isRegisterOpen) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        Open a register session to view employee statistics
+      </div>
+    );
+  }
 
   if (loading && !data) {
     return (

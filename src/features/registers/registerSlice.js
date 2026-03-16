@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { axiosPrivate } from '@/api/axios';
+import statsAPI from '../stats/statsAPI';
+import { ordersAPI } from '../orders/ordersAPI';
 
 export const checkRegisterStatus = createAsyncThunk('register/status', async (_,{rejectWithValue}) => {
   try{
@@ -19,9 +21,11 @@ export const openRegister = createAsyncThunk('register/open', async (data,{rejec
     }
 });
 
-export const closeRegister = createAsyncThunk('register/close', async (finalCash,{rejectWithValue}) => {
+export const closeRegister = createAsyncThunk('register/close', async (finalCash,{rejectWithValue, dispatch}) => {
  try{
      const res = await axiosPrivate.post('/register/close', { finalCash });
+     dispatch(statsAPI.util.resetApiState());
+     dispatch(ordersAPI.util.resetApiState());
    return res.data;
  }catch(err){
         return rejectWithValue(err.response?.data?.message || err.message);
