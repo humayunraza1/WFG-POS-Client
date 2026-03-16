@@ -57,9 +57,9 @@ class ReceiptPrinter {
       return `<div style="text-align: center; margin-top: 10px; margin-bottom: -30px;">
                 <img src="./images/tcb-logo.png" 
                      style="width: 130px; height: 130px; margin: 0 auto; display: block;" 
-                     alt="The Cartel Burgers Logo" 
+                     alt="Cartel Burgers Logo" 
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
-                <div style="display: none; font-size: 14px; font-weight: bold; color: #FF1493;">🧇 The Cartel Burgers 🧇</div>
+                <div style="display: none; font-size: 14px; font-weight: bold; color: #FF1493;">🧇 Cartel Burgers 🧇</div>
               </div>`;
     } else {
       // For thermal printing, add top margin lines
@@ -75,7 +75,7 @@ generateRestaurantCopy(order) {
   lines.push(...Array(this.topMargin).fill(''));
   
   // Header - Make sure "Restaurant's Copy" is included
-  lines.push(this.centerText('The Cartel Burgers'));
+  lines.push(this.centerText('Cartel Burgers'));
   lines.push(this.centerText("Restaurant's Copy"));
   lines.push('');
   lines.push(this.createSolidLine());
@@ -135,7 +135,7 @@ generateRestaurantCopy(order) {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Restaurant Receipt - The Cartel Burgers</title>
+        <title>Restaurant Receipt - Cartel Burgers</title>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
 
@@ -310,7 +310,7 @@ async printBothReceipts(order) {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Receipt - The Cartel Burgers</title>
+      <title>Receipt - Cartel Burgers</title>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
 
@@ -587,7 +587,7 @@ formatItemsTable(order) {
           resolve(bitmap);
         };
         img.onerror = () => reject(new Error('Could not load logo'));
-        img.src = './The Cartel Burgers-logo.png';
+        img.src = './Cartel Burgers-logo.png';
       });
     } catch (error) {
       console.warn('Logo loading failed, using ASCII fallback:', error);
@@ -648,7 +648,7 @@ formatItemsTable(order) {
     lines.push(...Array(this.topMargin).fill(''));
     
     // Logo and Header
-    lines.push(this.centerText('The Cartel Burgers'));
+    lines.push(this.centerText('Cartel Burgers'));
     lines.push(this.centerText('Receipt'));
     lines.push('');
     lines.push(this.createSolidLine());
@@ -799,7 +799,7 @@ formatItemsTable(order) {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Receipt - The Cartel Burgers</title>
+        <title>Receipt - Cartel Burgers</title>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
           
