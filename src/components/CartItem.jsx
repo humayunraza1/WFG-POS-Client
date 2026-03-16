@@ -73,7 +73,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
           PKR {item.price.toLocaleString()} × {item.quantity}
         </div>
         <div className="font-medium text-sm">
-          PKR. {(item.price * item.quantity).toLocaleString()}
+          PKR {(item.price * item.quantity).toLocaleString()}
         </div>
       </div>
     </div>
