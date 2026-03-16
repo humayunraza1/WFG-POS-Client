@@ -13,8 +13,12 @@ const useOrders = (sessionId, isRegisterOpen) => {
   const [dailyStats, setDailyStats] = useState({ 
     cashRecvd: 0,
     onlinePaymnt: 0,
+    cardPaymnt: 0,
+    digitalPaymnt: 0,
     expectedCash: 0,
     expectedOnline: 0,
+    expectedCard: 0,
+    expectedDigital: 0,
     totalSales: 0, 
     totalPendingPayment: 0, 
     orderCount: 0 
@@ -31,8 +35,12 @@ const useOrders = (sessionId, isRegisterOpen) => {
       setDailyStats({
         cashRecvd: 0,
         onlinePaymnt: 0, 
+        cardPaymnt: 0,
+        digitalPaymnt: 0,
         expectedCash: 0,
         expectedOnline: 0,
+        expectedCard: 0,
+        expectedDigital: 0,
         totalSales: 0, 
         totalPendingPayment: 0, 
         orderCount: 0 
@@ -48,8 +56,12 @@ const useOrders = (sessionId, isRegisterOpen) => {
       setDailyStats({ 
         cashRecvd: 0,
         onlinePaymnt: 0,
+        cardPaymnt: 0,
+        digitalPaymnt: 0,
         expectedCash: 0,
         expectedOnline: 0,
+        expectedCard: 0,
+        expectedDigital: 0,
         totalSales: 0, 
         totalPendingPayment: 0, 
         orderCount: 0 
@@ -63,6 +75,8 @@ const useOrders = (sessionId, isRegisterOpen) => {
       setDailyStats({ 
         cashRecvd: 0,
         onlinePaymnt: 0,
+        cardPaymnt: 0,
+        digitalPaymnt: 0,
         totalSales: 0, 
         totalPendingPayment: 0, 
         orderCount: 0 
@@ -115,9 +129,13 @@ const useOrders = (sessionId, isRegisterOpen) => {
     if (!isRegisterOpen || !sessionId) {
       setDailyStats({ 
         onlinePaymnt: 0, 
+        cardPaymnt: 0,
+        digitalPaymnt: 0,
         cashRecvd: 0, 
         expectedCash: 0, 
         expectedOnline: 0, 
+        expectedCard: 0,
+        expectedDigital: 0,
         totalSales: 0, 
         totalPendingPayment: 0, 
         orderCount: 0 

@@ -55,11 +55,11 @@ class ReceiptPrinter {
     if (isForBrowser) {
       // Return HTML img tag for browser preview with top margin
       return `<div style="text-align: center; margin-top: 10px; margin-bottom: -30px;">
-                <img src="./images/chugg-logo.png" 
-                     style="width: 100px; height: 100px; margin: 0 auto; display: block;" 
-                     alt="Chugg Logo" 
+                <img src="./images/tcb-logo.png" 
+                     style="width: 130px; height: 130px; margin: 0 auto; display: block;" 
+                     alt="The Cartel Burgers Logo" 
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
-                <div style="display: none; font-size: 14px; font-weight: bold; color: #FF1493;">🧇 Chugg 🧇</div>
+                <div style="display: none; font-size: 14px; font-weight: bold; color: #FF1493;">🧇 The Cartel Burgers 🧇</div>
               </div>`;
     } else {
       // For thermal printing, add top margin lines
@@ -75,7 +75,7 @@ generateRestaurantCopy(order) {
   lines.push(...Array(this.topMargin).fill(''));
   
   // Header - Make sure "Restaurant's Copy" is included
-  lines.push(this.centerText('Chugg'));
+  lines.push(this.centerText('The Cartel Burgers'));
   lines.push(this.centerText("Restaurant's Copy"));
   lines.push('');
   lines.push(this.createSolidLine());
@@ -102,9 +102,20 @@ generateRestaurantCopy(order) {
   lines.push('');
   lines.push(this.addMargin(`Gross:${' '.repeat(22)}PKR ${subtotal.toFixed(0).padStart(3)}`));
   lines.push(this.addMargin(`Disc:${' '.repeat(23)}PKR ${discountAmount.toFixed(0).padStart(3)}`));
+  if (order.tax && order.tax > 0) {
+    const taxPct = Math.round((order.taxRate || 0) * 100);
+    const taxLabel = `Tax (${taxPct}%):`;
+    const taxPad = 28 - taxLabel.length;
+    lines.push(this.addMargin(`${taxLabel}${' '.repeat(Math.max(1, taxPad))}PKR ${order.tax.toFixed(0).padStart(3)}`));
+  }
   lines.push('');
   lines.push(this.createSingleLine());
   lines.push(this.addMargin(`Total:${' '.repeat(22)}PKR ${order.finalPrice.toFixed(0).padStart(3)}`));
+
+  // Compact branding + support contact
+  lines.push('');
+  lines.push(this.centerText('by AzzysPOS'));
+  lines.push(this.centerText('WA: +923253508242'));
 
   // Add some spacing at the end to prevent cut-off
   lines.push('');
@@ -124,7 +135,7 @@ generateRestaurantCopy(order) {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Restaurant Receipt - Chugg</title>
+        <title>Restaurant Receipt - The Cartel Burgers</title>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
 
@@ -299,7 +310,7 @@ async printBothReceipts(order) {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Receipt - Chugg</title>
+      <title>Receipt - The Cartel Burgers</title>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
 
@@ -565,18 +576,18 @@ formatItemsTable(order) {
       
       return new Promise((resolve, reject) => {
         img.onload = () => {
-          // Set canvas size (NCR 7197 optimal: smaller logo)
-          canvas.width = 60; // Reduced size for NCR 7197
-          canvas.height = 60;
+          // Set canvas size (NCR 7197 optimized)
+          canvas.width = 80;
+          canvas.height = 80;
           
           // Draw and convert to monochrome bitmap
-          ctx.drawImage(img, 0, 0, 60, 60);
-          const imageData = ctx.getImageData(0, 0, 60, 60);
+          ctx.drawImage(img, 0, 0, 80, 80);
+          const imageData = ctx.getImageData(0, 0, 80, 80);
           const bitmap = this.convertToBitmap(imageData);
           resolve(bitmap);
         };
         img.onerror = () => reject(new Error('Could not load logo'));
-        img.src = './chugg-logo.png';
+        img.src = './The Cartel Burgers-logo.png';
       });
     } catch (error) {
       console.warn('Logo loading failed, using ASCII fallback:', error);
@@ -637,7 +648,7 @@ formatItemsTable(order) {
     lines.push(...Array(this.topMargin).fill(''));
     
     // Logo and Header
-    lines.push(this.centerText('Chugg'));
+    lines.push(this.centerText('The Cartel Burgers'));
     lines.push(this.centerText('Receipt'));
     lines.push('');
     lines.push(this.createSolidLine());
@@ -664,6 +675,12 @@ formatItemsTable(order) {
     lines.push('');
     lines.push(this.addMargin(`Gross:${' '.repeat(22)}PKR ${subtotal.toFixed(0).padStart(3)}`));
     lines.push(this.addMargin(`Disc:${' '.repeat(23)}PKR ${discountAmount.toFixed(0).padStart(3)}`));
+    if (order.tax && order.tax > 0) {
+      const taxPct = Math.round((order.taxRate || 0) * 100);
+      const taxLabel = `Tax (${taxPct}%):`;
+      const taxPad = 28 - taxLabel.length;
+      lines.push(this.addMargin(`${taxLabel}${' '.repeat(Math.max(1, taxPad))}PKR ${order.tax.toFixed(0).padStart(3)}`));
+    }
     lines.push('');
     lines.push(this.createSingleLine());
     lines.push(this.addMargin(`Total:${' '.repeat(22)}PKR ${order.finalPrice.toFixed(0).padStart(3)}`));
@@ -672,9 +689,10 @@ formatItemsTable(order) {
     lines.push('');
     lines.push(this.centerText('🙏 Thank you! 🙏'));
     lines.push(this.centerText('Visit again soon'));
-    // lines.push(this.centerText('@thewaffleguy'));
     lines.push('');
-    // lines.push(this.centerText('Made with ❤️ in Pakistan'));
+    lines.push(this.centerText('by AzzysPOS'));
+    lines.push(this.centerText('WA: +923253508242'));
+    lines.push('');
     lines.push('');
     lines.push('');
     lines.push('');
@@ -781,7 +799,7 @@ formatItemsTable(order) {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Receipt - Chugg</title>
+        <title>Receipt - The Cartel Burgers</title>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
           

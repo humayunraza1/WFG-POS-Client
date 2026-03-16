@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import receiptPrinter from '@/services/receiptPrinter';
 import { DollarSign, AlertCircle } from 'lucide-react';
 import { getManagerBadgeStyle } from '../utils/managerColors';
+import { getPaymentTypeLabel } from '@/utils/paymentType';
 
 const ReceiptDrawer = ({ order, onClose, onUpdatePayment }) => {
   const [paymentAmount, setPaymentAmount] = useState('');
@@ -75,7 +76,7 @@ const ReceiptDrawer = ({ order, onClose, onUpdatePayment }) => {
         {/* Fixed Header - Properly constrained */}
         <div className="flex-shrink-0 p-4 pb-3 border-b bg-white z-10">
           <SheetHeader>
-            <SheetTitle className="text-center text-lg font-bold">Chugg</SheetTitle>
+            <SheetTitle className="text-center text-lg font-bold">The Cartel Burgers</SheetTitle>
           </SheetHeader>
 
           <div className="text-xs text-muted-foreground space-y-1 mt-3">
@@ -91,7 +92,7 @@ const ReceiptDrawer = ({ order, onClose, onUpdatePayment }) => {
                 </div>
               </div>
               <div>Order ID: <span className="font-medium">{order._id.slice(-6).toUpperCase()}</span></div>
-              <div>Type: <span className="capitalize">{order.paymentType}</span></div>
+              <div>Type: <span>{getPaymentTypeLabel(order.paymentType)}</span></div>
               <div className="col-span-2">Date: {formattedDate} • {formattedTime}</div>
               <div className="col-span-2 flex items-center gap-2">
                 Status: {getPaymentStatusBadge()}

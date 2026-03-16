@@ -46,7 +46,7 @@ const Report = () => {
     const formattedEndDate = formatDate(endDate);
     
     // Update document title
-    document.title = "Chugg - Report Dashboard";
+    document.title = "The Cartel Burgers - Report Dashboard";
     
     // Update or create meta description
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -64,11 +64,11 @@ const Report = () => {
     // Update or create og:title
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) {
-      ogTitle.setAttribute('content', "Chugg's - Report Dashboard");
+      ogTitle.setAttribute('content', "The Cartel Burgers's - Report Dashboard");
     } else {
       const newOgTitle = document.createElement('meta');
       newOgTitle.setAttribute('property', 'og:title');
-      newOgTitle.content = "Chugg's - Report Dashboard";
+      newOgTitle.content = "The Cartel Burgers's - Report Dashboard";
       document.head.appendChild(newOgTitle);
     }
 
@@ -86,11 +86,11 @@ const Report = () => {
     // Update or create twitter:title
     const twitterTitle = document.querySelector('meta[name="twitter:title"]');
     if (twitterTitle) {
-      twitterTitle.setAttribute('content', "Chugg's - Report Dashboard");
+      twitterTitle.setAttribute('content', "The Cartel Burgers's - Report Dashboard");
     } else {
       const newTwitterTitle = document.createElement('meta');
       newTwitterTitle.name = 'twitter:title';
-      newTwitterTitle.content = "Chugg's - Report Dashboard";
+      newTwitterTitle.content = "The Cartel Burgers's - Report Dashboard";
       document.head.appendChild(newTwitterTitle);
     }
 
@@ -109,12 +109,12 @@ const Report = () => {
   // Function to restore original meta tags when leaving the page
   const restoreOriginalMeta = () => {
     // Restore original title (you can customize this)
-    document.title = "Chugg's";
+    document.title = "The Cartel Burgers's";
     
     // Restore original meta description (you can customize this)
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
-      metaDescription.setAttribute('content', "Chugg's - Premium Waffles & Delicious Treats");
+      metaDescription.setAttribute('content', "The Cartel Burgers's - Premium Waffles & Delicious Treats");
     }
   };
 
@@ -220,7 +220,7 @@ const Report = () => {
 
         <Card className="min-h-32">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xs font-medium">Online Payments</CardTitle>
+            <CardTitle className="text-xs font-medium">Digital Payments</CardTitle>
             <CreditCard className="h-3 w-3 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pb-2">
@@ -304,7 +304,7 @@ const Report = () => {
                       <span className="font-medium">{formatCurrency(stats.cashReceived)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Online Received:</span>
+                      <span className="text-sm text-muted-foreground">Digital Received:</span>
                       <span className="font-medium">{formatCurrency(stats.onlineReceived)}</span>
                     </div>
                     <div className="flex justify-between">
@@ -429,10 +429,10 @@ const Report = () => {
             </div>
             <div className="flex items-center justify-center gap-3 mb-4">
               <div className="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center">
-                <img src="/images/chugg-logo.png" alt="Waffle Guy Logo" className="w-8 h-8" />
+                <img src="/images/tcb-logo.png" alt="Waffle Guy Logo" className="w-8 h-8" />
               </div>
               <div className="text-center">
-                <h1 className="text-2xl font-bold text-gray-900">Chugg's Report</h1>
+                <h1 className="text-2xl font-bold text-gray-900">The Cartel Burgers's Report</h1>
                 <p className="text-sm text-gray-600">
                   {formatDate(currentReport.startDate)} to {formatDate(currentReport.endDate)}
                 </p>

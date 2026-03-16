@@ -8,15 +8,15 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ShoppingCart, CreditCard, Banknote, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ShoppingCart, CreditCard, Banknote, Smartphone } from 'lucide-react';
 import CartItem from './CartItem';
 import CheckoutDialog from './CheckoutDialog';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { getPaymentTypeLabel, getTaxRate, getTaxAmount, getTaxLabel } from '@/utils/paymentType';
 
 const Cart = ({ 
   isOpen,
@@ -31,6 +31,7 @@ const Cart = ({
 }) => {
     
     const [paymentType, setPaymentType] = useState('cash');
+    const [showPaymentMethodDialog, setShowPaymentMethodDialog] = useState(false);
     const {isLoading:isProcessingOrder} = useSelector((state)=>state.orders)
     const [showCheckoutDialog, setShowCheckoutDialog] = useState(false);
     const [pendingOrderData, setPendingOrderData] = useState(null);
@@ -39,7 +40,8 @@ const Cart = ({
     const {businessPrefs} = useSelector((state)=>state.settings)
     const discountAmount = discount;
     const afterDiscount = subtotal - discountAmount;
-    const total = afterDiscount;
+    const taxAmount = getTaxAmount(afterDiscount, paymentType);
+    const total = afterDiscount + taxAmount;
 
     const handleDiscountChange = (e) => {
         const {value} = e.target;
@@ -77,10 +79,12 @@ const Cart = ({
             items: transformedItems,
             discount: discountAmount,
             paymentType,
-            actualPrice,                    // Subtotal before discount
-            finalPrice: total,             // Final price after discount
-            amountPaid: 0,                 // Will be set in checkout dialog
-            outstandingPayment: total      // Will be calculated in checkout dialog
+            actualPrice,
+            tax: taxAmount,
+            taxRate: getTaxRate(paymentType),
+            finalPrice: total,
+            amountPaid: 0,
+            outstandingPayment: total
         };
         //console.log("Checkout Cart: ", orderData)
         setPendingOrderData(orderData);
@@ -175,32 +179,18 @@ const Cart = ({
                                         )}
                                     </div>
                                     
-                                    {/* Payment Type Section */}
+                                                                        {/* Payment Method Section */}
                                     <div className="space-y-2 sm:space-y-3">
-                                        <Label className="text-sm sm:text-base font-medium">Payment Type</Label>
-     <RadioGroup
-  value={paymentType}
-  onValueChange={setPaymentType}
-  className="grid grid-cols-2 gap-3 sm:gap-4"
->
-  <label
-    htmlFor="cash"
-    className="flex items-center space-x-2 border rounded-lg p-2 sm:p-3 hover:bg-muted/50 transition-colors cursor-pointer"
-  >
-    <RadioGroupItem value="cash" id="cash" />
-    <Banknote className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-    <span className="text-sm sm:text-base">Cash</span>
-  </label>
-
-  <label
-    htmlFor="online"
-    className="flex items-center space-x-2 border rounded-lg p-2 sm:p-3 hover:bg-muted/50 transition-colors cursor-pointer"
-  >
-    <RadioGroupItem value="online" id="online" />
-    <CreditCard className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-    <span className="text-sm sm:text-base">Online</span>
-  </label>
-</RadioGroup>
+                                                                                <Label className="text-sm sm:text-base font-medium">Select Payment Method</Label>
+                                                                                <Button
+                                                                                        type="button"
+                                                                                        variant="outline"
+                                                                                        className="w-full h-12 sm:h-14 justify-between px-4 text-sm sm:text-base"
+                                                                                        onClick={() => setShowPaymentMethodDialog(true)}
+                                                                                >
+                                                                                        <span>{getPaymentTypeLabel(paymentType)}</span>
+                                                                                        <CreditCard className="h-4 w-4 text-muted-foreground" />
+                                                                                </Button>
                                     </div>
                                     
                                     <Separator />
@@ -215,6 +205,12 @@ const Cart = ({
                                             <div className="flex justify-between text-sm sm:text-base text-green-600">
                                                 <span>Discount ({((discount/subtotal)*100).toFixed(1)}%):</span>
                                                 <span className="font-medium">- PKR {discountAmount.toLocaleString()}</span>
+                                            </div>
+                                        )}
+                                        {taxAmount > 0 && (
+                                            <div className="flex justify-between text-sm sm:text-base text-orange-600">
+                                                <span>{getTaxLabel(paymentType)}:</span>
+                                                <span className="font-medium">+ PKR {taxAmount.toLocaleString()}</span>
                                             </div>
                                         )}
                                         <Separator />
@@ -240,7 +236,7 @@ const Cart = ({
                                             ) : (
                                                 <>
                                                     <ShoppingCart className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                                                    Checkout PKR {total.toLocaleString()}
+                                                    Checkout PKR {total.toLocaleString()}{taxAmount > 0 ? ` (incl. tax)` : ''}
                                                 </>
                                             )}
                                         </Button>
@@ -260,6 +256,61 @@ const Cart = ({
                     </div>
                 </SheetContent>
             </Sheet>
+
+            <Dialog open={showPaymentMethodDialog} onOpenChange={setShowPaymentMethodDialog}>
+                <DialogContent className="max-w-md rounded-2xl p-4 sm:p-6">
+                    <DialogHeader>
+                        <DialogTitle className="text-lg sm:text-xl">Select Payment Method</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="space-y-3 pt-2">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setPaymentType('cash');
+                                setShowPaymentMethodDialog(false);
+                            }}
+                            className="flex min-h-[80px] w-full items-center gap-4 rounded-xl border px-4 py-4 text-left transition-colors hover:bg-muted/50"
+                        >
+                            <Banknote className="h-6 w-6 shrink-0 text-emerald-600" />
+                            <div>
+                                <div className="text-base font-semibold sm:text-lg">Cash</div>
+                                <div className="text-sm text-muted-foreground">Pay directly at checkout</div>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setPaymentType('online');
+                                setShowPaymentMethodDialog(false);
+                            }}
+                            className="flex min-h-[80px] w-full items-center gap-4 rounded-xl border px-4 py-4 text-left transition-colors hover:bg-muted/50"
+                        >
+                            <Smartphone className="h-6 w-6 shrink-0 text-blue-600" />
+                            <div>
+                                <div className="text-base font-semibold sm:text-lg">Mobile Wallets</div>
+                                <div className="text-sm text-muted-foreground">Easypaisa / JazzCash / Nayapay</div>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setPaymentType('card');
+                                setShowPaymentMethodDialog(false);
+                            }}
+                            className="flex min-h-[80px] w-full items-center gap-4 rounded-xl border px-4 py-4 text-left transition-colors hover:bg-muted/50"
+                        >
+                            <CreditCard className="h-6 w-6 shrink-0 text-violet-600" />
+                            <div>
+                                <div className="text-base font-semibold sm:text-lg">Debit / Credit Cards</div>
+                                <div className="text-sm text-muted-foreground">Card payments and tap-to-pay</div>
+                            </div>
+                        </button>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             {/* Checkout Dialog */}
             <CheckoutDialog

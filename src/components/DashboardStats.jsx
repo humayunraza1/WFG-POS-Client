@@ -8,7 +8,8 @@ import {
   TrendingDown,
   Loader2,
   AlertCircle,
-  CreditCard
+  CreditCard,
+  Smartphone
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSelector } from 'react-redux';
@@ -25,9 +26,8 @@ const totalExpenses = useSelector(selectTotalExpenses);
 
   // Calculate total cash: actual sales received + cash in hand - expenses
   const totalCash = (stats?.cashRecvd || 0) + (stats?.startCash || 0) - (totalExpenses || 0);
-  console.log("Total Cash: ", totalCash);
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
       {/* Today's Sales */}
       <Card className="min-h-32">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
@@ -62,11 +62,11 @@ const totalExpenses = useSelector(selectTotalExpenses);
           <p className="text-xs text-muted-foreground">Today's payments</p>
         </CardContent>
       </Card>
-      {/* Online Payments Received */}
+      {/* Digital Payments Received */}
 <Card className="min-h-32">
   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-    <CardTitle className="text-xs font-medium">Online Payments</CardTitle>
-    <CreditCard className="h-3 w-3 text-muted-foreground" />
+    <CardTitle className="text-xs font-medium">Digital Payments</CardTitle>
+    <Smartphone className="h-3 w-3 text-muted-foreground" />
   </CardHeader>
   <CardContent className="pb-2">
     <div className="text-lg font-bold flex items-center gap-1">
@@ -76,9 +76,26 @@ const totalExpenses = useSelector(selectTotalExpenses);
         `PKR ${stats?.onlinePaymnt || 0}`
       )}
     </div>
-    <p className="text-xs text-muted-foreground">Digital transfers</p>
+    <p className="text-xs text-muted-foreground">Wallet payments</p>
   </CardContent>
 </Card>
+
+      <Card className="min-h-32">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+          <CardTitle className="text-xs font-medium">Card Payments</CardTitle>
+          <CreditCard className="h-3 w-3 text-muted-foreground" />
+        </CardHeader>
+        <CardContent className="pb-2">
+          <div className="text-lg font-bold flex items-center gap-1">
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              `PKR ${stats?.cardPaymnt || 0}`
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">Debit / credit cards</p>
+        </CardContent>
+      </Card>
       {/* Pending Payment */}
       <Card className="min-h-32 bg-red-500 border-red-600">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">

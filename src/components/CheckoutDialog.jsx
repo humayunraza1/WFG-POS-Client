@@ -12,6 +12,7 @@ import useManager from '../hooks/userManager';
 import { toast } from 'sonner';
 import {useTempOrders} from '../hooks/useTempOrders';
 import { useSelector } from 'react-redux';
+import { getPaymentTypeLabel } from '@/utils/paymentType';
 
 const CheckoutDialog = ({ 
   isOpen, 
@@ -144,8 +145,8 @@ const handleConfirm = () => {
                   <span>{items.reduce((sum, item) => sum + item.quantity, 0)} qty</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Payment Type:</span>
-                  <span className="capitalize font-medium">{paymentType}</span>
+                  <span>Payment Method:</span>
+                  <span className="font-medium">{getPaymentTypeLabel(paymentType)}</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-green-600">
