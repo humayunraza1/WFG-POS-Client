@@ -1,7 +1,7 @@
 export const DIGITAL_PAYMENT_TYPES = ['online', 'card'];
 
 export const PAYMENT_TAX_RATES = {
-  cash: 0.15,
+  cash: 0,
   online: 0,
   card: 0.08,
 };
@@ -14,8 +14,6 @@ export const getTaxAmount = (afterDiscount, paymentType) =>
 
 export const getTaxLabel = (paymentType) => {
   switch (paymentType) {
-    case 'cash':
-      return 'Tax (15% GST)';
     case 'card':
       return 'Tax (8%)';
     default:
