@@ -2,23 +2,60 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeft, Plus, Search, ShoppingCart } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
-const NewVariantsView = ({ selectedCategory, products, onAddToCart, onViewChange }) => {
+const NewVariantsView = ({ selectedCategory, products, deals = [], onAddToCart, onViewChange }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedDeal, setSelectedDeal] = useState(null);
+  const [dealDialogOpen, setDealDialogOpen] = useState(false);
+  const [dealSelections, setDealSelections] = useState({});
+
+  const isDealsCategory = selectedCategory?._id === 'deals';
+
+  const dealProducts = useMemo(() => {
+    return (deals || []).map((deal) => {
+      return {
+        _id: deal._id,
+        name: deal.name,
+        imageUrl: deal.imageUrl,
+        isDeal: true,
+        dealRef: deal._id,
+        dealItems: deal.items || [],
+        pricingMode: deal.pricingMode || 'fixed',
+        selectionGroups: (deal.selectionGroups || []).map((group) => ({
+          ...group,
+          items: (group.items || group.options || []).map((item) => ({
+            ...item,
+            productId: item.productId || item.product,
+            categoryId: item.categoryId || item.category,
+            optionId: item.optionId,
+          })),
+        })),
+        dealCategoryId: deal.category?._id || null,
+        options: [
+          {
+            _id: deal._id,
+            name: 'Deal Price',
+            price: Number(deal.price || 0),
+          },
+        ],
+      };
+    });
+  }, [deals]);
 
   //console.log('VariantsView - selectedCategory:', selectedCategory);
   //console.log('VariantsView - products:', products);
 
   // Filter products by search query
   const filteredProducts = useMemo(() => {
-    if (!products || !Array.isArray(products)) return [];
+    const sourceProducts = isDealsCategory ? dealProducts : products;
+    if (!sourceProducts || !Array.isArray(sourceProducts)) return [];
 
-    let productList = products;
+    let productList = sourceProducts;
 
     if (searchQuery) {
       productList = productList.filter(product =>
@@ -27,24 +64,42 @@ const NewVariantsView = ({ selectedCategory, products, onAddToCart, onViewChange
     }
 
     return productList.sort((a, b) => a.name.localeCompare(b.name));
-  }, [products, searchQuery]);
+  }, [products, dealProducts, searchQuery, isDealsCategory]);
 
   const handleAddToCart = (product, option) => {
     // Create the cart item structure expected by the POSDashboard
+    const isDeal = Boolean(product.isDeal);
+    const displayCategory = isDeal ? 'Deals' : selectedCategory.name;
+
     const cartItem = {
       _id: option._id,
+      varID: option._id,
       name: product.name,
       price: option.price,
-      category: selectedCategory.name,
+      category: displayCategory,
       quantity: 1,
-      catID: selectedCategory._id,
-      prodID: product._id,
-      option: option
+      catID: isDeal ? product.dealCategoryId : selectedCategory._id,
+      catId: isDeal ? product.dealCategoryId : selectedCategory._id,
+      productId: isDeal ? `deal:${product.dealRef}` : product._id,
+      prodID: isDeal ? product.dealRef : product._id,
+      option: option,
+      isDeal,
+      dealRef: isDeal ? product.dealRef : null,
+      pricingMode: isDeal ? product.pricingMode : 'fixed',
+      dealItems: isDeal ? product.dealItems : null,
+      cartKey: isDeal ? `deal:${product.dealRef}::${option._id}` : `${product._id}::${option._id}`,
     };
     onAddToCart(selectedCategory, cartItem);
   };
 
   const handleProductClick = (product) => {
+    if (product.isDeal) {
+      setSelectedDeal(product);
+      setDealSelections({});
+      setDealDialogOpen(true);
+      return;
+    }
+
     if (product.options && product.options.length > 1) {
       setSelectedProduct(product);
       setDialogOpen(true);
@@ -59,6 +114,93 @@ const NewVariantsView = ({ selectedCategory, products, onAddToCart, onViewChange
       setDialogOpen(false);
       setSelectedProduct(null);
     }
+  };
+
+  const getOptionKey = (option) => `${option.productId}:${option.optionId}`;
+
+  const getEffectiveOptionPrice = (option, pricingMode) => {
+    const basePrice = Number(option.optionPrice || 0);
+    if (pricingMode === 'fixed') return basePrice;
+
+    if (option.overridePrice !== null && typeof option.overridePrice !== 'undefined' && option.overridePrice !== '') {
+      const parsedOverride = Number(option.overridePrice);
+      return Number.isFinite(parsedOverride) ? parsedOverride : basePrice;
+    }
+
+    const parsedDelta = Number(option.priceDelta || 0);
+    if (!Number.isFinite(parsedDelta)) return basePrice;
+
+    return Math.max(0, basePrice + parsedDelta);
+  };
+
+  const handleDealOptionToggle = (groupIndex, group, option) => {
+    setDealSelections((prev) => {
+      const currentSelections = prev[groupIndex] || [];
+      const key = getOptionKey(option);
+      const exists = currentSelections.some((selection) => getOptionKey(selection) === key);
+
+      let updatedSelections = [...currentSelections];
+      if (exists) {
+        updatedSelections = updatedSelections.filter((selection) => getOptionKey(selection) !== key);
+      } else if (Number(group.maxSelect || 1) === 1) {
+        updatedSelections = [option];
+      } else if (updatedSelections.length < Number(group.maxSelect || 1)) {
+        updatedSelections.push(option);
+      }
+
+      return {
+        ...prev,
+        [groupIndex]: updatedSelections,
+      };
+    });
+  };
+
+  const isDealSelectionValid = useMemo(() => {
+    if (!selectedDeal) return false;
+
+    return selectedDeal.selectionGroups.every((group, groupIndex) => {
+      const selectedCount = (dealSelections[groupIndex] || []).length;
+      const minSelect = Number(group.minSelect ?? (group.required ? 1 : 0));
+      const maxSelect = Number(group.maxSelect ?? 1);
+      return selectedCount >= minSelect && selectedCount <= maxSelect;
+    });
+  }, [selectedDeal, dealSelections]);
+
+  const handleConfirmDealSelection = () => {
+    if (!selectedDeal || !isDealSelectionValid) return;
+
+    const selectedOptions = selectedDeal.selectionGroups.flatMap((group, groupIndex) =>
+      (dealSelections[groupIndex] || []).map((option) => ({
+        ...option,
+        groupLabel: group.label,
+        // Compose optionName as 'productName - optionName' if both exist, else fallback
+        optionName: option.productName && option.optionName
+          ? `${option.productName} - ${option.optionName}`
+          : option.productName || option.optionName || '',
+        effectivePrice: getEffectiveOptionPrice(option, selectedDeal.pricingMode),
+      }))
+    );
+
+    const signature = selectedOptions
+      .map((option) => `${option.productId}-${option.optionId}`)
+      .sort()
+      .join('_') || 'base';
+
+    const totalDealPrice = selectedDeal.pricingMode === 'fixed'
+      ? Number(selectedDeal.options?.[0]?.price || 0)
+      : selectedOptions.reduce((sum, option) => sum + Number(option.effectivePrice || 0), 0);
+
+    const option = {
+      _id: `deal-${selectedDeal.dealRef}-${signature}`,
+      name: `Deal (${selectedOptions.length} selections)`,
+      price: Number(totalDealPrice || 0),
+      dealSelections: selectedOptions,
+    };
+
+    handleAddToCart(selectedDeal, option);
+    setDealDialogOpen(false);
+    setSelectedDeal(null);
+    setDealSelections({});
   };
 
   const ProductBox = ({ product }) => (
@@ -85,6 +227,11 @@ const NewVariantsView = ({ selectedCategory, products, onAddToCart, onViewChange
             product.options.length === 1 ? (
               <div className="space-y-1">
                 <p className="text-xs text-gray-500 truncate">{product.options[0].name}</p>
+                          {product.isDeal && (
+                            <p className="text-xs text-emerald-600 truncate">
+                              {product.selectionGroups?.length || 0} selection groups
+                            </p>
+                          )}
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-gray-900">
                     PKR {product.options[0].price.toLocaleString()}
@@ -95,7 +242,7 @@ const NewVariantsView = ({ selectedCategory, products, onAddToCart, onViewChange
                     className="h-7 w-7 p-0 hover:bg-primary hover:text-primary-foreground rounded-full"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleAddToCart(product, product.options[0]);
+                      handleProductClick(product);
                     }}
                   >
                     <Plus className="h-3 w-3" />
@@ -206,6 +353,108 @@ const NewVariantsView = ({ selectedCategory, products, onAddToCart, onViewChange
                 </Button>
               </div>
             ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={dealDialogOpen} onOpenChange={setDealDialogOpen}>
+        <DialogContent className="sm:max-w-xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedDeal?.name} - Configure Deal
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-2">
+            {selectedDeal?.selectionGroups?.map((group, groupIndex) => {
+              const selectedCount = (dealSelections[groupIndex] || []).length;
+              const minSelect = Number(group.minSelect ?? (group.required ? 1 : 0));
+              const maxSelect = Number(group.maxSelect ?? 1);
+
+              return (
+                <div key={`${group.label}-${groupIndex}`} className="border rounded-lg p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-sm">{group.label}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {group.required ? 'Required' : 'Optional'} - select {minSelect} to {maxSelect}
+                      </p>
+                    </div>
+                    <Badge variant="outline">{selectedCount}/{maxSelect}</Badge>
+                  </div>
+
+                  <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
+                    {(group.items || []).map((option) => {
+                      const effectivePrice = getEffectiveOptionPrice(option, selectedDeal.pricingMode);
+                      const key = getOptionKey(option);
+                      const checked = (dealSelections[groupIndex] || []).some(
+                        (selection) => getOptionKey(selection) === key
+                      );
+                      const atLimit = !checked && selectedCount >= maxSelect;
+
+                      // If maxSelect is 1, render as radio group
+                      if (maxSelect === 1) {
+                        return (
+                          <label
+                            key={key}
+                            className={`w-full flex items-center gap-2 border rounded-md px-3 py-2 transition-colors cursor-pointer ${checked ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'}`}
+                          >
+                            <input
+                              type="radio"
+                              name={`deal-group-${groupIndex}`}
+                              checked={checked}
+                              onChange={() => handleDealOptionToggle(groupIndex, group, option)}
+                              className="accent-primary mr-2"
+                            />
+                            <span className="flex-1 text-sm">{option.productName} - {option.optionName}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {selectedDeal.pricingMode === 'dynamic'
+                                ? `Rs. ${Number(effectivePrice || 0).toLocaleString()} (orig ${Number(option.optionPrice || 0).toLocaleString()})`
+                                : `Rs. ${Number(option.optionPrice || 0).toLocaleString()}`}
+                            </span>
+                          </label>
+                        );
+                      }
+
+                      // Otherwise, render as toggle button (checkbox style)
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          className={`w-full text-left border rounded-md px-3 py-2 transition-colors ${checked ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'}`}
+                          disabled={atLimit}
+                          onClick={() => handleDealOptionToggle(groupIndex, group, option)}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-sm">{option.productName} - {option.optionName}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {selectedDeal.pricingMode === 'dynamic'
+                                ? `Rs. ${Number(effectivePrice || 0).toLocaleString()} (orig ${Number(option.optionPrice || 0).toLocaleString()})`
+                                : `Rs. ${Number(option.optionPrice || 0).toLocaleString()}`}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+
+            <div className="flex items-center justify-between border-t pt-3">
+              <p className="font-semibold">
+                Deal Price: PKR {Number(
+                  selectedDeal?.pricingMode === 'fixed'
+                    ? (selectedDeal?.options?.[0]?.price || 0)
+                    : selectedDeal?.selectionGroups?.flatMap((group, index) =>
+                        (dealSelections[index] || []).map((option) => getEffectiveOptionPrice(option, selectedDeal?.pricingMode))
+                      ).reduce((sum, price) => sum + Number(price || 0), 0)
+                ).toLocaleString()}
+              </p>
+              <Button onClick={handleConfirmDealSelection} disabled={!isDealSelectionValid}>
+                Add Deal
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

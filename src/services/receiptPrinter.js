@@ -491,6 +491,35 @@ async printBothReceipts(order) {
 
 formatItemsTable(order) {
   const lines = [];
+  const descWidth = 25; // Reduced for NCR 7197
+  const qtyWidth = 1;
+  const priceWidth = 10;
+
+  const wrapText = (text, width) => {
+    const safeText = String(text || '').trim();
+    if (!safeText) return [];
+
+    const chunks = [];
+    let remainingText = safeText;
+
+    while (remainingText.length > 0) {
+      if (remainingText.length <= width) {
+        chunks.push(remainingText);
+        break;
+      }
+
+      let breakPoint = width;
+      const spaceIndex = remainingText.lastIndexOf(' ', width);
+      if (spaceIndex > width - 10) {
+        breakPoint = spaceIndex;
+      }
+
+      chunks.push(remainingText.slice(0, breakPoint));
+      remainingText = remainingText.slice(breakPoint).trim();
+    }
+
+    return chunks;
+  };
 
   // Header with margin - adjusted for NCR 7197
   lines.push('');
@@ -499,39 +528,17 @@ formatItemsTable(order) {
 
   // Items
   order.items.forEach(item => {
-    const name = `${item.category.name} - ${item.product.name} - ${item.optionName}`;
+    const isDealLine = Boolean(item.dealName);
+    const categoryName = item.category?.name || 'Deals';
+    const productName = item.product?.name || item.optionName || 'Item';
+    const optionName = item.product?.name && item.optionName ? ` - ${item.optionName}` : '';
+    const name = isDealLine ? item.dealName : `${categoryName} - ${productName}${optionName}`;
+    const subtitle = isDealLine ? (item.dealSelectionLabel || item.optionName || '') : '';
     const qty = item.quantity.toString();
     const price = `${item.totalPrice.toFixed(0)}/Rs`;
 
-    // Calculate proper spacing for NCR 7197
-    const descWidth = 25; // Reduced for NCR 7197
-    const qtyWidth = 1;
-    const priceWidth = 10;
-    
-    // Handle long descriptions by wrapping to next line
-    if (name.length > descWidth) {
-      // Split the name into chunks that fit the width
-      const nameChunks = [];
-      let remainingText = name;
-      
-      while (remainingText.length > 0) {
-        if (remainingText.length <= descWidth) {
-          nameChunks.push(remainingText);
-          break;
-        } else {
-          // Find the best place to break (prefer breaking at spaces)
-          let breakPoint = descWidth;
-          const spaceIndex = remainingText.lastIndexOf(' ', descWidth);
-          
-          if (spaceIndex > descWidth - 10) { // Only break at space if it's reasonably close
-            breakPoint = spaceIndex;
-          }
-          
-          nameChunks.push(remainingText.slice(0, breakPoint));
-          remainingText = remainingText.slice(breakPoint).trim();
-        }
-      }
-      
+    const nameChunks = wrapText(name, descWidth);
+    if (nameChunks.length > 0) {
       // First line with qty and price
       const firstChunk = nameChunks[0].padEnd(descWidth);
       const qtyPadded = qty.padStart(qtyWidth);
@@ -547,13 +554,14 @@ formatItemsTable(order) {
         const wrappedRow = `${wrappedChunk} ${emptyQty} ${emptyPrice}`;
         lines.push(this.addMargin(wrappedRow));
       }
-    } else {
-      // Normal case - name fits in one line
-      const desc = name.padEnd(descWidth);
-      const qtyPadded = qty.padStart(qtyWidth);
-      const pricePadded = price.padStart(priceWidth);
-      const row = `${desc} ${qtyPadded} ${pricePadded}`;
-      lines.push(this.addMargin(row));
+    }
+
+    if (subtitle) {
+      const subtitleChunks = wrapText(`  - ${subtitle}`, descWidth);
+      subtitleChunks.forEach((chunk) => {
+        const subtitleRow = `${chunk.padEnd(descWidth)} ${' '.repeat(qtyWidth)} ${' '.repeat(priceWidth)}`;
+        lines.push(this.addMargin(subtitleRow));
+      });
     }
   });
 

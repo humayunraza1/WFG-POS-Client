@@ -23,6 +23,8 @@ import {
 
 // Cart Item Component
 const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
+  const cartKey = item.cartKey || `${item.prodID}::${item.varID}`;
+
   //console.log("CartItem Rendered", item);
   return (
     <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
@@ -41,7 +43,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
             size="sm"
             variant="outline"
             className="h-8 w-8 p-0"
-            onClick={() => onUpdateQuantity(item.catId,item._id, Math.max(0, item.quantity - 1))}
+            onClick={() => onUpdateQuantity(cartKey, Math.max(0, item.quantity - 1))}
           >
             <Minus className="h-3 w-3" />
           </Button>
@@ -52,7 +54,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
             size="sm"
             variant="outline"
             className="h-8 w-8 p-0"
-            onClick={() => onUpdateQuantity(item.catId,item._id, item.quantity + 1)}
+            onClick={() => onUpdateQuantity(cartKey, item.quantity + 1)}
           >
             <Plus className="h-3 w-3" />
           </Button>
@@ -62,7 +64,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
           size="sm"
           variant="ghost"
           className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-          onClick={() => onRemove(item.catId,item._id)}
+          onClick={() => onRemove(cartKey)}
         >
           <Trash2 className="h-3 w-3" />
         </Button>

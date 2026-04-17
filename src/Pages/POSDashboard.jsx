@@ -24,7 +24,7 @@ import {
   History,
   ClipboardList
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import SummaryView from '../components/Sidebar/SummaryView';
@@ -92,6 +92,7 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
     const {tempOrders,clearAllOrders} = useTempOrders();
 
     const {
+      deals,
       products,
       categories,
       isLoading: productsLoading,
@@ -100,6 +101,19 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
       fetchProducts,
       fetchProductsByCategory
     } = useProducts();
+
+    const displayCategories = useMemo(() => {
+      if (!deals?.length) return categories;
+
+      const dealsCategory = {
+        _id: 'deals',
+        name: 'Deals',
+        imageUrl: 'https://png.pngtree.com/png-vector/20221125/ourmid/pngtree-no-image-available-icon-flatvector-illustration-thumbnail-graphic-illustration-vector-png-image_40966590.jpg',
+        isDealsCategory: true,
+      };
+
+      return [dealsCategory, ...categories];
+    }, [categories, deals]);
 
     // Fetch products initially and when register opens
     useEffect(() => {
@@ -178,7 +192,9 @@ const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
           
           // If switching to variants view, fetch products for the selected category
           if (view === 'variants' && subView) {
-            fetchProductsByCategory(subView._id);
+            if (subView._id !== 'deals') {
+              fetchProductsByCategory(subView._id);
+            }
           }
 
           //console.log(`Switching to view: ${view}`, subView);
@@ -255,54 +271,54 @@ const handleFinalCashSubmit = async (finalCash) => {
   }
 };
 
-      const handleAddToCart = (product, option) => {
-        // find by BOTH product._id and option._id
-        if (!requiresActiveSession('add items to cart')) { return; }
-        
-        const existingItem = cartItems.find(
-          item =>
-            item.productId === product._id &&
-            item.option._id === option._id
-        );
+      const getCartItemKey = (item) => item.cartKey || `${item.prodID}::${item.varID}`;
+
+      const handleAddToCart = (_selectedCategory, cartItem) => {
+        if (!requiresActiveSession('add items to cart')) return;
+
+        const incomingKey = getCartItemKey(cartItem);
+        const existingItem = cartItems.find((item) => getCartItemKey(item) === incomingKey);
 
         if (existingItem) {
-          setCartItems(prevItems =>
-            prevItems.map(item =>
-              item.productId === product._id && item.option._id === option._id
+          setCartItems((prevItems) =>
+            prevItems.map((item) =>
+              getCartItemKey(item) === incomingKey
                 ? { ...item, quantity: item.quantity + 1 }
                 : item
             )
           );
-        } else {
-          setCartItems(prevItems => [
-            ...prevItems,
-            option
-          ]);
+          return;
         }
-      };
-    
-    const handleUpdateQuantity = (productId, optionId, newQuantity) => {
-      console.log("updating quantity: ",productId, optionId, newQuantity)
-      if (newQuantity === 0) {
-        handleRemoveFromCart(productId, optionId);
-        return;
-      }
 
-      setCartItems(prevItems =>
-        prevItems.map(item =>
-          item.productId === productId && item.option._id === optionId
-            ? { ...item, quantity: newQuantity }
-            : item
-        )
-      );
-    };
-    const handleRemoveFromCart = (productId, optionId) => {
-      setCartItems(prevItems =>
-        prevItems.filter(
-          item => !(item.productId === productId && item.option._id === optionId)
-        )
-      );
-    };
+        setCartItems((prevItems) => [
+          ...prevItems,
+          {
+            ...cartItem,
+            cartKey: incomingKey,
+          },
+        ]);
+      };
+
+      const handleUpdateQuantity = (cartKey, newQuantity) => {
+        if (newQuantity <= 0) {
+          handleRemoveFromCart(cartKey);
+          return;
+        }
+
+        setCartItems((prevItems) =>
+          prevItems.map((item) =>
+            getCartItemKey(item) === cartKey
+              ? { ...item, quantity: newQuantity }
+              : item
+          )
+        );
+      };
+
+      const handleRemoveFromCart = (cartKey) => {
+        setCartItems((prevItems) =>
+          prevItems.filter((item) => getCartItemKey(item) !== cartKey)
+        );
+      };
 
     const handleClearCart = () => { setCartItems([]); toast.success('Cart cleared'); };
     
@@ -397,6 +413,7 @@ const handleFinalCashSubmit = async (finalCash) => {
         <NewVariantsView 
           selectedCategory={activeSubView}
           products={products} // This should be the products array from fetchProductsByCategory
+          deals={deals}
           onAddToCart={handleAddToCart}
           onViewChange={handleViewChange}
         /> :
@@ -406,7 +423,7 @@ const handleFinalCashSubmit = async (finalCash) => {
         
         case 'products':
           return         <ProductsView 
-          categories={categories} // Pass categories, not products
+          categories={displayCategories}
           onViewChange={handleViewChange}
         />;
         case 'stats':
@@ -580,7 +597,7 @@ const handleFinalCashSubmit = async (finalCash) => {
               <Sidebar 
                 activeView={activeView}
                 onViewChange={handleViewChange}
-                categories={categories}
+                categories={displayCategories}
                 onCloseRegister={handleCloseRegister}
                 onOpenRegister={handleOpenRegister}
               />
@@ -624,7 +641,7 @@ const handleFinalCashSubmit = async (finalCash) => {
           
           {/* Mobile Category Drawer */}
           <MobileCategoryDrawer
-            categories={categories}
+            categories={displayCategories}
             onViewChange={handleViewChange}
             isOpen={isCategoryDrawerOpen}
             setIsOpen={setCategoryDrawerOpen}
@@ -691,7 +708,7 @@ const handleFinalCashSubmit = async (finalCash) => {
             onClose={() => setIsMobileSidebarOpen(false)}
                 activeView={activeView}
                 onViewChange={handleViewChange}
-                categories={categories}
+                categories={displayCategories}
                 user={user}
                 onCloseRegister={handleCloseRegister}
                 onOpenRegister={handleOpenRegister}

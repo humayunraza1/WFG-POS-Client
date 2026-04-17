@@ -52,15 +52,92 @@ const Cart = ({
         if (cartItems.length === 0) return;
         //console.log('final cart: ', cartItems)
         // Transform cart items to match Order schema
-        const transformedItems = cartItems.map(item => ({
-            category: item.catID,           // Category ObjectId
-            product: item.prodID,                // Product ObjectId
-            option:item._id,
-            optionName: item.option?.name || '', // Option name as string
-            unitPrice: item.price,               // Unit price
-            quantity: item.quantity,             // Quantity
-            totalPrice: item.price * item.quantity // Calculate total price
-        }));
+        const transformedItems = cartItems.flatMap(item => {
+            if (!item.isDeal) {
+                return [{
+                    category: item.catID,
+                    product: item.prodID,
+                    option: item._id,
+                    optionName: item.option?.name || '',
+                    unitPrice: item.price,
+                    quantity: item.quantity,
+                    totalPrice: item.price * item.quantity
+                }];
+            }
+
+            const selectedOptions = item.option?.dealSelections || [];
+            const dealTotalPrice = Number(item.price || 0) * Number(item.quantity || 1);
+            const dealName = item.name || 'Deal';
+
+            if (selectedOptions.length === 0) {
+                return [{
+                    category: item.catID,
+                    product: item.prodID,
+                    option: item._id,
+                    optionName: item.option?.name || 'Deal',
+                    dealName,
+                    dealSelectionLabel: '',
+                    unitPrice: item.price,
+                    quantity: item.quantity,
+                    totalPrice: dealTotalPrice
+                }];
+            }
+
+            const totalUnitsPerBundle = selectedOptions.reduce(
+                (sum, selection) => sum + Number(selection.quantity || 1),
+                0
+            );
+            const totalUnits = Math.max(1, totalUnitsPerBundle * Number(item.quantity || 1));
+
+            if (item.pricingMode === 'dynamic') {
+                return selectedOptions.map((selection) => {
+                    const lineQuantity = Number(item.quantity || 1) * Number(selection.quantity || 1);
+                    const effectiveUnitPrice = Number(selection.effectivePrice || selection.optionPrice || 0);
+                    const lineTotalPrice = Number((effectiveUnitPrice * lineQuantity).toFixed(2));
+
+                    return {
+                        category: selection.categoryId,
+                        product: selection.productId,
+                        option: selection.optionId,
+                        optionName: selection.optionName,
+                        dealName,
+                        dealSelectionLabel: selection.optionName,
+                        unitPrice: effectiveUnitPrice,
+                        quantity: lineQuantity,
+                        totalPrice: lineTotalPrice
+                    };
+                });
+            }
+
+            let distributedTotal = 0;
+            return selectedOptions.map((selection, index) => {
+                const lineQuantity = Number(item.quantity || 1) * Number(selection.quantity || 1);
+
+                let lineTotalPrice;
+                if (index === selectedOptions.length - 1) {
+                    lineTotalPrice = Number((dealTotalPrice - distributedTotal).toFixed(2));
+                } else {
+                    lineTotalPrice = Number(((dealTotalPrice * lineQuantity) / totalUnits).toFixed(2));
+                    distributedTotal += lineTotalPrice;
+                }
+
+                const unitPrice = lineQuantity > 0
+                    ? Number((lineTotalPrice / lineQuantity).toFixed(2))
+                    : 0;
+
+                return {
+                    category: selection.categoryId,
+                    product: selection.productId,
+                    option: selection.optionId,
+                    optionName: selection.optionName,
+                    dealName,
+                    dealSelectionLabel: selection.optionName,
+                    unitPrice,
+                    quantity: lineQuantity,
+                    totalPrice: lineTotalPrice
+                };
+            });
+        });
         let serverInfo;
         if (businessPrefs?.trackServers){
             serverInfo = cartItems.map(item=>({
@@ -144,7 +221,7 @@ const Cart = ({
                                     <div className="space-y-2 sm:space-y-3">
                                         {cartItems.map((item) => (
                                             <CartItem
-                                                key={`${item.prodID}-${item.varID}`}
+                                                key={item.cartKey || `${item.prodID}::${item.varID}`}
                                                 item={item}
                                                 onUpdateQuantity={onUpdateQuantity}
                                                 onRemove={onRemoveItem}
