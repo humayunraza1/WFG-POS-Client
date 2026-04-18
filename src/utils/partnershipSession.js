@@ -60,14 +60,14 @@ const getDocumentTitle = (report) => {
   const businessNames = (report?.partnershipBusinessNames || []).filter(Boolean);
 
   if (businessNames.length === 1) {
-    return `The Waffle Guy X ${businessNames[0]}`;
+    return `Cartel Burgers X ${businessNames[0]}`;
   }
 
   if (businessNames.length > 1) {
-    return 'The Waffle Guy X Partnerships';
+    return 'Cartel Burgers X Partnerships';
   }
 
-  return 'The Waffle Guy Partnership Statement';
+  return 'Cartel Burgers Partnership Statement';
 };
 
 const getShareDisplay = (report) => {
