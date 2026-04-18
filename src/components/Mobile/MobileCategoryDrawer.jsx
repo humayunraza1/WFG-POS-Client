@@ -4,7 +4,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Menu, 
   X, 
-  Package2
+  Package2,
+  Sparkles
 } from 'lucide-react';
 
 const MobileCategoryDrawer = ({ categories, onViewChange,isOpen, setIsOpen  }) => {
@@ -75,9 +76,17 @@ const MobileCategoryDrawer = ({ categories, onViewChange,isOpen, setIsOpen  }) =
                   >
                     <div className="flex items-center gap-3 w-full">
                       <Package2 className="h-5 w-5 text-primary flex-shrink-0" />
-                      <span className="font-medium text-base">
-                        {category.name || category.title}
-                      </span>
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="truncate font-medium text-base">
+                          {category.name || category.title}
+                        </span>
+                        {category.isPartnership && (
+                          <span className="inline-flex -rotate-2 items-center gap-1 rounded-sm border border-amber-300 bg-gradient-to-r from-amber-100 via-rose-50 to-cyan-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-900 shadow-sm">
+                            <Sparkles className="h-3 w-3" />
+                            Partnership
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </Button>
                 ))}

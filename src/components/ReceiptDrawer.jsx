@@ -9,6 +9,37 @@ import { format } from 'date-fns';
 import receiptPrinter from '@/services/receiptPrinter';
 import { DollarSign, AlertCircle } from 'lucide-react';
 import { getManagerBadgeStyle } from '../utils/managerColors';
+import { getPaymentTypeLabel } from '@/utils/paymentType';
+
+const normalizeReceiptLabelValue = (value) => String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+
+const getReceiptItemDisplay = (item) => {
+  if (item?.dealName) {
+    return {
+      title: item.dealName,
+      subtitle: item.dealSelectionLabel || item.optionName || item.product?.name || '',
+    };
+  }
+
+  const categoryName = item.category?.name || item.categoryName || '';
+  const productName = String(item.product?.name || '').trim();
+  const optionName = String(item.optionName || '').trim();
+  const normalizedProductName = normalizeReceiptLabelValue(productName);
+  const normalizedOptionName = normalizeReceiptLabelValue(optionName);
+
+  let itemLabel = productName || optionName || 'Item';
+
+  if (productName && optionName) {
+    itemLabel = normalizedOptionName === normalizedProductName || normalizedOptionName.includes(normalizedProductName)
+      ? optionName
+      : `${productName} - ${optionName}`;
+  }
+
+  return {
+    title: categoryName ? `${categoryName} - ${itemLabel}` : itemLabel,
+    subtitle: '',
+  };
+};
 
 const ReceiptDrawer = ({ order, onClose, onUpdatePayment }) => {
   const [paymentAmount, setPaymentAmount] = useState('');
@@ -91,7 +122,7 @@ const ReceiptDrawer = ({ order, onClose, onUpdatePayment }) => {
                 </div>
               </div>
               <div>Order ID: <span className="font-medium">{order._id.slice(-6).toUpperCase()}</span></div>
-              <div>Type: <span className="capitalize">{order.paymentType}</span></div>
+              <div>Type: <span>{getPaymentTypeLabel(order.paymentType)}</span></div>
               <div className="col-span-2">Date: {formattedDate} • {formattedTime}</div>
               <div className="col-span-2 flex items-center gap-2">
                 Status: {getPaymentStatusBadge()}
@@ -217,22 +248,67 @@ const ReceiptDrawer = ({ order, onClose, onUpdatePayment }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {order.items.map((item, idx) => (
-                      <tr key={idx}>
-                        <td className="py-2 px-2 border-b">
-                          <div className="flex flex-col">
-                            <span className="font-medium">{item.category.name} - {item.product.name} - {item.optionName}</span>
-                            <span className='text-xs text-slate-600'>
-                              Unit Price: {item.unitPrice.toLocaleString()}/rs
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-2 px-2 border-b text-center">{item.quantity}</td>
-                        <td className="py-2 px-2 border-b text-right">
-                          PKR {(item.unitPrice * item.quantity).toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
+                    {/* Group deal items by dealName */}
+                    {(() => {
+                      const grouped = {};
+                      const normalItems = [];
+                      order.items.forEach((item) => {
+                        if (item.dealName) {
+                          if (!grouped[item.dealName]) grouped[item.dealName] = [];
+                          grouped[item.dealName].push(item);
+                        } else {
+                          normalItems.push(item);
+                        }
+                      });
+                      let rows = [];
+                      // Render grouped deals
+                      Object.entries(grouped).forEach(([dealName, items], groupIdx) => {
+                        const totalQty = items.reduce((sum, i) => sum + (i.quantity || 1), 0);
+                        const totalPrice = items.reduce((sum, i) => sum + (i.unitPrice * (i.quantity || 1)), 0);
+                        rows.push(
+                          <tr key={`deal-${groupIdx}`}>
+                            <td className="py-2 px-2 border-b align-top">
+                              <div className="flex flex-col">
+                                <span className="font-medium">{dealName}</span>
+                                <ul className="ml-4 list-disc text-xs text-slate-600">
+                                  {items.map((item, idx) => {
+                                    let selection = '';
+                                    if (item.product && item.product.name && item.optionName) {
+                                      // Avoid duplicate name if optionName already includes product
+                                      selection = item.optionName.includes(item.product.name)
+                                        ? item.optionName
+                                        : `${item.product.name} - ${item.optionName}`;
+                                    } else if (item.optionName) {
+                                      selection = item.optionName;
+                                    } else if (item.product && item.product.name) {
+                                      selection = item.product.name;
+                                    }
+                                    return <li key={idx}>{selection}</li>;
+                                  })}
+                                </ul>
+                              </div>
+                            </td>
+                            <td className="py-2 px-2 border-b text-center align-top">{totalQty}</td>
+                            <td className="py-2 px-2 border-b text-right align-top">PKR {totalPrice.toLocaleString()}</td>
+                          </tr>
+                        );
+                      });
+                      // Render normal (non-deal) items
+                      normalItems.forEach((item, idx) => {
+                        const { title } = getReceiptItemDisplay(item);
+                        rows.push(
+                          <tr key={`normal-${idx}`}>
+                            <td className="py-2 px-2 border-b">
+                              <span className="font-medium">{title}</span>
+                              <span className='block text-xs text-slate-600'>Unit Price: {item.unitPrice.toLocaleString()}/rs</span>
+                            </td>
+                            <td className="py-2 px-2 border-b text-center">{item.quantity}</td>
+                            <td className="py-2 px-2 border-b text-right">PKR {(item.unitPrice * item.quantity).toLocaleString()}</td>
+                          </tr>
+                        );
+                      });
+                      return rows;
+                    })()}
                   </tbody>
                 </table>
               </div>

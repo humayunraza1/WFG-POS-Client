@@ -12,15 +12,27 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { Plus, Pencil, Upload } from 'lucide-react';
+import { Plus, Pencil, Trash2, Upload } from 'lucide-react';
+import { toast } from 'sonner';
 import useProducts from '@/hooks/useProducts';
 import ProductForm from './ProductForm';
 import BulkProductUploader from './BulkProductUploader';
+import DealForm from './DealForm';
 
 const ProductManagement = () => {
-  const { products, categories, fetchProducts, fetchCategories } = useProducts();
-  const [view, setView] = useState('list'); // 'list' | 'add' | 'edit' | 'bulk'
+  const {
+    deals,
+    products,
+    categories,
+    fetchProducts,
+    fetchCategories,
+    fetchDeals,
+    updateDealStatus,
+    deleteDeal,
+  } = useProducts();
+  const [view, setView] = useState('list'); // 'list' | 'add' | 'edit' | 'bulk' | 'deals' | 'deal-add' | 'deal-edit'
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedDeal, setSelectedDeal] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   
@@ -31,7 +43,29 @@ const ProductManagement = () => {
   useEffect(() => {
     fetchProducts();
     fetchCategories();
+    fetchDeals({ status: 'all' });
   }, []);
+
+  const handleToggleDealStatus = async (deal) => {
+    try {
+      await updateDealStatus(deal._id, !deal.isActive);
+      toast.success(`Deal ${deal.isActive ? 'disabled' : 'enabled'} successfully`);
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to update deal status');
+    }
+  };
+
+  const handleDeleteDeal = async (deal) => {
+    const confirmed = window.confirm(`Delete deal "${deal.name}" permanently?`);
+    if (!confirmed) return;
+
+    try {
+      await deleteDeal(deal._id);
+      toast.success('Deal deleted successfully');
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to delete deal');
+    }
+  };
 
   // Reset to first page when filters change
   useEffect(() => {
@@ -85,6 +119,9 @@ const ProductManagement = () => {
           <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <CardTitle>Product Management</CardTitle>
             <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setView('deals')}>
+                Manage Deals
+              </Button>
               <Button variant="outline" onClick={() => setView('bulk')}>
                 <Upload className="w-4 h-4 mr-2" /> Bulk Add
               </Button>
@@ -239,6 +276,84 @@ const ProductManagement = () => {
         </>
       )}
 
+      {view === 'deals' && (
+        <>
+          <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <CardTitle>Deal Management</CardTitle>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setView('list')}>
+                Back To Products
+              </Button>
+              <Button onClick={() => setView('deal-add')}>
+                <Plus className="w-4 h-4 mr-2" /> Add Deal
+              </Button>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            <div className="text-sm text-muted-foreground">
+              {deals.length} deal{deals.length !== 1 ? 's' : ''} configured
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-muted text-left">
+                  <tr>
+                    <th className="p-2">Deal</th>
+                    <th className="p-2">Category</th>
+                    <th className="p-2">Selection Groups</th>
+                    <th className="p-2">Pricing</th>
+                    <th className="p-2">Price</th>
+                    <th className="p-2">Status</th>
+                    <th className="p-2 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {deals.map((deal) => (
+                    <tr key={deal._id} className="border-b">
+                      <td className="p-2 font-medium">{deal.name}</td>
+                      <td className="p-2">{deal.category?.name || 'N/A'}</td>
+                      <td className="p-2">{deal.selectionGroups?.length || 0}</td>
+                      <td className="p-2">{deal.pricingMode === 'dynamic' ? 'Original + Delta' : 'Fixed'}</td>
+                      <td className="p-2">Rs. {Number(deal.price || 0).toLocaleString()}</td>
+                      <td className="p-2">{deal.isActive ? 'Active' : 'Inactive'}</td>
+                      <td className="p-2 text-center">
+                        <div className="flex justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleToggleDealStatus(deal)}
+                          >
+                            {deal.isActive ? 'Disable' : 'Enable'}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setSelectedDeal(deal);
+                              setView('deal-edit');
+                            }}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteDeal(deal)}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </>
+      )}
+
       {(view === 'add' || view === 'edit') && (
         <ProductForm
           mode={view === 'add' ? 'Add Product' : 'Edit Product'}
@@ -251,6 +366,22 @@ const ProductManagement = () => {
             fetchProducts();
             setView('list');
             setSelectedProduct(null);
+          }}
+        />
+      )}
+
+      {(view === 'deal-add' || view === 'deal-edit') && (
+        <DealForm
+          mode={view === 'deal-add' ? 'Add Deal' : 'Edit Deal'}
+          deal={view === 'deal-edit' ? selectedDeal : null}
+          onBack={() => {
+            setView('deals');
+            setSelectedDeal(null);
+          }}
+          onSuccess={() => {
+            fetchDeals({ status: 'all' });
+            setView('deals');
+            setSelectedDeal(null);
           }}
         />
       )}

@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { DollarSign, Loader2, Calculator } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle, Banknote, CreditCard } from "lucide-react";
+import { AlertTriangle, Banknote, CreditCard, Smartphone } from "lucide-react";
 import { useSelector } from 'react-redux';
 import { useGetDailyStatsQuery } from '../features/orders/ordersAPI';
 import { selectTotalExpenses } from '../features/expense/expenseSlice';
@@ -78,15 +78,19 @@ const FinalCashModal = ({
               </div>
               <div>
                 <span className="text-muted-foreground">Total Cash Payments:</span>
-                <p className="font-medium ">+PKR {stats?.cashRecvd.toLocaleString()}</p>
+                <p className="font-medium ">+PKR {(stats?.cashRecvd || 0).toLocaleString()}</p>
               </div>
               <div>
-                <span className="text-muted-foreground">Total Online Payments:</span>
-                <p className="font-medium ">+PKR {stats?.onlinePaymnt.toLocaleString()}</p>
+                <span className="text-muted-foreground">Total Digital Payments:</span>
+                <p className="font-medium ">+PKR {(stats?.onlinePaymnt || 0).toLocaleString()}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Total Card Payments:</span>
+                <p className="font-medium ">+PKR {(stats?.cardPaymnt || 0).toLocaleString()}</p>
               </div>
               <div>
                 <span className="text-muted-foreground">Total Sales:</span>
-                <p className="font-medium text-green-600">+PKR {stats?.totalSales.toLocaleString()}</p>
+                <p className="font-medium text-green-600">+PKR {(stats?.totalSales || 0).toLocaleString()}</p>
               </div>
               <div>
                 <span className="text-muted-foreground">Total Expenses:</span>
@@ -110,12 +114,16 @@ const FinalCashModal = ({
         {/* Cash Pending */}
         <div className="flex items-center gap-2">
           <Banknote className="h-4 w-4 text-yellow-600" />
-          <span>Cash: <span className="font-semibold">PKR {(stats?.expectedCash - stats?.cashRecvd).toLocaleString()}</span></span>
+          <span>Cash: <span className="font-semibold">PKR {(((stats?.expectedCash || 0) - (stats?.cashRecvd || 0))).toLocaleString()}</span></span>
         </div>
-        {/* Online Pending */}
+        {/* Digital Pending */}
         <div className="flex items-center gap-2">
-          <CreditCard className="h-4 w-4 text-blue-600" />
-          <span>Online: <span className="font-semibold">PKR {(stats?.expectedOnline - stats?.onlinePaymnt).toLocaleString()}</span></span>
+          <Smartphone className="h-4 w-4 text-blue-600" />
+          <span>Digital: <span className="font-semibold">PKR {(((stats?.expectedOnline || 0) - (stats?.onlinePaymnt || 0))).toLocaleString()}</span></span>
+        </div>
+        <div className="flex items-center gap-2">
+          <CreditCard className="h-4 w-4 text-violet-600" />
+          <span>Card: <span className="font-semibold">PKR {((stats?.expectedCard || 0) - (stats?.cardPaymnt || 0)).toLocaleString()}</span></span>
         </div>
       </div>
     </AlertDescription>

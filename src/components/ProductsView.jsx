@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Sparkles } from 'lucide-react';
 
 const ProductsView = ({ categories, onViewChange }) => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -54,6 +55,12 @@ const ProductsView = ({ categories, onViewChange }) => {
                 <h3 className="font-medium text-sm leading-tight mb-2 text-gray-900 line-clamp-2">
                     {category.name}
                 </h3>
+                {category.isPartnership && (
+                    <div className="mb-2 inline-flex -rotate-2 items-center gap-1 overflow-hidden rounded-sm border border-amber-300 bg-gradient-to-r from-amber-100 via-rose-50 to-cyan-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-900 shadow-sm">
+                        <Sparkles className="h-3 w-3" />
+                        <span className="skew-x-[-10deg]">Partnership</span>
+                    </div>
+                )}
                 
                 <div className="mt-auto">
                     <Badge variant="outline" className="text-xs px-2 py-1">

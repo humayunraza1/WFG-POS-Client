@@ -68,3 +68,75 @@ button[data-variant="destructive"] {
 button[data-variant="destructive"]:hover {
   background-color: #b91c1c;
 }
+
+@keyframes partnership-twinkle {
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(0.92) rotate(0deg);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.08) rotate(8deg);
+  }
+}
+
+@keyframes partnership-shimmer {
+  0% {
+    opacity: 0.25;
+    transform: translateX(-10%) translateY(-50%) rotate(-10deg) scaleX(0.92);
+  }
+
+  50% {
+    opacity: 0.95;
+    transform: translateX(8%) translateY(-50%) rotate(-10deg) scaleX(1.04);
+  }
+
+  100% {
+    opacity: 0.25;
+    transform: translateX(-10%) translateY(-50%) rotate(-10deg) scaleX(0.92);
+  }
+}
+
+.partnership-twinkle {
+  animation: partnership-twinkle 1.8s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.partnership-twinkle-delayed {
+  animation: partnership-twinkle 1.8s ease-in-out infinite;
+  animation-delay: 0.65s;
+  transform-origin: center;
+}
+
+.partnership-shimmer {
+  animation: partnership-shimmer 2.4s ease-in-out infinite;
+}
+
+@keyframes partnership-fall {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.75);
+  }
+
+  20% {
+    opacity: 0.9;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(10px) scale(1);
+  }
+}
+
+.partnership-hover-flake {
+  opacity: 0;
+}
+
+.group:hover .partnership-hover-flake {
+  animation: partnership-fall 0.95s ease-out infinite;
+}
+
+.group:hover .partnership-hover-flake-delayed {
+  animation-delay: 0.24s;
+}

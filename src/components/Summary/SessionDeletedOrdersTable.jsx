@@ -13,6 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Eye, Clock, DollarSign, Hash, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import ReceiptDrawer from '../ReceiptDrawer';
+import { getPaymentTypeLabel } from '@/utils/paymentType';
 
 const SessionDeletedOrdersTable = ({ deletedOrders }) => {
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -87,7 +88,7 @@ const SessionDeletedOrdersTable = ({ deletedOrders }) => {
                     {order.deleteReason || '—'}
                   </TableCell>
                   <TableCell className="text-sm text-gray-700">
-                    {order.paymentType || 'N/A'}
+                    {getPaymentTypeLabel(order.paymentType)}
                   </TableCell>
                   <TableCell className="text-sm text-gray-700">
                     {formatDateTime(order.deletedAt)}

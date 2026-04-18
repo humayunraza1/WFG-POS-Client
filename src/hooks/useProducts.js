@@ -3,7 +3,8 @@ import axiosPublic,{axiosPrivate} from '@/api/axios';
 
 const useProducts = () => {
   const [products, setProducts] = useState([]);
-    const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [deals, setDeals] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -14,6 +15,7 @@ const useProducts = () => {
     useEffect(() => {
     fetchCategories();
     fetchProducts();
+      fetchDeals();
   }, []);
 
     const fetchCategories = async () => {
@@ -32,13 +34,20 @@ const useProducts = () => {
     const addCategory = async (categoryData) => {
     try {
       //console.log(categoryData)
-      const { data } = await axiosPrivate.post('/products/add-category', {name:categoryData.name,imageUrl:categoryData.imageUrl});
+        const { data } = await axiosPrivate.post('/products/add-category', {
+          name: categoryData.name,
+          imageUrl: categoryData.imageUrl,
+          assignedBranches: Array.isArray(categoryData.assignedBranches) ? categoryData.assignedBranches : [],
+          isPartnership: Boolean(categoryData.isPartnership),
+          partnershipBusinessName: String(categoryData.partnershipBusinessName || ''),
+          partnershipSharePercent: Number(categoryData.partnershipSharePercent || 0),
+        });
       setCategories(prev => [...prev, data.category]);
       return data.category;
     } catch (err) {
       setError(err.response?.data?.message || err.message);
       //console.log(err)
-      throw new err;
+        throw err;
     }
   };
 
@@ -52,6 +61,19 @@ const useProducts = () => {
       setError(err.response?.data?.message || err.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchDeals = async (options = {}) => {
+    const { status = 'active' } = options;
+    try {
+      const { data } = await axiosPrivate.get('/products/deals', {
+        withCredentials: true,
+        params: { status },
+      });
+      setDeals(data);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
     }
   };
 
@@ -101,6 +123,53 @@ const useProducts = () => {
     }
   };
 
+  const addDeal = async (dealData) => {
+    try {
+      const { data } = await axiosPrivate.post('/products/deals', dealData, { withCredentials: true });
+      setDeals((prev) => [data.deal, ...prev]);
+      return data.deal;
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+      throw err;
+    }
+  };
+
+  const updateDeal = async (id, dealData) => {
+    try {
+      const { data } = await axiosPrivate.patch(`/products/deals/${id}`, dealData, { withCredentials: true });
+      setDeals((prev) => prev.map((deal) => (deal._id === id ? data.deal : deal)));
+      return data.deal;
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+      throw err;
+    }
+  };
+
+  const updateDealStatus = async (id, isActive) => {
+    try {
+      const { data } = await axiosPrivate.patch(
+        `/products/deals/${id}/status`,
+        { isActive },
+        { withCredentials: true }
+      );
+      setDeals((prev) => prev.map((deal) => (deal._id === id ? data.deal : deal)));
+      return data.deal;
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+      throw err;
+    }
+  };
+
+  const deleteDeal = async (id) => {
+    try {
+      await axiosPrivate.delete(`/products/deals/${id}`, { withCredentials: true });
+      setDeals((prev) => prev.filter((deal) => deal._id !== id));
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+      throw err;
+    }
+  };
+
   const deleteProduct = async (id) => {
     try {
       await axiosPrivate.delete(`/products/${id}`, { withCredentials: true });
@@ -114,15 +183,21 @@ const useProducts = () => {
   return {
     products,
     categories,
+    deals,
     isLoading,
     error,
     fetchProducts,
     fetchCategories,
+    fetchDeals,
     bulkAddProducts,
     addCategory,
     fetchProductsByCategory,
     addProduct,
     updateProduct,
+    addDeal,
+    updateDeal,
+    updateDealStatus,
+    deleteDeal,
     deleteProduct,
   };
 };

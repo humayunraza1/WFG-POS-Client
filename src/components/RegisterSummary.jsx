@@ -14,6 +14,7 @@ import {
   CreditCard,
   Loader2
 } from 'lucide-react';
+import { getPaymentTypeLabel } from '@/utils/paymentType';
 
 const RegisterSummary = ({ summary, loading, selectedSessionId }) => {
   //console.log('Rendering RegisterSummary', summary);
@@ -66,10 +67,16 @@ const RegisterSummary = ({ summary, loading, selectedSessionId }) => {
       description: `Expected: ${formatCurrency(summary.expectedCash)}`
     },
     {
-      title: 'Online Received',
+      title: 'Digital Received',
       value: formatCurrency(summary.onlineRecvd),
-      icon: CreditCard,
+      icon: Wallet,
       description: `Expected: ${formatCurrency(summary.expectedOnline)}`
+    },
+    {
+      title: 'Card Received',
+      value: formatCurrency(summary.cardRecvd),
+      icon: CreditCard,
+      description: `Expected: ${formatCurrency(summary.expectedCard)}`
     },
     {
       title: 'Total Expenses',
@@ -181,7 +188,7 @@ const RegisterSummary = ({ summary, loading, selectedSessionId }) => {
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className="text-xs">
-                              {order.paymentType}
+                              {getPaymentTypeLabel(order.paymentType)}
                             </Badge>
                             <Badge 
                               variant={order.paymentStatus === 'paid' ? 'default' : 'destructive'}

@@ -14,6 +14,8 @@ import useRegister from '@/hooks/useRegister';
 import DateRangeFilter from '../Summary/DateFilter';
 import RegisterSessionsTable from '../Summary/RegisterSessionTable';
 import SessionDetailDrawer from '../Summary/SessionDetailDrawer';
+import PartnershipSessionReport from '../Summary/PartnershipSessionReport';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {getManagerBadgeStyle} from '@/utils/managerColors'
 import useManager from '../../hooks/userManager';
 const SummaryView = () => {
@@ -171,11 +173,24 @@ const SummaryView = () => {
               )}
             </div>
           )}
-          
-          <RegisterSessionsTable 
-            sessions={sessions}
-            onViewSession={handleViewSession}
-          />
+
+          <Tabs defaultValue="sessions" className="w-full">
+            <TabsList>
+              <TabsTrigger value="sessions">Sessions</TabsTrigger>
+              <TabsTrigger value="partnership">Partnership</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="sessions" className="pt-4">
+              <RegisterSessionsTable 
+                sessions={sessions}
+                onViewSession={handleViewSession}
+              />
+            </TabsContent>
+
+            <TabsContent value="partnership" className="pt-4">
+              <PartnershipSessionReport sessions={sessions} />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 

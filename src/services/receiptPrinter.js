@@ -9,6 +9,40 @@ class ReceiptPrinter {
     this.topMargin = 2; // Add top margin for logo protection
   }
 
+  normalizeLabelValue(value) {
+    return String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  }
+
+  buildReceiptItemLabel(item) {
+    const isDealLine = Boolean(item?.dealName);
+
+    if (isDealLine) {
+      return {
+        title: item.dealName,
+        subtitle: item.dealSelectionLabel || item.optionName || item.product?.name || '',
+      };
+    }
+
+    const categoryName = item.category?.name || item.categoryName || '';
+    const productName = String(item.product?.name || '').trim();
+    const optionName = String(item.optionName || '').trim();
+    const normalizedProductName = this.normalizeLabelValue(productName);
+    const normalizedOptionName = this.normalizeLabelValue(optionName);
+
+    let itemLabel = productName || optionName || 'Item';
+
+    if (productName && optionName) {
+      itemLabel = normalizedOptionName === normalizedProductName || normalizedOptionName.includes(normalizedProductName)
+        ? optionName
+        : `${productName} - ${optionName}`;
+    }
+
+    return {
+      title: categoryName ? `${categoryName} - ${itemLabel}` : itemLabel,
+      subtitle: '',
+    };
+  }
+
   // Center text within the printer width with margin consideration
   centerText(text) {
     const availableWidth = this.printerWidth - (this.leftMargin * 2);
@@ -102,9 +136,20 @@ generateRestaurantCopy(order) {
   lines.push('');
   lines.push(this.addMargin(`Gross:${' '.repeat(22)}PKR ${subtotal.toFixed(0).padStart(3)}`));
   lines.push(this.addMargin(`Disc:${' '.repeat(23)}PKR ${discountAmount.toFixed(0).padStart(3)}`));
+  if (order.tax && order.tax > 0) {
+    const taxPct = Math.round((order.taxRate || 0) * 100);
+    const taxLabel = `Tax (${taxPct}%):`;
+    const taxPad = 28 - taxLabel.length;
+    lines.push(this.addMargin(`${taxLabel}${' '.repeat(Math.max(1, taxPad))}PKR ${order.tax.toFixed(0).padStart(3)}`));
+  }
   lines.push('');
   lines.push(this.createSingleLine());
   lines.push(this.addMargin(`Total:${' '.repeat(22)}PKR ${order.finalPrice.toFixed(0).padStart(3)}`));
+
+  // Compact branding + support contact
+  lines.push('');
+  lines.push(this.centerText('by AzzysPOS'));
+  lines.push(this.centerText('WA: +923253508242'));
 
   // Add some spacing at the end to prevent cut-off
   lines.push('');
@@ -480,6 +525,35 @@ async printBothReceipts(order) {
 
 formatItemsTable(order) {
   const lines = [];
+  const descWidth = 25; // Reduced for NCR 7197
+  const qtyWidth = 1;
+  const priceWidth = 10;
+
+  const wrapText = (text, width) => {
+    const safeText = String(text || '').trim();
+    if (!safeText) return [];
+
+    const chunks = [];
+    let remainingText = safeText;
+
+    while (remainingText.length > 0) {
+      if (remainingText.length <= width) {
+        chunks.push(remainingText);
+        break;
+      }
+
+      let breakPoint = width;
+      const spaceIndex = remainingText.lastIndexOf(' ', width);
+      if (spaceIndex > width - 10) {
+        breakPoint = spaceIndex;
+      }
+
+      chunks.push(remainingText.slice(0, breakPoint));
+      remainingText = remainingText.slice(breakPoint).trim();
+    }
+
+    return chunks;
+  };
 
   // Header with margin - adjusted for NCR 7197
   lines.push('');
@@ -488,39 +562,12 @@ formatItemsTable(order) {
 
   // Items
   order.items.forEach(item => {
-    const name = `${item.category.name} - ${item.product.name} - ${item.optionName}`;
+    const { title: name, subtitle } = this.buildReceiptItemLabel(item);
     const qty = item.quantity.toString();
     const price = `${item.totalPrice.toFixed(0)}/Rs`;
 
-    // Calculate proper spacing for NCR 7197
-    const descWidth = 25; // Reduced for NCR 7197
-    const qtyWidth = 1;
-    const priceWidth = 10;
-    
-    // Handle long descriptions by wrapping to next line
-    if (name.length > descWidth) {
-      // Split the name into chunks that fit the width
-      const nameChunks = [];
-      let remainingText = name;
-      
-      while (remainingText.length > 0) {
-        if (remainingText.length <= descWidth) {
-          nameChunks.push(remainingText);
-          break;
-        } else {
-          // Find the best place to break (prefer breaking at spaces)
-          let breakPoint = descWidth;
-          const spaceIndex = remainingText.lastIndexOf(' ', descWidth);
-          
-          if (spaceIndex > descWidth - 10) { // Only break at space if it's reasonably close
-            breakPoint = spaceIndex;
-          }
-          
-          nameChunks.push(remainingText.slice(0, breakPoint));
-          remainingText = remainingText.slice(breakPoint).trim();
-        }
-      }
-      
+    const nameChunks = wrapText(name, descWidth);
+    if (nameChunks.length > 0) {
       // First line with qty and price
       const firstChunk = nameChunks[0].padEnd(descWidth);
       const qtyPadded = qty.padStart(qtyWidth);
@@ -536,13 +583,14 @@ formatItemsTable(order) {
         const wrappedRow = `${wrappedChunk} ${emptyQty} ${emptyPrice}`;
         lines.push(this.addMargin(wrappedRow));
       }
-    } else {
-      // Normal case - name fits in one line
-      const desc = name.padEnd(descWidth);
-      const qtyPadded = qty.padStart(qtyWidth);
-      const pricePadded = price.padStart(priceWidth);
-      const row = `${desc} ${qtyPadded} ${pricePadded}`;
-      lines.push(this.addMargin(row));
+    }
+
+    if (subtitle) {
+      const subtitleChunks = wrapText(`  - ${subtitle}`, descWidth);
+      subtitleChunks.forEach((chunk) => {
+        const subtitleRow = `${chunk.padEnd(descWidth)} ${' '.repeat(qtyWidth)} ${' '.repeat(priceWidth)}`;
+        lines.push(this.addMargin(subtitleRow));
+      });
     }
   });
 
@@ -565,13 +613,13 @@ formatItemsTable(order) {
       
       return new Promise((resolve, reject) => {
         img.onload = () => {
-          // Set canvas size (NCR 7197 optimal: smaller logo)
-          canvas.width = 60; // Reduced size for NCR 7197
-          canvas.height = 60;
+          // Set canvas size (NCR 7197 optimized)
+          canvas.width = 80;
+          canvas.height = 80;
           
           // Draw and convert to monochrome bitmap
-          ctx.drawImage(img, 0, 0, 60, 60);
-          const imageData = ctx.getImageData(0, 0, 60, 60);
+          ctx.drawImage(img, 0, 0, 80, 80);
+          const imageData = ctx.getImageData(0, 0, 80, 80);
           const bitmap = this.convertToBitmap(imageData);
           resolve(bitmap);
         };
@@ -664,6 +712,12 @@ formatItemsTable(order) {
     lines.push('');
     lines.push(this.addMargin(`Gross:${' '.repeat(22)}PKR ${subtotal.toFixed(0).padStart(3)}`));
     lines.push(this.addMargin(`Disc:${' '.repeat(23)}PKR ${discountAmount.toFixed(0).padStart(3)}`));
+    if (order.tax && order.tax > 0) {
+      const taxPct = Math.round((order.taxRate || 0) * 100);
+      const taxLabel = `Tax (${taxPct}%):`;
+      const taxPad = 28 - taxLabel.length;
+      lines.push(this.addMargin(`${taxLabel}${' '.repeat(Math.max(1, taxPad))}PKR ${order.tax.toFixed(0).padStart(3)}`));
+    }
     lines.push('');
     lines.push(this.createSingleLine());
     lines.push(this.addMargin(`Total:${' '.repeat(22)}PKR ${order.finalPrice.toFixed(0).padStart(3)}`));
@@ -672,9 +726,10 @@ formatItemsTable(order) {
     lines.push('');
     lines.push(this.centerText('🙏 Thank you! 🙏'));
     lines.push(this.centerText('Visit again soon'));
-    // lines.push(this.centerText('@thewaffleguy'));
     lines.push('');
-    // lines.push(this.centerText('Made with ❤️ in Pakistan'));
+    lines.push(this.centerText('by AzzysPOS'));
+    lines.push(this.centerText('WA: +923253508242'));
+    lines.push('');
     lines.push('');
     lines.push('');
     lines.push('');

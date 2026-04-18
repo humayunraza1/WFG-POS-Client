@@ -8,17 +8,42 @@ import useProducts from '@/hooks/useProducts';
 import { toast } from 'sonner';
 import SingleProductPopup from './SingleProductPopup';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchBranches } from '@/features/branch/branchSlice';
 
 const BulkProductUploader = ({ onBack }) => {
+  const dispatch = useDispatch();
   const { categories, fetchCategories, bulkAddProducts,addCategory  } = useProducts();
-  const [newCategory, setNewCategory] = useState({ name: '', imageUrl: '' });
+  const { branches } = useSelector((state) => state.branch);
+  const [newCategory, setNewCategory] = useState({
+    name: '',
+    imageUrl: '',
+    assignedBranches: [],
+    isPartnership: false,
+    partnershipBusinessName: '',
+    partnershipSharePercent: '',
+  });
   const [selectedCategory, setSelectedCategory] = useState('');
   const [productsToAdd, setProductsToAdd] = useState([]);
   const [showAddPopup, setShowAddPopup] = useState(false);
 const [showDialog, setShowDialog] = useState(false);
   useEffect(() => {
     fetchCategories();
+    if (!branches.length) {
+      dispatch(fetchBranches());
+    }
   }, []);
+
+  const toggleAssignedBranch = (branchCode, checked) => {
+    setNewCategory((prev) => ({
+      ...prev,
+      assignedBranches: checked
+        ? [...prev.assignedBranches, branchCode]
+        : prev.assignedBranches.filter((code) => code !== branchCode),
+    }));
+  };
 
   const handleAddProduct = (newProduct) => {
     setProductsToAdd(prev => [...prev, newProduct]);
@@ -27,14 +52,26 @@ const [showDialog, setShowDialog] = useState(false);
 
     const handleCreateCategory = async () => {
     try {
-      const { name, imageUrl } = newCategory;
+      const { name, imageUrl, assignedBranches, isPartnership, partnershipBusinessName, partnershipSharePercent } = newCategory;
       //console.log(newCategory)
       if (!name || !imageUrl) return toast.error('Both fields required');
 
-      await addCategory({ name, imageUrl });
+      const normalizedSharePercent = Number(partnershipSharePercent || 0);
+      if (isPartnership && (Number.isNaN(normalizedSharePercent) || normalizedSharePercent < 0 || normalizedSharePercent > 100)) {
+        return toast.error('Partnership share percent must be between 0 and 100');
+      }
+
+      await addCategory({
+        name,
+        imageUrl,
+        assignedBranches,
+        isPartnership,
+        partnershipBusinessName: isPartnership ? partnershipBusinessName.trim() : '',
+        partnershipSharePercent: normalizedSharePercent,
+      });
       await fetchCategories();
       setShowDialog(false);
-      setNewCategory({ name: '', imageUrl: '' });
+      setNewCategory({ name: '', imageUrl: '', assignedBranches: [], isPartnership: false, partnershipBusinessName: '', partnershipSharePercent: '' });
       toast.success('Category added');
     } catch (err) {
       //console.log(err)
@@ -88,6 +125,62 @@ const [showDialog, setShowDialog] = useState(false);
           placeholder="https://example.com/image.png"
         />
       </div>
+      <div className="space-y-2 rounded-md border p-3">
+        <div>
+          <label className="text-sm font-medium">Branch Visibility</label>
+          <p className="text-xs text-muted-foreground">Leave all unchecked to show this category in every branch.</p>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {branches.map((branch) => (
+            <label key={branch._id} className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={newCategory.assignedBranches.includes(branch.branchCode)}
+                onCheckedChange={(checked) => toggleAssignedBranch(branch.branchCode, checked === true)}
+              />
+              <span>{branch.name} ({branch.branchCode})</span>
+            </label>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center justify-between rounded-md border p-3">
+        <div>
+          <label className="text-sm font-medium">Partnership Category</label>
+          <p className="text-xs text-muted-foreground">Use a partner share when these category items are sold.</p>
+        </div>
+        <Switch
+          checked={newCategory.isPartnership}
+          onCheckedChange={(checked) => setNewCategory((prev) => ({
+            ...prev,
+            isPartnership: checked,
+            partnershipBusinessName: checked ? prev.partnershipBusinessName : '',
+            partnershipSharePercent: checked ? prev.partnershipSharePercent : '',
+          }))}
+        />
+      </div>
+      {newCategory.isPartnership && (
+        <>
+          <div>
+            <label className="text-sm font-medium">Partner Business Name</label>
+            <Input
+              value={newCategory.partnershipBusinessName}
+              onChange={e => setNewCategory({ ...newCategory, partnershipBusinessName: e.target.value })}
+              placeholder="e.g. Dough"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Our Share Percent</label>
+            <Input
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              value={newCategory.partnershipSharePercent}
+              onChange={e => setNewCategory({ ...newCategory, partnershipSharePercent: e.target.value })}
+              placeholder="e.g. 30 means we keep 30%"
+            />
+          </div>
+        </>
+      )}
       <Button onClick={handleCreateCategory}>Create Category</Button>
     </div>
   </DialogContent>

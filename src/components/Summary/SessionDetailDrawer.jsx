@@ -8,7 +8,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { DollarSign, ShoppingCart, Receipt, Wallet, User, CreditCard, Banknote, Trash2 } from 'lucide-react';
+import { DollarSign, ShoppingCart, Receipt, Wallet, User, CreditCard, Banknote, Trash2, Smartphone } from 'lucide-react';
 import { format } from 'date-fns';
 import SessionMetrics from './SessionMetrics';
 import SessionOrdersTable from './SessionOrdersTable';
@@ -157,7 +157,7 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
             </div>
 
             {/* Payment Breakdown Row */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
               {/* Cash Payments */}
               <Card className="text-center bg-orange-100 border-orange-300 text-orange-800">
                 <CardHeader className="pb-1">
@@ -187,12 +187,12 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
                 </CardContent>
               </Card>
 
-              {/* Online Payments */}
+              {/* Digital Payments */}
               <Card className="text-center bg-blue-100 border-blue-300 text-blue-800">
                 <CardHeader className="pb-1">
                   <CardTitle className="text-xs font-medium flex items-center justify-center gap-1 text-blue-700">
-                    <CreditCard className="h-3 w-3" />
-                    Online Expected
+                    <Smartphone className="h-3 w-3" />
+                    Digital Expected
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
@@ -205,13 +205,41 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
               <Card className="text-center bg-blue-50 border-blue-200">
                 <CardHeader className="pb-1">
                   <CardTitle className="text-xs font-medium flex items-center justify-center gap-1 text-blue-700">
-                    <CreditCard className="h-3 w-3" />
-                    Online Received
+                    <Smartphone className="h-3 w-3" />
+                    Digital Received
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
                   <div className="text-sm font-bold text-blue-700">
                     {formatCurrency(session.onlineRecvd)}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="text-center bg-violet-100 border-violet-300 text-violet-800">
+                <CardHeader className="pb-1">
+                  <CardTitle className="text-xs font-medium flex items-center justify-center gap-1 text-violet-700">
+                    <CreditCard className="h-3 w-3" />
+                    Card Expected
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="text-sm font-bold text-violet-700">
+                    {formatCurrency(session.expectedCard)}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="text-center bg-violet-50 border-violet-200">
+                <CardHeader className="pb-1">
+                  <CardTitle className="text-xs font-medium flex items-center justify-center gap-1 text-violet-700">
+                    <CreditCard className="h-3 w-3" />
+                    Card Received
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="text-sm font-bold text-violet-700">
+                    {formatCurrency(session.cardRecvd)}
                   </div>
                 </CardContent>
               </Card>
@@ -221,7 +249,8 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
           {/* Deleted Orders Summary */}
 {(session.deletedSales > 0 ||
   session.deletedCash > 0 ||
-  session.deletedOnline > 0) && (
+  session.deletedOnline > 0 ||
+  session.deletedCard > 0) && (
   <>
     <Separator className="my-4 sm:my-6" />
     <div>
@@ -230,7 +259,7 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
         Deleted Orders Summary
       </h3>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {/* Deleted Cash Orders */}
         <Card className="text-center bg-red-50 border-red-200">
           <CardHeader className="pb-1">
@@ -246,17 +275,31 @@ const SessionDetailDrawer = ({ session, isOpen, onClose }) => {
           </CardContent>
         </Card>
 
-        {/* Deleted Online Orders */}
+        {/* Deleted Digital Orders */}
         <Card className="text-center bg-red-50 border-red-200">
           <CardHeader className="pb-1">
             <CardTitle className="text-xs font-medium flex items-center justify-center gap-1 text-red-700">
-              <CreditCard className="h-3 w-3" />
-              Deleted Online
+              <Smartphone className="h-3 w-3" />
+              Deleted Digital
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-sm font-bold text-red-700">
               {formatCurrency(session.deletedOnline)}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="text-center bg-red-50 border-red-200">
+          <CardHeader className="pb-1">
+            <CardTitle className="text-xs font-medium flex items-center justify-center gap-1 text-red-700">
+              <CreditCard className="h-3 w-3" />
+              Deleted Card
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="text-sm font-bold text-red-700">
+              {formatCurrency(session.deletedCard)}
             </div>
           </CardContent>
         </Card>

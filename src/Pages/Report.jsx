@@ -220,7 +220,7 @@ const Report = () => {
 
         <Card className="min-h-32">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xs font-medium">Online Payments</CardTitle>
+            <CardTitle className="text-xs font-medium">Digital Payments</CardTitle>
             <CreditCard className="h-3 w-3 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pb-2">
@@ -304,7 +304,7 @@ const Report = () => {
                       <span className="font-medium">{formatCurrency(stats.cashReceived)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Online Received:</span>
+                      <span className="text-sm text-muted-foreground">Digital Received:</span>
                       <span className="font-medium">{formatCurrency(stats.onlineReceived)}</span>
                     </div>
                     <div className="flex justify-between">
