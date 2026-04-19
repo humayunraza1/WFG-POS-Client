@@ -30,8 +30,22 @@ const getPartnershipItemLabel = (item) => {
     return selectionLabel ? `${item.dealName} - ${selectionLabel}` : item.dealName;
   }
 
-  const productName = item?.product?.name || 'Unknown Product';
-  return item?.optionName ? `${productName} - ${item.optionName}` : productName;
+  return item?.product?.name || item?.optionName || 'Unknown Product';
+};
+
+const getPartnershipBaseUnitPrice = (item) => {
+  const optionPrices = Array.isArray(item?.product?.options)
+    ? item.product.options
+        .map((option) => Number(option?.price))
+        .filter((price) => Number.isFinite(price) && price >= 0)
+    : [];
+
+  if (optionPrices.length > 0) {
+    return roundAmount(Math.min(...optionPrices));
+  }
+
+  const fallbackUnitPrice = Number(item?.unitPrice || 0);
+  return Number.isFinite(fallbackUnitPrice) && fallbackUnitPrice >= 0 ? roundAmount(fallbackUnitPrice) : 0;
 };
 
 const getOrderNumber = (orderId) => {
@@ -111,7 +125,7 @@ export const buildPartnershipSessionReport = (session) => {
     };
   }
 
-  const lineItems = [];
+  const lineItemMap = new Map();
   const itemSummaryMap = new Map();
   const partnershipOrderIds = new Set();
   const partnershipBusinessNames = new Set();
@@ -127,12 +141,18 @@ export const buildPartnershipSessionReport = (session) => {
       }
 
       const grossSales = roundAmount(item?.totalPrice || 0);
-      const retainedSales = roundAmount((grossSales * sharePercent) / 100);
-      const partnerPayout = roundAmount(grossSales - retainedSales);
       const quantity = Number(item?.quantity || 0);
-      const unitCost = quantity > 0 ? roundAmount(grossSales / quantity) : 0;
+      const unitCost = getPartnershipBaseUnitPrice(item);
+      const baseSales = roundAmount(unitCost * quantity);
+      const addOnAmount = roundAmount(Math.max(0, grossSales - baseSales));
+      const retainedSales = roundAmount((baseSales * sharePercent) / 100);
+      const partnerPayout = roundAmount(baseSales - retainedSales);
       const itemLabel = getPartnershipItemLabel(item);
-      const summaryKey = `${itemLabel}::${partnershipBusinessName || 'N/A'}::${sharePercent}`;
+      const productIdentifier = item?.dealName
+        ? `${item.dealName}::${item.dealSelectionLabel || item.optionName || ''}`
+        : String(item?.product?._id || itemLabel);
+      const summaryKey = `${productIdentifier}::${partnershipBusinessName || 'N/A'}::${sharePercent}`;
+      const lineKey = `${String(orderId)}::${summaryKey}`;
 
       partnershipOrderIds.add(String(orderId));
       if (partnershipBusinessName) {
@@ -140,23 +160,36 @@ export const buildPartnershipSessionReport = (session) => {
       }
       sharePercents.add(sharePercent);
 
-      lineItems.push({
-        id: `${orderId}-${itemIndex}`,
-        orderId: String(orderId),
-        orderNumber: getOrderNumber(orderId),
-        orderedAt: order?.dateOrdered || order?.createdAt || null,
-        paymentType: order?.paymentType || 'N/A',
-        receiptTotal: roundAmount(order?.finalPrice || 0),
-        categoryName,
-        partnershipBusinessName,
-        itemLabel,
-        quantity,
-        unitCost,
-        grossSales,
-        sharePercent,
-        partnerPayout,
-        retainedSales,
-      });
+      if (!lineItemMap.has(lineKey)) {
+        lineItemMap.set(lineKey, {
+          id: `${orderId}-${itemIndex}`,
+          orderId: String(orderId),
+          orderNumber: getOrderNumber(orderId),
+          orderedAt: order?.dateOrdered || order?.createdAt || null,
+          paymentType: order?.paymentType || 'N/A',
+          receiptTotal: roundAmount(order?.finalPrice || 0),
+          categoryName,
+          partnershipBusinessName,
+          itemLabel,
+          quantity: 0,
+          unitCost,
+          actualSales: 0,
+          addOnAmount: 0,
+          grossSales: 0,
+          sharePercent,
+          partnerPayout: 0,
+          retainedSales: 0,
+        });
+      }
+
+      const existingLineItem = lineItemMap.get(lineKey);
+      existingLineItem.quantity += quantity;
+      existingLineItem.actualSales = roundAmount(existingLineItem.actualSales + grossSales);
+      existingLineItem.addOnAmount = roundAmount(existingLineItem.addOnAmount + addOnAmount);
+      existingLineItem.grossSales = roundAmount(existingLineItem.grossSales + baseSales);
+      existingLineItem.partnerPayout = roundAmount(existingLineItem.partnerPayout + partnerPayout);
+      existingLineItem.retainedSales = roundAmount(existingLineItem.retainedSales + retainedSales);
+      existingLineItem.unitCost = unitCost;
 
       if (!itemSummaryMap.has(summaryKey)) {
         itemSummaryMap.set(summaryKey, {
@@ -166,6 +199,8 @@ export const buildPartnershipSessionReport = (session) => {
           sharePercent,
           quantity: 0,
           unitCost: 0,
+          actualSales: 0,
+          addOnAmount: 0,
           grossSales: 0,
           partnerPayout: 0,
           retainedSales: 0,
@@ -174,16 +209,17 @@ export const buildPartnershipSessionReport = (session) => {
 
       const existingSummary = itemSummaryMap.get(summaryKey);
       existingSummary.quantity += quantity;
-      existingSummary.grossSales = roundAmount(existingSummary.grossSales + grossSales);
+      existingSummary.actualSales = roundAmount(existingSummary.actualSales + grossSales);
+      existingSummary.addOnAmount = roundAmount(existingSummary.addOnAmount + addOnAmount);
+      existingSummary.grossSales = roundAmount(existingSummary.grossSales + baseSales);
       existingSummary.partnerPayout = roundAmount(existingSummary.partnerPayout + partnerPayout);
       existingSummary.retainedSales = roundAmount(existingSummary.retainedSales + retainedSales);
-      existingSummary.unitCost = existingSummary.quantity > 0
-        ? roundAmount(existingSummary.grossSales / existingSummary.quantity)
-        : 0;
+      existingSummary.unitCost = unitCost;
     });
   });
 
   const itemSummaries = Array.from(itemSummaryMap.values()).sort((left, right) => right.grossSales - left.grossSales);
+  const lineItems = Array.from(lineItemMap.values());
   const orderedLineItems = lineItems.sort((left, right) => new Date(right.orderedAt || 0) - new Date(left.orderedAt || 0));
 
   const totals = orderedLineItems.reduce(
@@ -235,12 +271,12 @@ export const buildPartnershipSessionCsv = (session, report) => {
     ['Closed At', session?.closedAt ? new Date(session.closedAt).toLocaleString() : 'Open'],
     ['Partnership Orders', report.orderCount],
     ['Partnership Quantity', report.totalQuantity],
-    ['Gross Partnership Sales', report.grossSales],
+    ['Partnership Base Sales', report.grossSales],
     ['Our Share', report.retainedSales],
     ['Partner Payout', report.partnerPayout],
     [],
     ['Item Summary'],
-    ['Item', 'Category', 'Partner', 'Quantity', 'Unit Cost', 'Gross Sales', 'Our Share', 'Partner Payout'],
+    ['Item', 'Category', 'Partner', 'Quantity', 'Unit Cost', 'Base Sales', 'Our Share', 'Partner Payout'],
     ...report.itemSummaries.map((item) => [
       item.itemLabel,
       item.categoryName,
@@ -253,7 +289,7 @@ export const buildPartnershipSessionCsv = (session, report) => {
     ]),
     [],
     ['Partnership Order Lines'],
-    ['Ordered At', 'Order Number', 'Order ID', 'Payment Type', 'Receipt Total', 'Item', 'Category', 'Partner', 'Quantity', 'Unit Cost', 'Gross Sales', 'Our Share', 'Partner Payout'],
+    ['Ordered At', 'Order Number', 'Order ID', 'Payment Type', 'Receipt Total', 'Item', 'Category', 'Partner', 'Quantity', 'Unit Cost', 'Line Sales', 'Our Share', 'Partner Payout'],
     ...report.lineItems.map((lineItem) => [
       lineItem.orderedAt ? new Date(lineItem.orderedAt).toLocaleString() : 'N/A',
       lineItem.orderNumber,
@@ -355,7 +391,7 @@ export const downloadPartnershipSessionPdf = (session, report) => {
 
   const summaryRows = [
     ['Partnership Orders', String(report.orderCount), 'Partnership Quantity', String(report.totalQuantity)],
-    ['Gross Partnership Sales', formatPartnershipCurrency(report.grossSales), 'Share', getShareDisplay(report)],
+    ['Partnership Base Sales', formatPartnershipCurrency(report.grossSales), 'Share', getShareDisplay(report)],
     ['Final Take Away', formatPartnershipCurrency(report.retainedSales), 'Partner Payout', formatPartnershipCurrency(report.partnerPayout)],
     ['Order Lines', String(report.lineCount), 'Settlement Ref', getDocumentNumber(session)],
   ];
@@ -383,7 +419,7 @@ export const downloadPartnershipSessionPdf = (session, report) => {
     startY: itemStartY + 10,
     theme: 'striped',
     margin: { left: marginX, right: marginX },
-    head: [['Item', 'Category', 'Partner', 'Qty', 'Unit Cost', 'Gross Sales', 'Our Share', 'Partner Payout']],
+    head: [['Item', 'Category', 'Partner', 'Qty', 'Unit Cost', 'Base Sales', 'Our Share', 'Partner Payout']],
     body: report.itemSummaries.map((item) => [
       item.itemLabel,
       item.categoryName,

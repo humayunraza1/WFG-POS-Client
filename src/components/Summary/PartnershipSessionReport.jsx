@@ -147,7 +147,7 @@ const PartnershipSessionReport = ({ sessions }) => {
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <div className="text-sm text-muted-foreground">Gross Partnership Sales</div>
+                <div className="text-sm text-muted-foreground">Partnership Base Sales</div>
                 <div className="mt-2 text-2xl font-semibold">{formatPartnershipCurrency(report.grossSales)}</div>
               </CardContent>
             </Card>
@@ -186,7 +186,7 @@ const PartnershipSessionReport = ({ sessions }) => {
                             <TableHead className="w-[140px] whitespace-nowrap">Category</TableHead>
                             <TableHead className="w-[90px] whitespace-nowrap text-right">Share %</TableHead>
                             <TableHead className="w-[80px] whitespace-nowrap text-right">Qty</TableHead>
-                            <TableHead className="w-[140px] whitespace-nowrap text-right">Gross</TableHead>
+                            <TableHead className="w-[140px] whitespace-nowrap text-right">Base Sales</TableHead>
                             <TableHead className="w-[140px] whitespace-nowrap text-right">Our Share</TableHead>
                             <TableHead className="w-[160px] whitespace-nowrap text-right">Partner Payout</TableHead>
                           </TableRow>
@@ -194,7 +194,12 @@ const PartnershipSessionReport = ({ sessions }) => {
                         <TableBody>
                           {report.itemSummaries.map((item) => (
                             <TableRow key={`${item.itemLabel}-${item.sharePercent}`}>
-                              <TableCell className="whitespace-nowrap font-medium">{item.itemLabel}</TableCell>
+                              <TableCell className="font-medium">
+                                <div className="whitespace-nowrap">{item.itemLabel}</div>
+                                {item.addOnAmount > 0 && (
+                                  <div className="text-xs text-muted-foreground">Extras on us: {formatPartnershipCurrency(item.addOnAmount)}</div>
+                                )}
+                              </TableCell>
                               <TableCell className="whitespace-nowrap">{item.categoryName}</TableCell>
                               <TableCell className="whitespace-nowrap text-right">{item.sharePercent}%</TableCell>
                               <TableCell className="whitespace-nowrap text-right">{item.quantity}</TableCell>
@@ -239,7 +244,12 @@ const PartnershipSessionReport = ({ sessions }) => {
                             <TableRow key={lineItem.id}>
                               <TableCell className="whitespace-nowrap">{formatPartnershipDateTime(lineItem.orderedAt)}</TableCell>
                               <TableCell className="whitespace-nowrap font-mono text-xs font-semibold">{lineItem.orderNumber}</TableCell>
-                              <TableCell className="whitespace-nowrap font-medium">{`${lineItem.itemLabel} (${lineItem.categoryName}, Qty ${lineItem.quantity})`}</TableCell>
+                              <TableCell className="font-medium">
+                                <div className="whitespace-nowrap">{`${lineItem.itemLabel} (${lineItem.categoryName}, Qty ${lineItem.quantity})`}</div>
+                                {lineItem.addOnAmount > 0 && (
+                                  <div className="text-xs text-muted-foreground">Extras on us: {formatPartnershipCurrency(lineItem.addOnAmount)}</div>
+                                )}
+                              </TableCell>
                               <TableCell className="whitespace-nowrap capitalize">{lineItem.paymentType}</TableCell>
                               <TableCell className="whitespace-nowrap text-right">{formatPartnershipCurrency(lineItem.receiptTotal)}</TableCell>
                               <TableCell className="whitespace-nowrap text-right">{formatPartnershipCurrency(lineItem.grossSales)}</TableCell>
@@ -273,20 +283,20 @@ const PartnershipSessionReport = ({ sessions }) => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-3 py-2">
-            <Button variant="outline" className="h-auto w-full items-start justify-start gap-3 px-4 py-4 text-left" onClick={handleExportCsv}>
+          <div className="grid min-w-0 gap-3 py-2">
+            <Button variant="outline" className="h-auto min-w-0 w-full shrink basis-auto items-start justify-start gap-3 whitespace-normal px-4 py-4 text-left" onClick={handleExportCsv}>
               <FileSpreadsheet className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
               <span className="flex min-w-0 flex-1 flex-col items-start text-left">
                 <span className="block font-medium">CSV</span>
-                <span className="block text-xs text-muted-foreground">Spreadsheet-ready export with item and order-line breakdowns.</span>
+                <span className="block whitespace-normal text-xs text-muted-foreground">Spreadsheet-ready export with item and order-line breakdowns.</span>
               </span>
             </Button>
 
-            <Button variant="outline" className="h-auto w-full items-start justify-start gap-3 px-4 py-4 text-left" onClick={handleExportPdf}>
+            <Button variant="outline" className="h-auto min-w-0 w-full shrink basis-auto items-start justify-start gap-3 whitespace-normal px-4 py-4 text-left" onClick={handleExportPdf}>
               <FileText className="mt-0.5 h-5 w-5 shrink-0 text-sky-600" />
               <span className="flex min-w-0 flex-1 flex-col items-start text-left">
                 <span className="block font-medium">PDF</span>
-                <span className="block text-xs text-muted-foreground">Invoice-style settlement document with session summary, item totals, and order lines.</span>
+                <span className="block whitespace-normal text-xs text-muted-foreground">Invoice-style settlement document with session summary, item totals, and order lines.</span>
               </span>
             </Button>
           </div>
