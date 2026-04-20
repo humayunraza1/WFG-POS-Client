@@ -3,7 +3,7 @@ export const DIGITAL_PAYMENT_TYPES = ['online', 'card'];
 export const PAYMENT_TAX_RATES = {
   cash: 0,
   online: 0,
-  card: 0.08,
+  card: 0,
 };
 
 export const getTaxRate = (paymentType) =>
