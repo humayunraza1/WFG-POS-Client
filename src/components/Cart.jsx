@@ -10,11 +10,18 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ShoppingCart, CreditCard, Banknote, Smartphone } from 'lucide-react';
 import CartItem from './CartItem';
 import CheckoutDialog from './CheckoutDialog';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { getPaymentTypeLabel, getTaxRate, getTaxAmount, getTaxLabel } from '@/utils/paymentType';
 
@@ -26,10 +33,9 @@ const Cart = ({
   onRemoveItem, 
   onCheckout, 
   onClearCart,
-  discount = 0,
+  discount = { type: 'amount', value: 0 },
   setDiscount
 }) => {
-    
     const [paymentType, setPaymentType] = useState('cash');
     const [showPaymentMethodDialog, setShowPaymentMethodDialog] = useState(false);
     const {isLoading:isProcessingOrder} = useSelector((state)=>state.orders)
@@ -38,14 +44,26 @@ const Cart = ({
     const [serverData,setServerData] = useState([])
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const {businessPrefs} = useSelector((state)=>state.settings)
-    const discountAmount = discount;
+
+    const discountAmount = useMemo(() => {
+      if (discount.type === 'percentage') {
+        return (subtotal * discount.value) / 100;
+      } else {
+        return discount.value;
+      }
+    }, [discount, subtotal]);
+
     const afterDiscount = subtotal - discountAmount;
     const taxAmount = getTaxAmount(afterDiscount, paymentType);
     const total = afterDiscount + taxAmount;
 
     const handleDiscountChange = (e) => {
-        const {value} = e.target;
-        setDiscount(value);
+        const value = parseFloat(e.target.value);
+        setDiscount(prev => ({ ...prev, value: isNaN(value) ? 0 : value }));
+    };
+
+    const handleDiscountTypeChange = (type) => {
+      setDiscount(prev => ({ ...prev, type }));
     };
 
     const handleInitialCheckout = () => {
@@ -155,6 +173,8 @@ const Cart = ({
         const orderData = {
             items: transformedItems,
             discount: discountAmount,
+            discountType: discount.type,
+            discountValue: discount.value,
             paymentType,
             actualPrice,
             tax: taxAmount,
@@ -235,26 +255,33 @@ const Cart = ({
                                     <Separator />
 
                                     {/* Discount Section */}
-                                    <div className="space-y-2 sm:space-y-3">
-                                        <Label htmlFor="discount" className="text-sm sm:text-base font-medium">
-                                            Discount (Rs)
-                                        </Label>
-                                        <Input
-                                            id="discount"
-                                            type="number"
-                                            min="0"
-                                            max={subtotal}
-                                            value={discount}
-                                            onChange={handleDiscountChange}
-                                            className="w-full h-10 sm:h-11 text-sm sm:text-base"
-                                            placeholder="Enter discount amount"
-                                        />
-                                        {discount > subtotal && (
-                                            <Label htmlFor="error" className='text-red-400 text-xs sm:text-sm'>
-                                                Max discount cannot exceed order value.
-                                            </Label>
-                                        )}
+                                    <div className="flex items-end gap-2 w-full">
+                                        <div className="grid gap-1.5 w-full">
+                                            <Label htmlFor="discount">Discount</Label>
+                                            <Input
+                                                id="discount"
+                                                type="number"
+                                                placeholder="0"
+                                                value={discount.value}
+                                                onChange={handleDiscountChange}
+                                                className="w-full"
+                                            />
+                                        </div>
+                                        <Select onValueChange={handleDiscountTypeChange} value={discount.type}>
+                                            <SelectTrigger className="w-[120px]">
+                                                <SelectValue placeholder="Type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="amount">Amount</SelectItem>
+                                                <SelectItem value="percentage">Percentage</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
+                                    {discount.type === 'amount' && discount.value > subtotal && (
+                                        <Label htmlFor="error" className='text-red-400 text-xs sm:text-sm mt-2'>
+                                            Max discount cannot exceed order value.
+                                        </Label>
+                                    )}
                                     
                                                                         {/* Payment Method Section */}
                                     <div className="space-y-2 sm:space-y-3">
@@ -278,9 +305,21 @@ const Cart = ({
                                             <span>Subtotal:</span>
                                             <span className="font-medium">PKR {subtotal.toLocaleString()}</span>
                                         </div>
-                                        {discount > 0 && (
+                                        {discountAmount > 0 && (
                                             <div className="flex justify-between text-sm sm:text-base text-green-600">
-                                                <span>Discount ({((discount/subtotal)*100).toFixed(1)}%):</span>
+                                                <span>
+                                                    Discount{' '}
+                                                    {subtotal > 0 && (
+                                                        <span className="ml-1 text-xs text-muted-foreground">
+                                                            (
+                                                            {discount.type === 'percentage'
+                                                                ? `${discount.value}%`
+                                                                : `${((discountAmount / subtotal) * 100).toFixed(1)}%`}
+                                                            )
+                                                        </span>
+                                                    )}
+                                                    :
+                                                </span>
                                                 <span className="font-medium">- PKR {discountAmount.toLocaleString()}</span>
                                             </div>
                                         )}
@@ -303,7 +342,7 @@ const Cart = ({
                                             className="w-full h-11 sm:h-12 text-sm sm:text-base" 
                                             size="lg"
                                             onClick={handleInitialCheckout}
-                                            disabled={isProcessingOrder || (discount > subtotal)}
+                                            disabled={isProcessingOrder || (discount.type === 'amount' && discount.value > subtotal)}
                                         >
                                             {isProcessingOrder ? (
                                                 <>

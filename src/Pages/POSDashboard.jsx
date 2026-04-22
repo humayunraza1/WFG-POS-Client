@@ -83,7 +83,7 @@ const POSDashboard = () => {
     const [isOpeningRegister, setIsOpeningRegister] = useState(false);
     const [isCategoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
 const [isTempOrdersOpen, setTempOrdersOpen] = useState(false);
-    const [discount, setDiscount] = useState(null);
+    const [discount, setDiscount] = useState({ type: 'amount', value: 0 });
     const {
       error: registerError,
       managers,
@@ -352,7 +352,7 @@ const handleFinalCashSubmit = async (finalCash) => {
         });
         
         setCartItems([]);
-        setDiscount(0);
+        setDiscount({ type: 'amount', value: 0 });
         setIsCartSheetOpen(false);
         // Daily stats will be refreshed automatically in useOrders hook
       } catch (error) {
