@@ -89,7 +89,7 @@ class ReceiptPrinter {
     if (isForBrowser) {
       // Return HTML img tag for browser preview with top margin
       return `<div style="text-align: center; margin-top: 10px; margin-bottom: -30px;">
-                <img src="./images/wfg-logo.png" 
+                <img src="./images/tml-logo.png" 
                      style="width: 100px; height: 100px; margin: 0 auto; display: block;" 
                      alt="The Munch Lab Logo" 
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
@@ -624,7 +624,7 @@ formatItemsTable(order) {
           resolve(bitmap);
         };
         img.onerror = () => reject(new Error('Could not load logo'));
-        img.src = './wfg-logo.png';
+        img.src = './tml-logo.png';
       });
     } catch (error) {
       console.warn('Logo loading failed, using ASCII fallback:', error);
