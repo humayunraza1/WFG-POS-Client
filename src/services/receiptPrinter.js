@@ -91,9 +91,9 @@ class ReceiptPrinter {
       return `<div style="text-align: center; margin-top: 10px; margin-bottom: -30px;">
                 <img src="./images/wfg-logo.png" 
                      style="width: 100px; height: 100px; margin: 0 auto; display: block;" 
-                     alt="The Waffle Guy Logo" 
+                     alt="The Munch Lab Logo" 
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
-                <div style="display: none; font-size: 14px; font-weight: bold; color: #FF1493;">🧇 The Waffle Guy 🧇</div>
+                <div style="display: none; font-size: 14px; font-weight: bold; color: #FF1493;">🧇 The Munch Lab 🧇</div>
               </div>`;
     } else {
       // For thermal printing, add top margin lines
@@ -109,7 +109,7 @@ generateRestaurantCopy(order) {
   lines.push(...Array(this.topMargin).fill(''));
   
   // Header - Make sure "Restaurant's Copy" is included
-  lines.push(this.centerText('The Waffle Guy'));
+  lines.push(this.centerText('The Munch Lab'));
   lines.push(this.centerText("Restaurant's Copy"));
   lines.push('');
   lines.push(this.createSolidLine());
@@ -169,7 +169,7 @@ generateRestaurantCopy(order) {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Restaurant Receipt - The Waffle Guy</title>
+        <title>Restaurant Receipt - The Munch Lab</title>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
 
@@ -344,7 +344,7 @@ async printBothReceipts(order) {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Receipt - The Waffle Guy</title>
+      <title>Receipt - The Munch Lab</title>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
 
@@ -685,7 +685,7 @@ formatItemsTable(order) {
     lines.push(...Array(this.topMargin).fill(''));
     
     // Logo and Header
-    lines.push(this.centerText('The Waffle Guy'));
+    lines.push(this.centerText('The Munch Lab'));
     lines.push(this.centerText('Receipt'));
     lines.push('');
     lines.push(this.createSolidLine());
@@ -836,7 +836,7 @@ formatItemsTable(order) {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Receipt - The Waffle Guy</title>
+        <title>Receipt - The Munch Lab</title>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&display=swap');
           
